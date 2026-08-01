@@ -1,7 +1,7 @@
 -- 00002_events_and_gallery.sql
 -- Event Forum (evf) + Gallery (glr)
 
-create type if not exists public.event_status as enum ('upcoming', 'ongoing', 'past');
+create type public.event_status as enum ('upcoming', 'ongoing', 'past');
 
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),

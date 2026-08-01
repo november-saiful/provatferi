@@ -28,8 +28,8 @@ create table if not exists public.budgets (
   updated_at timestamptz default now()
 );
 
-create type if not exists public.record_action as enum ('create', 'update', 'delete');
-create type if not exists public.record_table as enum ('expenses', 'budgets', 'notices', 'calendar_events', 'events');
+create type public.record_action as enum ('create', 'update', 'delete');
+create type public.record_table as enum ('expenses', 'budgets', 'notices', 'calendar_events', 'events');
 
 create table if not exists public.records_log (
   id uuid primary key default gen_random_uuid(),

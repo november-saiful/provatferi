@@ -1,7 +1,7 @@
 -- 00005_courses.sql
 -- Course Instructor Attendance (cia) — course_schedules + attendance
 
-create type if not exists public.course_type as enum ('violin', 'guitar', 'ukulele-western', 'ukulele-dotara', 'vocal', 'flute');
+create type public.course_type as enum ('violin', 'guitar', 'ukulele-western', 'ukulele-dotara', 'vocal', 'flute');
 
 create table if not exists public.course_schedules (
   id uuid primary key default gen_random_uuid(),

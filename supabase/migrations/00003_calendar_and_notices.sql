@@ -1,7 +1,7 @@
 -- 00003_calendar_and_notices.sql
 -- Calendar (cln) + Notice board (ntb)
 
-create type if not exists public.calendar_category as enum ('general', 'meeting', 'event', 'emergency', 'custom');
+create type public.calendar_category as enum ('general', 'meeting', 'event', 'emergency', 'custom');
 
 create table if not exists public.calendar_events (
   id uuid primary key default gen_random_uuid(),
