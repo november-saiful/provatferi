@@ -40,14 +40,14 @@ const LINKS = [
 
 const navLinkVariants = {
   hidden: { opacity: 0, y: -10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.15, ease: 'easeIn' } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.15, ease: 'easeIn' as const } }
 };
 
 const mobileLinkVariants = {
   hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.2, ease: 'easeOut' } },
-  exit: { opacity: 0, x: -20, transition: { duration: 0.15, ease: 'easeIn' } }
+  visible: { opacity: 1, x: 0, transition: { duration: 0.2, ease: 'easeOut' as const } },
+  exit: { opacity: 0, x: -20, transition: { duration: 0.15, ease: 'easeIn' as const } }
 };
 
 export function PublicNav() {
@@ -76,7 +76,7 @@ export function PublicNav() {
         <nav className="ml-6 hidden items-center gap-1 lg:flex">
           <AnimatePresence mode="wait">
             {LINKS.map((l, index) => (
-              <motion.Link
+              <motion.a
                 key={l.href}
                 href={l.href}
                 className={cn(
@@ -90,7 +90,7 @@ export function PublicNav() {
                 custom={index}
               >
                 {l.label}
-              </motion.Link>
+              </motion.a>
             ))}
           </AnimatePresence>
         </nav>
@@ -107,15 +107,15 @@ export function PublicNav() {
           </motion.button>
           {!loading &&
             (user ? (
-              <motion.link
+              <motion.a
                 href="/dashboard"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Avatar name={profile?.full_name} src={profile?.avatar_url} className="h-9 w-9" />
-              </motion.link>
+              </motion.a>
             ) : (
-              <motion.link
+              <motion.a
                 href="/login"
                 className="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
                 whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
@@ -123,7 +123,7 @@ export function PublicNav() {
               >
                 <LogIn className="h-4 w-4" />
                 Sign in
-              </motion.link>
+              </motion.a>
             ))}
           <motion.button
             onClick={() => setOpen(!open)}
@@ -148,14 +148,14 @@ export function PublicNav() {
             exit="exit"
             variants={{
               hidden: { opacity: 0, height: 0 },
-              visible: { opacity: 1, height: 'auto', transition: { duration: 0.3, ease: 'easeOut' } },
-              exit: { opacity: 0, height: 0, transition: { duration: 0.2, ease: 'easeIn' } }
+              visible: { opacity: 1, height: 'auto', transition: { duration: 0.3, ease: 'easeOut' as const } },
+              exit: { opacity: 0, height: 0, transition: { duration: 0.2, ease: 'easeIn' as const } }
             }}
           >
             <div className="flex flex-col gap-1">
               <AnimatePresence mode="wait">
                 {LINKS.map((l, index) => (
-                  <motion.link
+                  <motion.a
                     key={l.href}
                     href={l.href}
                     onClick={() => setOpen(false)}
@@ -167,7 +167,7 @@ export function PublicNav() {
                     custom={index}
                   >
                     {l.label}
-                  </motion.link>
+                  </motion.a>
                 ))}
               </AnimatePresence>
               <motion.a
@@ -196,7 +196,7 @@ export function PublicFooter() {
   return (
     <footer className="border-t border-border bg-card py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 text-center text-sm text-muted-foreground">
-        <motion.link
+        <motion.a
           href="/"
           className="flex items-center gap-2 font-medium text-foreground hover:opacity-80 transition-opacity"
           aria-label="Provatferi Home"
@@ -212,7 +212,7 @@ export function PublicFooter() {
             transition={{ duration: 0.5, delay: 0.2, ease: 'easeOut' }}
             whileHover={{ rotate: [0, 1, -1, 0] }}
           />
-        </motion.link>
+        </motion.a>
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -234,14 +234,14 @@ export function PublicFooter() {
           >
             <Phone className="h-3.5 w-3.5" /> Contact
           </motion.a>
-          <motion.link
+          <motion.a
             href="/contact"
             className="hover:text-foreground"
             whileHover={{ x: 2 }}
             whileTap={{ scale: 0.98 }}
           >
             Committee
-          </motion.link>
+          </motion.a>
         </motion.div>
       </div>
     </footer>

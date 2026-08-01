@@ -67,8 +67,6 @@ function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
     <motion.button
-      variant="ghost"
-      size="icon"
       aria-label="Toggle theme"
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       whileHover={{ scale: 1.1, rotate: 15 }}
@@ -94,7 +92,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   const sidebarVariants = {
     hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const } }
   };
 
   const itemVariants = {
@@ -102,7 +100,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     visible: (i: number) => ({
       opacity: 1,
       x: 0,
-      transition: { duration: 0.2, delay: i * 0.04, ease: 'easeOut' }
+      transition: { duration: 0.2, delay: i * 0.04, ease: 'easeOut' as const }
     })
   };
 
@@ -137,7 +135,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 : pathname?.startsWith(item.href);
             const Icon = item.icon;
             return (
-              <motion.link
+              <motion.a
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
@@ -160,7 +158,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                   <Icon className="h-4 w-4" />
                 </motion.span>
                 {item.label}
-              </motion.link>
+              </motion.a>
             );
           })}
         </AnimatePresence>
@@ -195,13 +193,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <motion.link
+            <motion.a
               href="/dashboard"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <Avatar name={profile?.full_name} src={profile?.avatar_url} className="h-9 w-9" />
-            </motion.link>
+            </motion.a>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
               <p className="truncate text-xs text-muted-foreground">
@@ -209,8 +207,6 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               </p>
             </div>
             <motion.button
-              variant="ghost"
-              size="icon"
               aria-label="Sign out"
               onClick={signOut}
               className="p-2 rounded-lg transition-colors hover:bg-accent"
@@ -221,7 +217,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </motion.button>
           </motion.div>
         ) : (
-          <motion.link
+          <motion.a
             href="/login"
             className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
             initial={{ opacity: 0, y: 20 }}
@@ -232,7 +228,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           >
             <LogIn className="h-4 w-4" />
             Sign in
-          </motion.link>
+          </motion.a>
         )}
       </motion.div>
     </motion.div>
