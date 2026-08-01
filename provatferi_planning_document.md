@@ -74,11 +74,39 @@ A centralized digital hub for **Provatferi** — managing events, finances, atte
 | `alm` | Alumni | Legacy | Former members. Read-only public access + commenting on events. |
 | `visitor` | Visitor / Public | External | Non-authenticated users. Read-only public modules. |
 
-### 2.2 Naming Convention
-- Single holders: `pr`, `vp`, `gs`, etc.
-- Multiple holders: `pr-01`, `pr-02`, `gs-01`, `gs-02`
-- Stored in `profiles.display_id` field
-- Login uses email + password (managed by Supabase Auth)
+### 2.2 Naming Convention — CRITICAL
+
+The `display_id` field in the `profiles` table **must** follow this strict format:
+
+```
+{lowercase_role_code}-{two_digit_number}
+```
+
+| Role | display_id Examples | full_name Example |
+|------|---------------------|-------------------|
+| President (`pr`) | `pr-01`, `pr-02` | "Rahim Khan" |
+| Vice President (`vp`) | `vp-01`, `vp-02` | "Karim Ahmed" |
+| General Secretary (`gs`) | `gs-01`, `gs-02` | "Sadia Islam" |
+| Joint General Secretary (`jgs`) | `jgs-01`, `jgs-02` | "Tanvir Hossain" |
+| Treasurer (`tr`) | `tr-01`, `tr-02` | "Nusrat Jahan" |
+| Office Secretary (`ofs`) | `ofs-01`, `ofs-02` | "Fahim Rahman" |
+| Organizing Secretary (`ors`) | `ors-01`, `ors-02` | "Priya Saha" |
+| Cultural Secretary (`cs`) | `cs-01`, `cs-02` | "Arif Hossain" |
+| Assistant Cultural Secretary (`acs`) | `acs-01`, `acs-02` | "Mina Akter" |
+| Publicity & Publication Secretary (`pps`) | `pps-01`, `pps-02` | "Sohan Ali" |
+| Public Relations Secretary (`prs`) | `prs-01`, `prs-02` | "Tania Begum" |
+| Record & Documentation Secretary (`rds`) | `rds-01`, `rds-02` | "Imran Hossain" |
+| Course Coordinator (`cc`) | `cc-01`, `cc-02` | "Riya Das" |
+| Alumni (`alm`) | `alm-01`, `alm-02` | "Former Member Name" |
+| Visitor (`visitor`) | `visitor-{random}` | "Self-registered User" |
+
+**Rules:**
+- ✅ `pr-01`, `pps-01`, `rds-02` — lowercase role code, hyphen, two digits
+- ❌ `PR One`, `PPS Two`, `President 1` — NEVER use title case, words, or single digits
+- ❌ `pr1`, `vp2` — NEVER omit the hyphen
+- ❌ `PR-01`, `PPS-01` — NEVER use uppercase
+- The `full_name` field holds the actual person's real name. `display_id` is the system identifier.
+- Login uses email + password (managed by Supabase Auth), NOT the display_id.
 
 ### 2.3 Role Assignment Rules
 - Only `pr` and `vp` can assign/change roles.
@@ -551,6 +579,8 @@ A centralized digital hub for **Provatferi** — managing events, finances, atte
 | Profiles (as instructor) | CourseSchedules | One-to-Many |
 | CourseSchedules | Attendance | One-to-Many (16 entries max) |
 | Profiles (as creator) | All tables | One-to-Many (creator tracking) |
+
+**Note on Profiles:** The `display_id` field must strictly follow `{role_code}-{two_digit_number}` format (e.g., `pr-01`, `pps-01`). This is the user's system identifier, separate from their `full_name`.
 
 ### 5.3 Data Lifecycle
 
