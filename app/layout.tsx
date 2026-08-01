@@ -7,7 +7,12 @@ export const metadata: Metadata = {
     default: 'Provatferi',
     template: '%s · Provatferi'
   },
-  description: 'Provatferi club dashboard — events, finances, courses and community.'
+  description: 'Provatferi club dashboard — events, finances, courses and community.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/logo.png'
+  }
 };
 
 export const viewport: Viewport = {

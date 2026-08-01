@@ -7,7 +7,7 @@ export const COURSES: Record<
   violin: {
     label: 'Violin',
     short: 'VL',
-    color: '#6F4E37',
+    color: '#93452A',
     gradient: 'from-coffee-600 to-coffee-400'
   },
   guitar: {
@@ -56,7 +56,7 @@ export const CALENDAR_CATEGORIES: Record<
   { label: string; color: string }
 > = {
   general: { label: 'General', color: '#8D6E63' },
-  meeting: { label: 'Meeting', color: '#6F4E37' },
+  meeting: { label: 'Meeting', color: '#93452A' },
   event: { label: 'Event / Program', color: '#4E7C5C' },
   emergency: { label: 'Emergency', color: '#C62828' },
   custom: { label: 'Custom', color: '#D4A017' }

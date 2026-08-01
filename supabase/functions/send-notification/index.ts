@@ -64,13 +64,13 @@ Deno.serve(async (req) => {
       subject: `Your ${tableName} record was ${action}`,
       html: `
         <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e5d0bc; border-radius: 12px;">
-          <h2 style="color: #6F4E37; margin-top: 0;">Provatferi</h2>
+          <h2 style="color: #93452A; margin-top: 0;">Provatferi</h2>
           <p>Hello${profile?.full_name ? ' ' + profile.full_name : ''},</p>
           <p>Your <strong>${tableName}</strong> record was <strong>${action}</strong>.</p>
           <p style="color: #6b6b6b; font-size: 14px;">${
             logEntry.modified_by ? `Modified by user id: ${logEntry.modified_by}` : ''
           }</p>
-          <a href="${siteUrl}/dashboard/rcd" style="display: inline-block; margin-top: 12px; padding: 10px 18px; background: #6F4E37; color: #fff; border-radius: 8px; text-decoration: none;">View changes</a>
+          <a href="${siteUrl}/dashboard/rcd" style="display: inline-block; margin-top: 12px; padding: 10px 18px; background: #93452A; color: #fff; border-radius: 8px; text-decoration: none;">View changes</a>
           <p style="color: #999; font-size: 12px; margin-top: 24px;">If you did not expect this change, please contact the committee.</p>
         </div>
       `

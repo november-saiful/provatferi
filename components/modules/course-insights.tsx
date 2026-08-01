@@ -131,7 +131,7 @@ export function CourseInsights() {
               <YAxis type="category" dataKey="name" width={110} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Completed" stackId="a" fill="#6F4E37" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="Completed" stackId="a" fill="#93452A" radius={[0, 4, 4, 0]} />
               <Bar dataKey="Remaining" stackId="a" fill="#E5D0BC" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>

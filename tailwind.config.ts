@@ -36,18 +36,18 @@ const config: Config = {
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         coffee: {
-          DEFAULT: '#6F4E37',
-          50: '#FBF7F3',
-          100: '#F3E9DE',
-          200: '#E5D0BC',
-          300: '#D2AF92',
-          400: '#BC8A66',
-          500: '#A0714E',
-          600: '#8A5E3E',
-          700: '#6F4E37',
-          800: '#553B29',
-          900: '#3C2A1D',
-          950: '#261A12'
+          DEFAULT: '#93452A',
+          50: '#fcf2ef',
+          100: '#f4ded7',
+          200: '#e9beaf',
+          300: '#db9780',
+          400: '#ce6f50',
+          500: '#b75434',
+          600: '#9f492d',
+          700: '#93452A',
+          800: '#773722',
+          900: '#582819',
+          950: '#3c1c11'
         },
         taupe: {
           DEFAULT: '#8D6E63',
@@ -113,8 +113,8 @@ const config: Config = {
         xl2: '1rem'
       },
       boxShadow: {
-        soft: '0 2px 12px rgba(63,42,29,0.06)',
-        lift: '0 8px 24px rgba(63,42,29,0.12)'
+        soft: '0 2px 12px rgba(119,55,34,0.06)',
+        lift: '0 8px 24px rgba(119,55,34,0.12)'
       },
       fontFamily: {
         sans: [
