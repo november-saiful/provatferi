@@ -50,9 +50,7 @@ export function PublicNav() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-coffee-600 text-white">
-            <Music className="h-5 w-5" />
-          </span>
+          <img src="/logo.png" alt="Provatferi" className="h-9 w-9 rounded-xl object-contain" />
           <span className="text-base font-bold">{SITE_NAME}</span>
         </Link>
 

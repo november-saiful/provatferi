@@ -25,7 +25,6 @@ import {
   Menu,
   X,
   UserCog,
-  Music,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
@@ -92,9 +91,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-5 py-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-coffee-600 text-white">
-          <Music className="h-5 w-5" />
-        </span>
+        <img src="/logo.png" alt="Provatferi" className="h-9 w-9 rounded-xl object-contain" />
         <div>
           <p className="text-sm font-bold leading-none">{SITE_NAME}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">Club Dashboard</p>
