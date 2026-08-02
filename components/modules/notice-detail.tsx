@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
   const router = useRouter();
@@ -33,22 +34,26 @@ export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <Button variant="ghost" onClick={() => router.push('/dashboard/ntb')}>
-        <ArrowLeft /> Back to notices
-      </Button>
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-2">
-            {notice.is_pinned && <Pin className="h-4 w-4 text-amber-500" />}
-            <h1 className="text-2xl font-bold">{notice.title}</h1>
-          </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {formatDateTime(notice.created_at)} · {notice.profiles?.full_name ?? 'Committee'}
-          </p>
-          <div className="mt-6 whitespace-pre-line text-foreground/90">{notice.content}</div>
-        </CardContent>
-      </Card>
-    </div>
+    <Stagger className="mx-auto max-w-3xl space-y-4">
+      <StaggerItem>
+        <Button variant="ghost" onClick={() => router.push('/dashboard/ntb')}>
+          <ArrowLeft /> Back to notices
+        </Button>
+      </StaggerItem>
+      <StaggerItem>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              {notice.is_pinned && <Pin className="h-4 w-4 text-amber-500" />}
+              <h1 className="text-2xl font-bold">{notice.title}</h1>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {formatDateTime(notice.created_at)} · {notice.profiles?.full_name ?? 'Committee'}
+            </p>
+            <div className="mt-6 whitespace-pre-line text-foreground/90">{notice.content}</div>
+          </CardContent>
+        </Card>
+      </StaggerItem>
+    </Stagger>
   );
 }

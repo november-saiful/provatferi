@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const schema = z.object({
   arrival_time: z.string().optional(),
@@ -89,8 +90,8 @@ export function AttendanceManage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-4">
+    <Stagger className="grid gap-6 lg:grid-cols-2">
+      <StaggerItem className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>Select course</CardTitle>
@@ -117,88 +118,91 @@ export function AttendanceManage() {
                 {Array.from({ length: total }, (_, i) => i + 1).map((day) => {
                   const rec = attendance?.find((a) => a.class_day === day);
                   return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => setSelectedDay(day)}
-                      className={cn(
-                        'flex h-12 items-center justify-center rounded-lg border text-sm font-medium transition-colors',
-                        selectedDay === day
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : rec
-                            ? rec.is_present
-                              ? 'border-sage-300 bg-sage-50 text-sage-700 dark:bg-sage-900/40 dark:text-sage-200'
-                              : 'border-warmred-300 bg-warmred-50 text-warmred-600 dark:bg-warmred-900/30 dark:text-warmred-300'
-                            : 'border-border text-muted-foreground hover:bg-muted'
-                      )}
-                    >
-                      {day}
-                      {rec && <span className="sr-only">{rec.is_present ? 'present' : 'absent'}</span>}
-                    </button>
+                    <StaggerItem key={day}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDay(day)}
+                        className={cn(
+                          'flex h-12 items-center justify-center rounded-lg border text-sm font-medium transition-colors',
+                          selectedDay === day
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : rec
+                              ? rec.is_present
+                                ? 'border-sage-300 bg-sage-50 text-sage-700 dark:bg-sage-900/40 dark:text-sage-200'
+                                : 'border-warmred-300 bg-warmred-50 text-warmred-600 dark:bg-warmred-900/30 dark:text-warmred-300'
+                              : 'border-border text-muted-foreground hover:bg-muted'
+                        )}
+                      >
+                        {day}
+                        {rec && <span className="sr-only">{rec.is_present ? 'present' : 'absent'}</span>}
+                      </button>
+                    </StaggerItem>
                   );
                 })}
               </div>
             </CardContent>
           </Card>
         )}
-      </div>
+      </StaggerItem>
 
       {courseId && selectedDay && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Day {selectedDay} — {existing ? 'Update attendance' : 'Record attendance'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="a-arrival">Arrival time</Label>
-                  <Input id="a-arrival" type="time" {...register('arrival_time')} />
+        <StaggerItem>
+          <Card>
+            <CardHeader>
+              <CardTitle>Day {selectedDay} — {existing ? 'Update attendance' : 'Record attendance'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="a-arrival">Arrival time</Label>
+                    <Input id="a-arrival" type="time" {...register('arrival_time')} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="a-exit">Exit time</Label>
+                    <Input id="a-exit" type="time" {...register('exit_time')} />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="a-exit">Exit time</Label>
-                  <Input id="a-exit" type="time" {...register('exit_time')} />
+                  <Label htmlFor="a-note">Note</Label>
+                  <Textarea id="a-note" rows={2} {...register('note')} placeholder="e.g. Late by 15 min, substitute instructor…" />
+                  {errors.note && <p className="text-xs text-warmred-500">{errors.note.message}</p>}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="a-note">Note</Label>
-                <Textarea id="a-note" rows={2} {...register('note')} placeholder="e.g. Late by 15 min, substitute instructor…" />
-                {errors.note && <p className="text-xs text-warmred-500">{errors.note.message}</p>}
-              </div>
-              <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2.5">
-                <Label htmlFor="a-present">Present</Label>
-                <Switch id="a-present" checked={present} onCheckedChange={setPresent} />
-              </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving…' : existing ? 'Update attendance' : 'Record attendance'}
-              </Button>
-            </form>
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                  <Label htmlFor="a-present">Present</Label>
+                  <Switch id="a-present" checked={present} onCheckedChange={setPresent} />
+                </div>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving…' : existing ? 'Update attendance' : 'Record attendance'}
+                </Button>
+              </form>
 
-            <div className="mt-6">
-              <h4 className="mb-2 text-sm font-semibold">All recorded days</h4>
-              <ul className="space-y-1">
-                {attendance
-                  ?.slice()
-                  .sort((a, b) => a.class_day - b.class_day)
-                  .map((a) => (
-                    <li key={a.id} className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm">
-                      <span className="w-14 font-medium">Day {a.class_day}</span>
-                      <span className={cn('font-medium', a.is_present ? 'text-sage-600' : 'text-warmred-500')}>
-                        {a.is_present ? 'Present' : 'Absent'}
-                      </span>
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        {a.arrival_time ? formatTime(a.arrival_time) : ''}
-                        {a.arrival_time && a.exit_time ? ' – ' : ''}
-                        {a.exit_time ? formatTime(a.exit_time) : ''}
-                        {a.note ? ` · ${a.note}` : ''}
-                      </span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="mt-6">
+                <h4 className="mb-2 text-sm font-semibold">All recorded days</h4>
+                <ul className="space-y-1">
+                  {attendance
+                    ?.slice()
+                    .sort((a, b) => a.class_day - b.class_day)
+                    .map((a) => (
+                      <li key={a.id} className="flex items-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm">
+                        <span className="w-14 font-medium">Day {a.class_day}</span>
+                        <span className={cn('font-medium', a.is_present ? 'text-sage-600' : 'text-warmred-500')}>
+                          {a.is_present ? 'Present' : 'Absent'}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {a.arrival_time ? formatTime(a.arrival_time) : ''}
+                          {a.arrival_time && a.exit_time ? ' – ' : ''}
+                          {a.exit_time ? formatTime(a.exit_time) : ''}
+                          {a.note ? ` · ${a.note}` : ''}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </StaggerItem>
       )}
-    </div>
+    </Stagger>
   );
 }

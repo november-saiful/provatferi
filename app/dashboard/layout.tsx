@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { ShieldX } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { useAuthStore } from '@/lib/auth-store';
@@ -13,19 +14,32 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-coffee-600 border-t-transparent" />
-      </div>
+      <motion.div
+        className="flex min-h-screen items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div
+          className="h-9 w-9 animate-spin rounded-full border-2 border-coffee-100 border-t-coffee-600 dark:border-coffee-900 dark:border-t-coffee-400"
+          style={{ animationDuration: '0.8s' }}
+        />
+      </motion.div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">
+      <motion.div
+        className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
         <ShieldX className="h-12 w-12 text-taupe-400" />
         <h1 className="text-xl font-semibold">Sign in to access the dashboard</h1>
         <Button onClick={() => router.push('/login')}>Go to sign in</Button>
-      </div>
+      </motion.div>
     );
   }
 

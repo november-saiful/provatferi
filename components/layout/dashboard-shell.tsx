@@ -65,20 +65,37 @@ const RECRUITMENT_URL =
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  if (!mounted) {
+    return <div className="h-9 w-9" />;
+  }
+  const isDark = theme === 'dark';
   return (
     <motion.button
       aria-label="Toggle theme"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      whileHover={{ scale: 1.1, rotate: 15 }}
-      whileTap={{ scale: 0.95 }}
-      className="p-2 rounded-lg transition-colors hover:bg-accent"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.92 }}
+      className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
     >
-      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={isDark ? 'sun' : 'moon'}
+          initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+          transition={{ duration: 0.18 }}
+          className="flex"
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </motion.span>
+      </AnimatePresence>
     </motion.button>
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => void; groupId?: string }) {
   const pathname = usePathname();
   const { user, profile, role, signOut } = useAuthStore();
 
@@ -127,7 +144,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </motion.div>
 
       <motion.nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           {visible.map((item, index) => {
             const active =
               item.href === '/dashboard'
@@ -140,8 +157,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                  'relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
                 )}
                 initial="hidden"
                 animate="visible"
@@ -151,13 +168,21 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                 whileHover={active ? {} : { x: 4 }}
                 whileTap={{ scale: 0.98 }}
               >
+                {active && (
+                  <motion.span
+                    layoutId={`nav-active-${groupId}`}
+                    className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  />
+                )}
                 <motion.span
                   animate={{ scale: active ? 1.1 : 1 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+                  className="relative z-10"
                 >
                   <Icon className="h-4 w-4" />
                 </motion.span>
-                {item.label}
+                <span className="relative z-10">{item.label}</span>
               </motion.a>
             );
           })}
@@ -242,7 +267,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-64 shrink-0 border-r border-border bg-card md:block">
-        <SidebarContent />
+        <SidebarContent groupId="desktop" />
       </aside>
 
       <AnimatePresence mode="wait">
@@ -272,20 +297,20 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               exit={{ x: -300 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
-              <SidebarContent onNavigate={() => setMobileOpen(false)} />
+              <SidebarContent onNavigate={() => setMobileOpen(false)} groupId="mobile" />
             </motion.aside>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
           <motion.button
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
-            className="md:hidden p-2 rounded-lg transition-colors hover:bg-accent"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:hidden"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
             animate={{ rotate: mobileOpen ? 90 : 0 }}
             transition={{ duration: 0.2 }}
           >

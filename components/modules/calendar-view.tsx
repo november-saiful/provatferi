@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog } from '@/components/ui/dialog';
 import { CalendarEventForm } from '@/components/forms/calendar-event-form';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales: { 'en-US': enUS } });
 
@@ -96,9 +97,9 @@ export function CalendarView() {
   };
 
   return (
-    <div className="space-y-4">
+    <Stagger className="space-y-4">
       {canEdit && (
-        <div className="flex justify-end">
+        <StaggerItem className="flex justify-end">
           <Button
             onClick={() => {
               setFormEvent(null);
@@ -108,10 +109,10 @@ export function CalendarView() {
           >
             <Plus /> Add event
           </Button>
-        </div>
+        </StaggerItem>
       )}
 
-      <div className="rounded-xl2 border border-border bg-card p-3">
+      <StaggerItem className="rounded-xl2 border border-border bg-card p-3">
         <RBCalendar
           localizer={localizer}
           events={rbcEvents}
@@ -127,16 +128,16 @@ export function CalendarView() {
           popup
           style={{ height: '70vh' }}
         />
-      </div>
+      </StaggerItem>
 
-      <div className="flex flex-wrap gap-2">
+      <StaggerItem className="flex flex-wrap gap-2">
         {(Object.keys(CALENDAR_CATEGORIES) as Array<keyof typeof CALENDAR_CATEGORIES>).map((k) => (
           <span key={k} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: CALENDAR_CATEGORIES[k].color }} />
             {CALENDAR_CATEGORIES[k].label}
           </span>
         ))}
-      </div>
+      </StaggerItem>
 
       {/* Read-only detail */}
       <Dialog open={!!detail} onClose={() => setDetail(null)} title={detail?.title}>
@@ -174,6 +175,6 @@ export function CalendarView() {
           setFormOpen(false);
         }}
       />
-    </div>
+    </Stagger>
   );
 }

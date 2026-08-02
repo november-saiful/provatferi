@@ -19,6 +19,7 @@ import { COURSES, COURSE_ORDER } from '@/lib/constants';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function CourseInsights() {
   const { data: schedules, isLoading } = useCourseSchedules();
@@ -88,9 +89,10 @@ export function CourseInsights() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+    <Stagger className="space-y-6">
+      <StaggerItem>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">Total classes held</p>
             <p className="mt-1 text-3xl font-bold">{totalHeld}</p>
@@ -116,7 +118,8 @@ export function CourseInsights() {
             {withData.length > 0 && <p className="text-xs text-muted-foreground">{worst.rate.toFixed(0)}%</p>}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </StaggerItem>
 
       <Card>
         <CardHeader>
@@ -162,6 +165,6 @@ export function CourseInsights() {
       {totalHeld === 0 && (
         <EmptyState title="No attendance data yet" description="Once the Course Coordinator records classes, charts will appear here." />
       )}
-    </div>
+    </Stagger>
   );
 }

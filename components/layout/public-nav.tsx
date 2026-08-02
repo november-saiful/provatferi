@@ -54,8 +54,11 @@ export function PublicNav() {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
   const { user, profile, loading } = useAuthStore();
   const recruitment = process.env.NEXT_PUBLIC_RECRUITMENT_URL ?? 'https://example.com/recruitment';
+  const isDark = mounted && theme === 'dark';
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
@@ -74,36 +77,57 @@ export function PublicNav() {
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 lg:flex">
-          <AnimatePresence mode="wait">
-            {LINKS.map((l, index) => (
+          {LINKS.map((l) => {
+            const active = pathname === l.href;
+            return (
               <motion.a
                 key={l.href}
                 href={l.href}
                 className={cn(
-                  'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  pathname === l.href ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                  'relative rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
                 )}
                 initial="hidden"
                 animate="visible"
-                exit="exit"
                 variants={navLinkVariants}
-                custom={index}
+                whileHover={active ? {} : { y: -1 }}
+                whileTap={{ scale: 0.97 }}
               >
-                {l.label}
+                {active && (
+                  <motion.span
+                    layoutId="public-nav-active"
+                    className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{l.label}</span>
               </motion.a>
-            ))}
-          </AnimatePresence>
+            );
+          })}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
           <motion.button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
             aria-label="Toggle theme"
-            className="p-2 rounded-lg transition-colors hover:bg-accent"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
           >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <AnimatePresence mode="wait" initial={false}>
+              {mounted && (
+                <motion.span
+                  key={isDark ? 'sun' : 'moon'}
+                  initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                  transition={{ duration: 0.18 }}
+                  className="flex"
+                >
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </motion.button>
           {!loading &&
             (user ? (

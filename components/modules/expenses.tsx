@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ExpenseForm } from '@/components/forms/expense-form';
 import { Dialog } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Expenses() {
   const qc = useQueryClient();
@@ -54,8 +55,8 @@ export function Expenses() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
+    <Stagger className="space-y-5">
+      <StaggerItem className="flex flex-wrap items-center gap-3">
         <Select value={category} onChange={(e) => setCategory(e.target.value)} className="w-48">
           <option value="">All categories</option>
           {EXPENSE_CATEGORIES.map((c) => (
@@ -77,7 +78,7 @@ export function Expenses() {
             </Button>
           )}
         </div>
-      </div>
+      </StaggerItem>
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
@@ -86,7 +87,8 @@ export function Expenses() {
       )}
 
       {filtered.length > 0 && (
-        <Table>
+        <StaggerItem>
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
@@ -135,6 +137,7 @@ export function Expenses() {
             ))}
           </TableBody>
         </Table>
+        </StaggerItem>
       )}
 
       <ExpenseForm
@@ -153,6 +156,6 @@ export function Expenses() {
           <img src={storageUrl(receipt)} alt="Receipt" className="w-full rounded-lg" />
         )}
       </Dialog>
-    </div>
+    </Stagger>
   );
 }

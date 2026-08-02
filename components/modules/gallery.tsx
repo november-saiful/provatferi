@@ -18,6 +18,7 @@ import { Select } from '@/components/ui/select';
 import { Dialog } from '@/components/ui/dialog';
 import { GalleryUpload } from '@/components/forms/gallery-upload';
 import type { GalleryItem } from '@/lib/types';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Gallery() {
   const qc = useQueryClient();
@@ -52,24 +53,26 @@ export function Gallery() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Select
-          value={eventFilter}
-          onChange={(e) => setEventFilter(e.target.value)}
-          className="w-56"
-        >
-          <option value="">All events</option>
-          {events?.map((ev) => (
-            <option key={ev.id} value={ev.id}>{ev.title}</option>
-          ))}
-        </Select>
-        {canUpload && (
-          <Button onClick={() => setShowUpload(true)}>
-            <Plus /> Upload photos
-          </Button>
-        )}
-      </div>
+    <Stagger className="space-y-5">
+      <StaggerItem>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={eventFilter}
+            onChange={(e) => setEventFilter(e.target.value)}
+            className="w-56"
+          >
+            <option value="">All events</option>
+            {events?.map((ev) => (
+              <option key={ev.id} value={ev.id}>{ev.title}</option>
+            ))}
+          </Select>
+          {canUpload && (
+            <Button onClick={() => setShowUpload(true)}>
+              <Plus /> Upload photos
+            </Button>
+          )}
+        </div>
+      </StaggerItem>
 
       {isLoading && (
         <div className="columns-2 gap-3 md:columns-3 lg:columns-4">
@@ -88,31 +91,33 @@ export function Gallery() {
 
       <div className="columns-2 gap-3 md:columns-3 lg:columns-4">
         {filtered.map((item) => (
-          <div key={item.id} className="group relative mb-3 break-inside-avoid overflow-hidden rounded-lg">
-            <button type="button" className="block w-full" onClick={() => setLightbox(item)}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={storageThumb(item.image_url, 640)}
-                alt={item.title ?? 'gallery image'}
-                className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
-              {item.title && (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
-                  {item.title}
-                </div>
-              )}
-            </button>
-            {(canWrite(role, 'glr') || user?.id === item.uploaded_by) && (
-              <button
-                className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-warmred-600 group-hover:opacity-100"
-                onClick={() => handleDelete(item)}
-                aria-label="Delete image"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
+          <StaggerItem key={item.id}>
+            <div className="group relative mb-3 break-inside-avoid overflow-hidden rounded-lg">
+              <button type="button" className="block w-full" onClick={() => setLightbox(item)}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={storageThumb(item.image_url, 640)}
+                  alt={item.title ?? 'gallery image'}
+                  className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                />
+                {item.title && (
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {item.title}
+                  </div>
+                )}
               </button>
-            )}
-          </div>
+              {(canWrite(role, 'glr') || user?.id === item.uploaded_by) && (
+                <button
+                  className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-warmred-600 group-hover:opacity-100"
+                  onClick={() => handleDelete(item)}
+                  aria-label="Delete image"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </StaggerItem>
         ))}
       </div>
 
@@ -137,6 +142,6 @@ export function Gallery() {
           />
         </div>
       )}
-    </div>
+    </Stagger>
   );
 }

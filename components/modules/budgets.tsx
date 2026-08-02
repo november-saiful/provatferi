@@ -17,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BudgetForm } from '@/components/forms/budget-form';
 import { Badge } from '@/components/ui/badge';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Budgets() {
   const qc = useQueryClient();
@@ -42,8 +43,8 @@ export function Budgets() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex justify-end">
+    <Stagger className="space-y-5">
+      <StaggerItem className="flex justify-end">
         {canCreate && (
           <Button
             onClick={() => {
@@ -54,7 +55,7 @@ export function Budgets() {
             <Plus /> New budget
           </Button>
         )}
-      </div>
+      </StaggerItem>
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
@@ -63,7 +64,7 @@ export function Budgets() {
       )}
 
       {budgets && budgets.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <Stagger className="grid gap-4 md:grid-cols-2">
           {budgets.map((b) => {
             const allocated = Number(b.allocated_amount);
             const spent = Number(b.spent_amount);
@@ -72,7 +73,7 @@ export function Budgets() {
             const barColor =
               pct > 95 ? 'bg-warmred-500' : pct >= 75 ? 'bg-amber-500' : 'bg-sage-500';
             return (
-              <div key={b.id} className="rounded-xl2 border border-border bg-card p-5 shadow-soft">
+              <StaggerItem key={b.id} className="rounded-xl2 border border-border bg-card p-5 shadow-soft">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold">{b.project_name}</h3>
@@ -115,10 +116,10 @@ export function Budgets() {
                     </Button>
                   </div>
                 )}
-              </div>
+              </StaggerItem>
             );
           })}
-        </div>
+        </Stagger>
       )}
 
       <BudgetForm
@@ -130,6 +131,6 @@ export function Budgets() {
           qc.invalidateQueries({ queryKey: ['records'] });
         }}
       />
-    </div>
+    </Stagger>
   );
 }

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Courses() {
   const { data: schedules, isLoading } = useCourseSchedules();
@@ -28,7 +29,7 @@ export function Courses() {
   const scheduleByCourse = new Map((schedules ?? []).map((s) => [s.course, s]));
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {COURSE_ORDER.map((course) => {
         const schedule = scheduleByCourse.get(course);
         const meta = COURSES[course];
@@ -39,7 +40,8 @@ export function Courses() {
         const isExpanded = expanded === schedule?.id;
 
         return (
-          <Card key={course} className={cn('card-hover', isExpanded && 'sm:col-span-2 lg:col-span-1')}>
+          <StaggerItem key={course}>
+            <Card className={cn('card-hover', isExpanded && 'sm:col-span-2 lg:col-span-1')}>
             <CardHeader className="bg-gradient-to-br from-coffee-100 to-taupe-100 dark:from-coffee-900/40 dark:to-taupe-900/40">
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-card shadow-sm">
@@ -106,9 +108,10 @@ export function Courses() {
                 <p className="text-sm text-muted-foreground">No schedule yet for this course.</p>
               )}
             </CardContent>
-          </Card>
+            </Card>
+          </StaggerItem>
         );
       })}
-    </div>
+    </Stagger>
   );
 }

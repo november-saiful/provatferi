@@ -1,0 +1,1 @@
+Fix logo cropping, replace music icon with logo, add favicon support, add Framer Motion animations  

@@ -7,6 +7,7 @@ import { MODULE_READ, MODULE_WRITE, ROLE_NAMES } from '@/lib/permissions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const MODULES: { id: string; label: string }[] = [
   { id: 'evf', label: 'Events' },
@@ -36,12 +37,13 @@ export function AdminRoles() {
     .sort((a, b) => a.display_order - b.display_order);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
+    <Stagger className="space-y-4">
+      <StaggerItem className="text-sm text-muted-foreground">
         Read access is shown with 👁️, write access with ✏️. This view is informational — enforcement happens in
         Supabase Row Level Security policies.
-      </p>
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      </StaggerItem>
+      <StaggerItem>
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/50">
@@ -80,6 +82,7 @@ export function AdminRoles() {
           </tbody>
         </table>
       </div>
-    </div>
+      </StaggerItem>
+    </Stagger>
   );
 }

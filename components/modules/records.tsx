@@ -13,6 +13,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const ACTION_VARIANT: Record<string, 'warning' | 'destructive' | 'success'> = {
   update: 'warning',
@@ -87,8 +88,8 @@ export function Records() {
   }, [records, tableFilter, actionFilter, search]);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
+    <Stagger className="space-y-5">
+      <StaggerItem className="flex flex-wrap items-center gap-3">
         <Select value={tableFilter} onChange={(e) => setTableFilter(e.target.value)} className="w-44">
           <option value="">All tables</option>
           {Object.entries(TABLE_LABELS).map(([v, l]) => (
@@ -105,7 +106,7 @@ export function Records() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-      </div>
+      </StaggerItem>
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
@@ -114,38 +115,40 @@ export function Records() {
       )}
 
       {filtered.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date / time</TableHead>
-              <TableHead>Table</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Modified by</TableHead>
-              <TableHead>Original creator</TableHead>
-              <TableHead className="text-right">Changes</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.created_at)}</TableCell>
-                <TableCell>{TABLE_LABELS[r.table_name] ?? r.table_name}</TableCell>
-                <TableCell>
-                  <Badge variant={ACTION_VARIANT[r.action] ?? 'secondary'} className="capitalize">
-                    {r.action}
-                  </Badge>
-                </TableCell>
-                <TableCell>{r.modifier?.full_name ?? 'System'}</TableCell>
-                <TableCell>{r.creator?.full_name ?? '—'}</TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => setDetail(r)}>
-                    <Eye /> View
-                  </Button>
-                </TableCell>
+        <StaggerItem>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date / time</TableHead>
+                <TableHead>Table</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Modified by</TableHead>
+                <TableHead>Original creator</TableHead>
+                <TableHead className="text-right">Changes</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.created_at)}</TableCell>
+                  <TableCell>{TABLE_LABELS[r.table_name] ?? r.table_name}</TableCell>
+                  <TableCell>
+                    <Badge variant={ACTION_VARIANT[r.action] ?? 'secondary'} className="capitalize">
+                      {r.action}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{r.modifier?.full_name ?? 'System'}</TableCell>
+                  <TableCell>{r.creator?.full_name ?? '—'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => setDetail(r)}>
+                      <Eye /> View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </StaggerItem>
       )}
 
       <Dialog open={!!detail} onClose={() => setDetail(null)} title="Change details" className="max-w-2xl">
@@ -167,6 +170,6 @@ export function Records() {
           </div>
         )}
       </Dialog>
-    </div>
+    </Stagger>
   );
 }

@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { UserCog } from 'lucide-react';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function AdminUsers() {
   const qc = useQueryClient();
@@ -46,12 +47,13 @@ export function AdminUsers() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <Stagger className="space-y-4">
+      <StaggerItem className="flex items-center gap-2 text-sm text-muted-foreground">
         <UserCog className="h-4 w-4" />
         {profiles.length} registered profiles
-      </div>
-      <Table>
+      </StaggerItem>
+      <StaggerItem>
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead>User</TableHead>
@@ -98,7 +100,8 @@ export function AdminUsers() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
-    </div>
+        </Table>
+      </StaggerItem>
+    </Stagger>
   );
 }

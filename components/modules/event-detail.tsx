@@ -20,6 +20,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { CommentBox } from '@/components/forms/comment-box';
 import { EventForm } from '@/components/forms/event-form';
 import { useQueryClient } from '@tanstack/react-query';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function EventDetail({ eventId }: { eventId?: string | null }) {
   const router = useRouter();
@@ -75,8 +76,8 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <Stagger className="space-y-6">
+      <StaggerItem className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => router.push('/dashboard/evf')}>
           <ArrowLeft /> Back to events
         </Button>
@@ -90,96 +91,102 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
             </>
           )}
         </div>
-      </div>
+      </StaggerItem>
 
-      <Card className="overflow-hidden">
-        <div className="relative aspect-video w-full bg-muted sm:aspect-[21/9]">
-          {event.cover_image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={storageUrl(event.cover_image)} alt={event.title} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 to-taupe-300 text-3xl font-bold text-coffee-700">
-              {event.title}
+      <StaggerItem>
+        <Card className="overflow-hidden">
+          <div className="relative aspect-video w-full bg-muted sm:aspect-[21/9]">
+            {event.cover_image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={storageUrl(event.cover_image)} alt={event.title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 to-taupe-300 text-3xl font-bold text-coffee-700">
+                {event.title}
+              </div>
+            )}
+            <div className="absolute right-3 top-3">
+              <Badge variant={event.status === 'ongoing' ? 'success' : event.status === 'upcoming' ? 'coffee' : 'taupe'} className="capitalize">
+                {event.status}
+              </Badge>
             </div>
-          )}
-          <div className="absolute right-3 top-3">
-            <Badge variant={event.status === 'ongoing' ? 'success' : event.status === 'upcoming' ? 'coffee' : 'taupe'} className="capitalize">
-              {event.status}
-            </Badge>
           </div>
-        </div>
-        <CardContent className="p-5 md:p-6">
-          <h1 className="text-2xl font-bold md:text-3xl">{event.title}</h1>
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-            <span>📅 {formatDateTime(event.event_date)}</span>
-            {event.location && <span>📍 {event.location}</span>}
-            {event.profiles?.full_name && <span>Posted by {event.profiles.full_name}</span>}
-          </div>
-          {event.description && (
-            <p className="mt-4 whitespace-pre-line text-foreground/90">{event.description}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {eventGallery.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Gallery</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {eventGallery.map((g) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={g.id}
-                  src={storageThumb(g.image_url, 400)}
-                  alt={g.title ?? 'gallery image'}
-                  className="aspect-square w-full rounded-lg object-cover"
-                  loading="lazy"
-                />
-              ))}
+          <CardContent className="p-5 md:p-6">
+            <h1 className="text-2xl font-bold md:text-3xl">{event.title}</h1>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+              <span>📅 {formatDateTime(event.event_date)}</span>
+              {event.location && <span>📍 {event.location}</span>}
+              {event.profiles?.full_name && <span>Posted by {event.profiles.full_name}</span>}
             </div>
+            {event.description && (
+              <p className="mt-4 whitespace-pre-line text-foreground/90">{event.description}</p>
+            )}
           </CardContent>
         </Card>
+      </StaggerItem>
+
+      {eventGallery.length > 0 && (
+        <StaggerItem>
+          <Card>
+            <CardHeader>
+              <CardTitle>Gallery</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {eventGallery.map((g) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={g.id}
+                    src={storageThumb(g.image_url, 400)}
+                    alt={g.title ?? 'gallery image'}
+                    className="aspect-square w-full rounded-lg object-cover"
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </StaggerItem>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Comments ({comments?.length ?? 0})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <CommentBox eventId={event.id} />
-          {comments && comments.length === 0 && (
-            <p className="text-sm text-muted-foreground">No comments yet. Be the first to share your thoughts.</p>
-          )}
-          <ul className="space-y-4">
-            {comments?.map((c) => {
-              const canDelete = user?.id === c.user_id || canWrite(role, 'evf');
-              return (
-                <li key={c.id} className="flex gap-3 rounded-lg border border-border bg-muted/30 p-3">
-                  <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-8 w-8 text-xs" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{c.profiles?.full_name ?? 'Member'}</span>
-                      <span className="text-xs text-muted-foreground">{relativeTime(c.created_at)}</span>
-                      {canDelete && (
-                        <button
-                          className="ml-auto text-muted-foreground hover:text-warmred-500"
-                          onClick={() => handleDeleteComment(c)}
-                          aria-label="Delete comment"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+      <StaggerItem>
+        <Card>
+          <CardHeader>
+            <CardTitle>Comments ({comments?.length ?? 0})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CommentBox eventId={event.id} />
+            {comments && comments.length === 0 && (
+              <p className="text-sm text-muted-foreground">No comments yet. Be the first to share your thoughts.</p>
+            )}
+            <ul className="space-y-4">
+              {comments?.map((c) => {
+                const canDelete = user?.id === c.user_id || canWrite(role, 'evf');
+                return (
+                  <li key={c.id} className="flex gap-3 rounded-lg border border-border bg-muted/30 p-3">
+                    <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-8 w-8 text-xs" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{c.profiles?.full_name ?? 'Member'}</span>
+                        <span className="text-xs text-muted-foreground">{relativeTime(c.created_at)}</span>
+                        {canDelete && (
+                          <button
+                            className="ml-auto text-muted-foreground hover:text-warmred-500"
+                            onClick={() => handleDeleteComment(c)}
+                            aria-label="Delete comment"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-line text-sm">{c.content}</p>
                     </div>
-                    <p className="mt-1 whitespace-pre-line text-sm">{c.content}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </CardContent>
-      </Card>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      </StaggerItem>
 
       <EventForm
         open={editing}
@@ -187,6 +194,6 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
         event={event}
         onSaved={() => qc.invalidateQueries({ queryKey: ['events', event.id] })}
       />
-    </div>
+    </Stagger>
   );
 }

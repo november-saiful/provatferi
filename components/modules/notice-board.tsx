@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { NoticeForm } from '@/components/forms/notice-form';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 import type { Notice } from '@/lib/types';
 
 export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string }) {
@@ -63,8 +64,8 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
+    <Stagger className="space-y-5">
+      <StaggerItem className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search notices…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -79,7 +80,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
             <Plus /> New notice
           </Button>
         )}
-      </div>
+      </StaggerItem>
 
       {isLoading && (
         <div className="space-y-3">
@@ -93,12 +94,12 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
         <EmptyState title="No notices" description="There are no notices yet." />
       )}
 
-      <div className="space-y-3">
+      <StaggerItem className="space-y-3">
         {filtered.map((n) => (
-          <Card
-            key={n.id}
-            className={cn('card-hover cursor-pointer overflow-hidden', n.is_pinned && 'border-l-4 border-l-amber-400')}
-          >
+          <StaggerItem key={n.id}>
+            <Card
+              className={cn('card-hover cursor-pointer overflow-hidden', n.is_pinned && 'border-l-4 border-l-amber-400')}
+            >
             <CardContent className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <button type="button" className="flex-1 text-left" onClick={() => router.push(`${basePath}/item?id=${n.id}`)}>
@@ -135,9 +136,10 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
                 )}
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </StaggerItem>
         ))}
-      </div>
+      </StaggerItem>
 
       <NoticeForm
         open={formOpen}
@@ -145,6 +147,6 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
         notice={editing}
         onSaved={() => qc.invalidateQueries({ queryKey: ['notices'] })}
       />
-    </div>
+    </Stagger>
   );
 }

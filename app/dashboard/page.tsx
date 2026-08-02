@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useInView, useMotionValue, useSpring } from 'framer-motion';
 import {
   CalendarDays,
   Bell,
@@ -20,9 +21,38 @@ import { canRead } from '@/lib/permissions';
 import { ROLE_NAMES } from '@/lib/permissions';
 import { formatDate, formatMoney } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
+
+function CountUp({
+  value,
+  format = (n) => n.toLocaleString(),
+  className
+}: {
+  value: number;
+  format?: (n: number) => string;
+  className?: string;
+}) {
+  const ref = React.useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+  const spring = useSpring(useMotionValue(0), { stiffness: 90, damping: 24, mass: 0.6 });
+
+  React.useEffect(() => {
+    if (inView) spring.set(value);
+  }, [inView, value, spring]);
+
+  const [display, setDisplay] = React.useState(() => format(0));
+  React.useEffect(() => {
+    const unsub = spring.on('change', (v) => setDisplay(format(Math.round(v))));
+    return unsub;
+  }, [spring, format]);
+
+  return (
+    <span ref={ref} className={className}>
+      {display}
+    </span>
+  );
+}
 
 export default function DashboardHome() {
   const { profile, role } = useAuthStore();
@@ -41,109 +71,127 @@ export default function DashboardHome() {
   const classesHeld = attendance?.filter((a) => a.is_present).length ?? 0;
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl2 bg-gradient-to-br from-coffee-700 to-taupe-700 p-6 text-white">
+    <Stagger className="space-y-6" gap={8}>
+      <StaggerItem className="rounded-xl2 bg-gradient-to-br from-coffee-700 to-taupe-700 p-6 text-white shadow-lift">
         <p className="text-sm text-white/80">Welcome back,</p>
         <h1 className="text-2xl font-bold md:text-3xl">{profile?.full_name ?? 'Member'}</h1>
         <p className="mt-1 text-sm text-white/80">
           {role ? ROLE_NAMES[role] : ''}
           {profile?.display_id ? ` · ${profile.display_id}` : ''}
         </p>
-      </div>
+      </StaggerItem>
 
       {canRead(role, 'xpm') && expenses !== undefined && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Total expenses</p>
-              <p className="mt-1 text-2xl font-bold text-coffee-700">{formatMoney(totalSpent)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Active budgets</p>
-              <p className="mt-1 text-2xl font-bold">{(budgets ?? []).filter((b) => b.status === 'active').length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Upcoming events</p>
-              <p className="mt-1 text-2xl font-bold">{upcoming.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">Classes held</p>
-              <p className="mt-1 text-2xl font-bold text-sage-600">{classesHeld}/{schedules?.length ?? 6} courses</p>
-            </CardContent>
-          </Card>
+          {[
+            {
+              label: 'Total expenses',
+              node: <CountUp value={totalSpent} format={(n) => formatMoney(n)} className="mt-1 text-2xl font-bold text-coffee-700" />
+            },
+            {
+              label: 'Active budgets',
+              node: <CountUp value={(budgets ?? []).filter((b) => b.status === 'active').length} className="mt-1 text-2xl font-bold" />
+            },
+            {
+              label: 'Upcoming events',
+              node: <CountUp value={upcoming.length} className="mt-1 text-2xl font-bold" />
+            },
+            {
+              label: 'Classes held',
+              node: (
+                <p className="mt-1 text-2xl font-bold text-sage-600">
+                  <CountUp value={classesHeld} />
+                  <span className="text-base text-muted-foreground">/{schedules?.length ?? 6} courses</span>
+                </p>
+              )
+            }
+          ].map((s) => (
+            <StaggerItem key={s.label}>
+              <Card className="h-full">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground">{s.label}</p>
+                  {s.node}
+                </CardContent>
+              </Card>
+            </StaggerItem>
+          ))}
         </div>
       )}
 
-      <a
-        href={recruitmentUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="group flex items-center gap-4 rounded-xl2 bg-gradient-to-br from-coffee-600 to-taupe-600 p-5 text-white shadow-soft transition-all hover:shadow-lift"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
-          <ExternalLink className="h-6 w-6" />
-        </div>
-        <div className="flex-1">
-          <p className="font-semibold">Recruitment open</p>
-          <p className="text-sm text-white/80">Join the team — applications are being accepted.</p>
-        </div>
-        <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-      </a>
+      <StaggerItem>
+        <a
+          href={recruitmentUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-4 rounded-xl2 bg-gradient-to-br from-coffee-600 to-taupe-600 p-5 text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 transition-transform duration-300 group-hover:scale-110">
+            <ExternalLink className="h-6 w-6" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold">Recruitment open</p>
+            <p className="text-sm text-white/80">Join the team — applications are being accepted.</p>
+          </div>
+          <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+        </a>
+      </StaggerItem>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle>Upcoming events</CardTitle>
-            <Link href="/dashboard/evf" className="text-sm font-medium text-primary hover:underline">
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {upcoming.length === 0 && <p className="text-sm text-muted-foreground">No upcoming events.</p>}
-            {upcoming.map((e) => (
-              <Link key={e.id} href={`/dashboard/evf/item?id=${e.id}`} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 transition-colors hover:bg-muted">
-                <div className="flex items-center gap-3">
-                  <CalendarDays className="h-4 w-4 text-coffee-600" />
-                  <div>
-                    <p className="text-sm font-medium">{e.title}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(e.event_date)}</p>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle>Upcoming events</CardTitle>
+              <Link href="/dashboard/evf" className="text-sm font-medium text-primary hover:underline">
+                View all
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {upcoming.length === 0 && <p className="text-sm text-muted-foreground">No upcoming events.</p>}
+              {upcoming.map((e) => (
+                <Link key={e.id} href={`/dashboard/evf/item?id=${e.id}`} className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted hover:shadow-soft">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-coffee-100 text-coffee-700 transition-transform duration-200 group-hover:scale-110">
+                      <CalendarDays className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">{e.title}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(e.event_date)}</p>
+                    </div>
                   </div>
-                </div>
-                <Badge variant="coffee" className="capitalize">{e.status}</Badge>
-              </Link>
-            ))}
-          </CardContent>
-        </Card>
+                  <Badge variant="coffee" className="capitalize">{e.status}</Badge>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </StaggerItem>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle>Pinned notices</CardTitle>
-            <Link href="/dashboard/ntb" className="text-sm font-medium text-primary hover:underline">
-              Notice board
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {pinned.length === 0 && <p className="text-sm text-muted-foreground">No pinned notices.</p>}
-            {pinned.map((n) => (
-              <Link key={n.id} href={`/dashboard/ntb/item?id=${n.id}`} className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 transition-colors hover:bg-muted">
-                <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                <div>
-                  <p className="text-sm font-medium">{n.title}</p>
-                  <p className="text-xs text-muted-foreground">{formatDate(n.created_at)}</p>
-                </div>
+        <StaggerItem>
+          <Card>
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle>Pinned notices</CardTitle>
+              <Link href="/dashboard/ntb" className="text-sm font-medium text-primary hover:underline">
+                Notice board
               </Link>
-            ))}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {pinned.length === 0 && <p className="text-sm text-muted-foreground">No pinned notices.</p>}
+              {pinned.map((n) => (
+                <Link key={n.id} href={`/dashboard/ntb/item?id=${n.id}`} className="group flex items-start gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted hover:shadow-soft">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                    <Bell className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{n.title}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(n.created_at)}</p>
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </StaggerItem>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+      <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8" gap={6} y={10}>
         {[
           { href: '/dashboard/evf', label: 'Events', icon: CalendarDays, read: true },
           { href: '/dashboard/glr', label: 'Gallery', icon: CalendarDays, read: true },
@@ -160,13 +208,17 @@ export default function DashboardHome() {
           .map((item) => {
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 rounded-xl2 border border-border bg-card p-4 text-center shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift">
-                <Icon className="h-5 w-5 text-coffee-600" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </Link>
+              <StaggerItem key={item.href}>
+                <Link href={item.href} className="group flex flex-col items-center gap-2 rounded-xl2 border border-border bg-card p-4 text-center shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lift">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-coffee-50 text-coffee-600 transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-xs font-medium">{item.label}</span>
+                </Link>
+              </StaggerItem>
             );
           })}
-      </div>
-    </div>
+      </Stagger>
+    </Stagger>
   );
 }

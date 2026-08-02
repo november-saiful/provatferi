@@ -17,6 +17,7 @@ import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { SponsorForm } from '@/components/forms/sponsor-form';
 import { Badge } from '@/components/ui/badge';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const STATUS_VARIANT: Record<string, 'warning' | 'success' | 'destructive'> = {
   pending: 'warning',
@@ -41,20 +42,23 @@ export function Sponsors() {
   };
 
   return (
-    <div className="space-y-6">
+    <Stagger className="space-y-6">
       {!canManage && (
-        <Card className="mx-auto max-w-lg">
-          <CardHeader>
-            <CardTitle>Become a sponsor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SponsorForm />
-          </CardContent>
-        </Card>
+        <StaggerItem>
+          <Card className="mx-auto max-w-lg">
+            <CardHeader>
+              <CardTitle>Become a sponsor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SponsorForm />
+            </CardContent>
+          </Card>
+        </StaggerItem>
       )}
 
       {canManage && (
-        <Card>
+        <StaggerItem>
+          <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle>Sponsorship inquiries</CardTitle>
             <Button variant="outline" onClick={() => document.getElementById('sponsor-form-toggle')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -116,20 +120,23 @@ export function Sponsors() {
             )}
           </CardContent>
         </Card>
+        </StaggerItem>
       )}
 
       {canManage && (
-        <div id="sponsor-form-toggle">
-          <Card className="mx-auto max-w-lg">
-            <CardHeader>
-              <CardTitle>Public form preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SponsorForm />
-            </CardContent>
-          </Card>
-        </div>
+        <StaggerItem>
+          <div id="sponsor-form-toggle">
+            <Card className="mx-auto max-w-lg">
+              <CardHeader>
+                <CardTitle>Public form preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SponsorForm />
+              </CardContent>
+            </Card>
+          </div>
+        </StaggerItem>
       )}
-    </div>
+    </Stagger>
   );
 }

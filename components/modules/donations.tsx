@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs } from '@/components/ui/tabs';
 import { DonationForm } from '@/components/forms/donation-form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Donations() {
   const { user } = useAuthStore();
@@ -32,26 +33,30 @@ export function Donations() {
   }, [donations]);
 
   return (
-    <div className="space-y-6">
-      <Tabs
-        value={tab}
-        onValueChange={setTab}
-        items={[
-          { value: 'donate', label: 'Donate' },
-          { value: 'wall', label: 'Donor Wall' },
-          ...(signedIn ? [{ value: 'records', label: 'Amounts (members)' }] : [])
-        ]}
-      />
+    <Stagger className="space-y-6">
+      <StaggerItem>
+        <Tabs
+          value={tab}
+          onValueChange={setTab}
+          items={[
+            { value: 'donate', label: 'Donate' },
+            { value: 'wall', label: 'Donor Wall' },
+            ...(signedIn ? [{ value: 'records', label: 'Amounts (members)' }] : [])
+          ]}
+        />
+      </StaggerItem>
 
       {tab === 'donate' && (
-        <Card className="mx-auto max-w-lg">
-          <CardHeader>
-            <CardTitle>Support Provatferi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DonationForm />
-          </CardContent>
-        </Card>
+        <StaggerItem>
+          <Card className="mx-auto max-w-lg">
+            <CardHeader>
+              <CardTitle>Support Provatferi</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DonationForm />
+            </CardContent>
+          </Card>
+        </StaggerItem>
       )}
 
       {tab === 'wall' && (
@@ -70,54 +75,63 @@ export function Donations() {
           {!isLoading && (!board || board.length === 0) && (
             <EmptyState title="No donors yet" description="Be the first to support Provatferi!" />
           )}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" gap={8} y={12}>
             {board?.map((d) => (
-              <Card key={d.id} className="card-hover">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-coffee-100 text-coffee-600 dark:bg-coffee-900 dark:text-coffee-300">
-                      <Heart className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="font-medium">{d.donor_name}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(d.created_at)}</p>
+              <StaggerItem key={d.id}>
+                <Card className="card-hover h-full">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-coffee-100 text-coffee-600 dark:bg-coffee-900 dark:text-coffee-300">
+                        <Heart className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <p className="font-medium">{d.donor_name}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(d.created_at)}</p>
+                      </div>
                     </div>
-                  </div>
-                  {d.message && <p className="mt-3 text-sm text-muted-foreground">“{d.message}”</p>}
-                </CardContent>
-              </Card>
+                    {d.message && <p className="mt-3 text-sm text-muted-foreground">“{d.message}”</p>}
+                  </CardContent>
+                </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </div>
       )}
 
       {tab === 'records' && (
         <div className="space-y-4">
           {stats && (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Total donated</p>
-                  <p className="mt-1 text-2xl font-bold text-coffee-700">{formatMoney(stats.total)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Average donation</p>
-                  <p className="mt-1 text-2xl font-bold">{formatMoney(stats.average)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground">Highest donation</p>
-                  <p className="mt-1 text-2xl font-bold">{formatMoney(stats.highest)}</p>
-                </CardContent>
-              </Card>
-            </div>
+            <Stagger className="grid gap-4 sm:grid-cols-3">
+              <StaggerItem>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Total donated</p>
+                    <p className="mt-1 text-2xl font-bold text-coffee-700">{formatMoney(stats.total)}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+              <StaggerItem>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Average donation</p>
+                    <p className="mt-1 text-2xl font-bold">{formatMoney(stats.average)}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+              <StaggerItem>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Highest donation</p>
+                    <p className="mt-1 text-2xl font-bold">{formatMoney(stats.highest)}</p>
+                  </CardContent>
+                </Card>
+              </StaggerItem>
+            </Stagger>
           )}
           {loadingDonations && <Skeleton className="h-40 w-full" />}
           {!loadingDonations && donations && donations.length > 0 && (
-            <Table>
+            <StaggerItem>
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Donor</TableHead>
@@ -145,9 +159,10 @@ export function Donations() {
                 ))}
               </TableBody>
             </Table>
+            </StaggerItem>
           )}
         </div>
       )}
-    </div>
+    </Stagger>
   );
 }

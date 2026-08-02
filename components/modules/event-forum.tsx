@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EventForm } from '@/components/forms/event-form';
 import { useQueryClient } from '@tanstack/react-query';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 const STATUS_STYLE: Record<string, 'coffee' | 'success' | 'taupe'> = {
   upcoming: 'coffee',
@@ -58,29 +59,31 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          options={[
-            { value: 'all', label: 'All statuses' },
-            { value: 'upcoming', label: 'Upcoming' },
-            { value: 'ongoing', label: 'Ongoing' },
-            { value: 'past', label: 'Past' }
-          ]}
-          className="w-40"
-        />
-        <div className="relative min-w-[220px] flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search events…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+    <Stagger className="space-y-5">
+      <StaggerItem>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            options={[
+              { value: 'all', label: 'All statuses' },
+              { value: 'upcoming', label: 'Upcoming' },
+              { value: 'ongoing', label: 'Ongoing' },
+              { value: 'past', label: 'Past' }
+            ]}
+            className="w-40"
+          />
+          <div className="relative min-w-[220px] flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Search events…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          {canManage && (
+            <Button onClick={() => setShowForm(true)}>
+              <Plus /> Add event
+            </Button>
+          )}
         </div>
-        {canManage && (
-          <Button onClick={() => setShowForm(true)}>
-            <Plus /> Add event
-          </Button>
-        )}
-      </div>
+      </StaggerItem>
 
       {isLoading && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,8 +103,9 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((event) => (
-          <Card key={event.id} className="card-hover overflow-hidden">
-            <button
+          <StaggerItem key={event.id}>
+            <Card className="card-hover overflow-hidden">
+              <button
               type="button"
               className="block w-full text-left"
               onClick={() => router.push(`${basePath}/item?id=${event.id}`)}
@@ -147,12 +151,13 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
                 </Button>
               </div>
             )}
-          </Card>
+            </Card>
+          </StaggerItem>
         ))}
       </div>
 
       <EventForm open={showForm} onClose={() => setShowForm(false)} onSaved={() => qc.invalidateQueries({ queryKey: ['events'] })} />
-    </div>
+    </Stagger>
   );
 }
 
