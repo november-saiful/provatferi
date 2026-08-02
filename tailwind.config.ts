@@ -129,6 +129,10 @@ const config: Config = {
           'sans-serif'
         ]
       },
+      transitionTimingFunction: {
+        smooth: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+      },
       keyframes: {
         'fade-in': {
           from: { opacity: '0', transform: 'translateY(4px)' },
@@ -137,11 +141,36 @@ const config: Config = {
         'scale-in': {
           from: { opacity: '0', transform: 'scale(0.96)' },
           to: { opacity: '1', transform: 'scale(1)' }
-        }
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-12px)' }
+        },
+        'float-slow': {
+          '0%, 100%': { transform: 'translateY(0px) translateX(0px)' },
+          '50%': { transform: 'translateY(-20px) translateX(10px)' }
+        },
+        'gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' }
+        },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.55', transform: 'scale(1)' },
+          '50%': { opacity: '1', transform: 'scale(1.06)' }
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '100% 50%' },
+          '100%': { backgroundPosition: '0% 50%' }
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.25s ease-out',
-        'scale-in': 'scale-in 0.18s ease-out'
+        'scale-in': 'scale-in 0.18s ease-out',
+        float: 'float 6s ease-in-out infinite',
+        'float-slow': 'float-slow 9s ease-in-out infinite',
+        'gradient-x': 'gradient-x 8s ease infinite',
+        'glow-pulse': 'glow-pulse 4s ease-in-out infinite',
+        shimmer: 'shimmer 1.4s ease-in-out infinite'
       }
     }
   },

@@ -8,8 +8,16 @@ interface AvatarProps {
 
 export function Avatar({ name, src, className }: AvatarProps) {
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={name ?? 'avatar'} className={cn('rounded-full object-cover', className)} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name ?? 'avatar'}
+        className={cn('rounded-full object-cover', className)}
+        loading="lazy"
+        decoding="async"
+      />
+    );
   }
   return (
     <span

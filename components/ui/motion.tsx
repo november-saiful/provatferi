@@ -3,19 +3,20 @@
 import * as React from 'react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 
-const EASE = [0.22, 1, 0.36, 1] as const;
+export const EASE = [0.22, 1, 0.36, 1] as const;
+
+export const SPRING = {
+  type: 'spring',
+  stiffness: 320,
+  damping: 30,
+  mass: 0.6
+} as const;
 
 export function useFluidMotion() {
   const reduce = useReducedMotion();
   const enabled = !reduce;
   const transition = { duration: enabled ? 0.45 : 0, ease: EASE };
-  const spring = {
-    type: 'spring',
-    stiffness: 320,
-    damping: 30,
-    mass: 0.6
-  } as const;
-  return { enabled, transition, spring };
+  return { enabled, transition, spring: SPRING };
 }
 
 interface StaggerProps {
@@ -39,7 +40,7 @@ const itemVariants = (gap: number, y: number): Variants => ({
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+    transition: { duration: 0.5, ease: EASE }
   },
   exit: { opacity: 0, y: gap > 0 ? y : -y, transition: { duration: 0.2, ease: 'easeIn' } }
 });
@@ -48,12 +49,7 @@ export function Stagger({ children, className, gap = 12, y = 14 }: StaggerProps)
   const { enabled } = useFluidMotion();
   if (!enabled) return <div className={className}>{children}</div>;
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <motion.div className={className} initial="hidden" animate="visible" variants={containerVariants}>
       {children}
     </motion.div>
   );
@@ -69,4 +65,63 @@ export function StaggerItem({ children, className, gap = 12, y = 14 }: StaggerPr
   );
 }
 
-export { EASE };
+interface RevealProps {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  y?: number;
+  once?: boolean;
+  amount?: number;
+}
+
+/**
+ * Fades content up into view when it enters the viewport.
+ * Uses `whileInView` so content above the fold never flashes twice.
+ */
+export function Reveal({ children, className, delay = 0, y = 24, once = true, amount = 0.15 }: RevealProps) {
+  const { enabled } = useFluidMotion();
+  if (!enabled) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once, amount }}
+      transition={{ duration: 0.55, delay, ease: EASE }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * Staggered reveal container for viewport-triggered lists/grids.
+ */
+export function RevealStagger({ children, className, gap = 12, y = 20 }: StaggerProps) {
+  const { enabled } = useFluidMotion();
+  if (!enabled) return <div className={className}>{children}</div>;
+  return (
+    <motion.div
+      className={className}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.12 }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } }
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function RevealItem({ children, className, gap = 12, y = 20 }: StaggerProps) {
+  const { enabled } = useFluidMotion();
+  if (!enabled) return <div className={className}>{children}</div>;
+  return (
+    <motion.div className={className} variants={itemVariants(gap, y)}>
+      {children}
+    </motion.div>
+  );
+}

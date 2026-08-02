@@ -22,6 +22,7 @@
     --input: 28 22% 86%;
     --ring: 15 56% 37%;
     --radius: 0.75rem;
+    --header-height: 4rem;
   }
 
   .dark {
@@ -50,11 +51,19 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: var(--header-height);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
   }
 
   /* Fluid color transitions for common surfaces so theme toggles glide smoothly */
@@ -65,7 +74,7 @@
 
 @layer components {
   .card-hover {
-    @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lift;
+    @apply transition-all duration-300 ease-smooth hover:-translate-y-1 hover:border-primary/25 hover:shadow-lift;
   }
 
   /* Soft, glowing focus ring for a fluent feel */
@@ -90,6 +99,37 @@
     background-size: 400% 100%;
     animation: shimmer 1.4s ease-in-out infinite;
   }
+
+  /* Frosted glass surface */
+  .glass {
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+  }
+
+  /* Soft animated gradient text */
+  .text-gradient {
+    background: linear-gradient(
+      120deg,
+      hsl(var(--primary)) 0%,
+      hsl(15 56% 45%) 45%,
+      hsl(24 30% 40%) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-x 8s ease infinite;
+  }
+
+  /* Subtle dotted grid texture for hero / banner backgrounds */
+  .bg-grid {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+
 }
 
 @keyframes shimmer {
@@ -176,9 +216,24 @@
   @apply bg-muted/40;
 }
 
+/* Mobile-friendly calendar toolbar */
+@media (max-width: 640px) {
+  .rbc-toolbar {
+    @apply flex-col items-stretch;
+  }
+  .rbc-toolbar-label {
+    @apply order-first text-center;
+  }
+  .rbc-toolbar .rbc-btn-group {
+    @apply justify-center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

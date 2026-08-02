@@ -142,7 +142,7 @@ export function CalendarEventForm({
             <Input id="c-custom" {...register('custom_category')} placeholder="e.g. Rehearsal" />
           </div>
         )}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="c-start">Starts</Label>
             <Input id="c-start" type="datetime-local" {...register('start_date')} />

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -100,6 +101,7 @@ export function Gallery() {
                   alt={item.title ?? 'gallery image'}
                   className="w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
+                  decoding="async"
                 />
                 {item.title && (
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
@@ -126,7 +128,13 @@ export function Gallery() {
       </Dialog>
 
       {lightbox && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black/90" onClick={() => setLightbox(null)}>
+        <motion.div
+          className="fixed inset-0 z-50 flex flex-col bg-black/90"
+          onClick={() => setLightbox(null)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
           <div className="flex items-center justify-between p-4 text-white">
             <p className="text-sm">{lightbox.title ?? 'Gallery image'}</p>
             <button onClick={() => setLightbox(null)} aria-label="Close">
@@ -138,9 +146,10 @@ export function Gallery() {
             src={storageUrl(lightbox.image_url)}
             alt={lightbox.title ?? 'gallery image'}
             className="mx-auto max-h-full max-w-full object-contain p-4"
+            decoding="async"
             onClick={(e) => e.stopPropagation()}
           />
-        </div>
+        </motion.div>
       )}
     </Stagger>
   );

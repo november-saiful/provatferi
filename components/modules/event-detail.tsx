@@ -77,11 +77,11 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
 
   return (
     <Stagger className="space-y-6">
-      <StaggerItem className="flex items-center justify-between">
+      <StaggerItem className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" onClick={() => router.push('/dashboard/evf')}>
           <ArrowLeft /> Back to events
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canEditEvent && (
             <>
               <Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
@@ -98,7 +98,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
           <div className="relative aspect-video w-full bg-muted sm:aspect-[21/9]">
             {event.cover_image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={storageUrl(event.cover_image)} alt={event.title} className="h-full w-full object-cover" />
+              <img src={storageUrl(event.cover_image)} alt={event.title} className="h-full w-full object-cover" decoding="async" />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 to-taupe-300 text-3xl font-bold text-coffee-700">
                 {event.title}
@@ -140,6 +140,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
                     alt={g.title ?? 'gallery image'}
                     className="aspect-square w-full rounded-lg object-cover"
                     loading="lazy"
+                    decoding="async"
                   />
                 ))}
               </div>

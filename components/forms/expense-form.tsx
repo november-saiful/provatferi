@@ -110,7 +110,7 @@ export function ExpenseForm({
           <Input id="x-title" {...register('title')} placeholder="What was the expense?" />
           {errors.title && <p className="text-xs text-warmred-500">{errors.title.message}</p>}
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="x-amount">Amount (BDT)</Label>
             <Input id="x-amount" type="number" step="0.01" min="0" {...register('amount')} />

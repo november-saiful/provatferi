@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,6 +25,8 @@ import {
   Menu,
   X,
   UserCog,
+  PanelLeftClose,
+  PanelLeftOpen,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
@@ -33,8 +34,9 @@ import { canRead, canWrite, ROLE_NAMES } from '@/lib/permissions';
 import type { ModuleId } from '@/lib/types';
 import { SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
+import { SPRING, EASE } from '@/components/ui/motion';
+import { PageTransition } from '@/components/layout/page-transition';
 
 interface NavItem {
   href: string;
@@ -62,6 +64,39 @@ const NAV_ITEMS: NavItem[] = [
 
 const RECRUITMENT_URL =
   process.env.NEXT_PUBLIC_RECRUITMENT_URL ?? 'https://example.com/recruitment';
+
+const SIDEBAR_PREF_KEY = 'provatferi:sidebar-collapsed';
+
+/** Persisted preference for the desktop sidebar being collapsed to an icon rail. */
+function useSidebarCollapsed() {
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [hydrated, setHydrated] = React.useState(false);
+
+  // Read the persisted preference after mount (never during render) so SSR
+  // and hydration always agree — no layout shift or hydration warnings.
+  React.useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(SIDEBAR_PREF_KEY);
+      if (stored) setCollapsed(stored === '1');
+    } catch {
+      // storage may be unavailable (private mode) — fall back to expanded
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist only once the stored value has been applied, and only on change.
+  React.useEffect(() => {
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem(SIDEBAR_PREF_KEY, collapsed ? '1' : '0');
+    } catch {
+      // ignore persistence failures
+    }
+  }, [collapsed, hydrated]);
+
+  const toggle = React.useCallback(() => setCollapsed((c) => !c), []);
+  return { collapsed, toggle };
+}
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -95,7 +130,15 @@ function ThemeToggle() {
   );
 }
 
-function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => void; groupId?: string }) {
+function SidebarContent({
+  onNavigate,
+  groupId = 'nav',
+  collapsed = false
+}: {
+  onNavigate?: () => void;
+  groupId?: string;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
   const { user, profile, role, signOut } = useAuthStore();
 
@@ -107,17 +150,12 @@ function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => vo
     return canRead(role, item.module) || canWrite(role, item.module);
   });
 
-  const sidebarVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const } }
-  };
-
   const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, x: -16 },
     visible: (i: number) => ({
       opacity: 1,
       x: 0,
-      transition: { duration: 0.2, delay: i * 0.04, ease: 'easeOut' as const }
+      transition: { duration: 0.25, delay: i * 0.03, ease: EASE }
     })
   };
 
@@ -126,113 +164,126 @@ function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => vo
       className="flex h-full flex-col"
       initial="hidden"
       animate="visible"
-      variants={sidebarVariants}
+      variants={{ hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: EASE } } }}
     >
       <motion.div
-        className="flex items-center gap-2 px-5 py-4"
+        className={cn('flex items-center gap-2 px-5 py-4', collapsed && 'justify-center px-2')}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
+        title="Provatferi"
       >
         <motion.img
           src="/logo.png"
           alt="Provatferi"
-          className="h-10 w-auto object-contain"
+          className={cn(
+            'object-contain transition-all duration-300 ease-smooth',
+            collapsed ? 'h-9 w-9 rounded-lg' : 'h-10 w-auto'
+          )}
           whileHover={{ scale: 1.05, rotate: [0, -1, 1, 0] }}
           whileTap={{ scale: 0.95 }}
         />
       </motion.div>
 
-      <motion.nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
-        <AnimatePresence mode="wait" initial={false}>
-          {visible.map((item, index) => {
-            const active =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname?.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <motion.a
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  'relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
-                )}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={itemVariants}
-                custom={index}
-                whileHover={active ? {} : { x: 4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {active && (
-                  <motion.span
-                    layoutId={`nav-active-${groupId}`}
-                    className="absolute inset-0 rounded-lg bg-primary shadow-sm"
-                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  />
-                )}
+      <motion.nav
+        className={cn(
+          'flex-1 space-y-0.5 overflow-y-auto py-2',
+          collapsed ? 'px-2' : 'px-3'
+        )}
+      >
+        {visible.map((item, index) => {
+          const active =
+            item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname?.startsWith(item.href);
+          const Icon = item.icon;
+          return (
+            <motion.a
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              aria-label={item.label}
+              title={collapsed ? item.label : undefined}
+              className={cn(
+                'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                collapsed && 'justify-center px-0'
+              )}
+              initial="hidden"
+              animate="visible"
+              variants={itemVariants}
+              custom={index}
+              whileHover={active ? {} : { x: collapsed ? 0 : 3 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {active && (
                 <motion.span
-                  animate={{ scale: active ? 1.1 : 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 24 }}
-                  className="relative z-10"
-                >
-                  <Icon className="h-4 w-4" />
-                </motion.span>
-                <span className="relative z-10">{item.label}</span>
-              </motion.a>
-            );
-          })}
-        </AnimatePresence>
+                  layoutId={`nav-active-${groupId}`}
+                  className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                  transition={SPRING}
+                />
+              )}
+              <motion.span
+                animate={{ scale: active ? 1.1 : 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+                className="relative z-10"
+              >
+                <Icon className="h-4 w-4" />
+              </motion.span>
+              {!collapsed && <span className="relative z-10">{item.label}</span>}
+            </motion.a>
+          );
+        })}
 
         <motion.a
           href={RECRUITMENT_URL}
           target="_blank"
           rel="noreferrer"
-          className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Recruitment"
+          title={collapsed ? 'Recruitment' : undefined}
+          className={cn(
+            'mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+            collapsed && 'justify-center px-0'
+          )}
           initial="hidden"
           animate="visible"
           variants={itemVariants}
           custom={visible.length}
-          whileHover={{ x: 4 }}
+          whileHover={{ x: collapsed ? 0 : 3 }}
           whileTap={{ scale: 0.98 }}
         >
           <ExternalLink className="h-4 w-4" />
-          Recruitment
+          {!collapsed && <span className="relative z-10">Recruitment</span>}
         </motion.a>
       </motion.nav>
 
       <motion.div
-        className="border-t border-border p-4"
+        className={cn('border-t border-border', collapsed ? 'p-3' : 'p-4')}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
+        transition={{ duration: 0.4, delay: 0.15, ease: EASE }}
       >
         {user ? (
           <motion.div
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, x: -20 }}
+            className={cn('flex items-center gap-3', collapsed && 'flex-col gap-3')}
+            initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <motion.a
-              href="/dashboard"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Avatar name={profile?.full_name} src={profile?.avatar_url} className="h-9 w-9" />
+            <motion.a href="/dashboard" title="Dashboard" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Avatar name={profile?.full_name} src={profile?.avatar_url} className="h-9 w-9 ring-2 ring-primary/20" />
             </motion.a>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {role ? ROLE_NAMES[role] : 'Unknown'} · {profile?.display_id ?? ''}
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {role ? ROLE_NAMES[role] : 'Unknown'} · {profile?.display_id ?? ''}
+                </p>
+              </div>
+            )}
             <motion.button
               aria-label="Sign out"
+              title="Sign out"
               onClick={signOut}
               className="p-2 rounded-lg transition-colors hover:bg-accent"
               whileHover={{ scale: 1.1, rotate: 90 }}
@@ -241,6 +292,20 @@ function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => vo
               <LogOut className="h-4 w-4" />
             </motion.button>
           </motion.div>
+        ) : collapsed ? (
+          <motion.a
+            href="/login"
+            aria-label="Sign in"
+            title="Sign in"
+            className="flex h-10 w-full items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <LogIn className="h-4 w-4" />
+          </motion.a>
         ) : (
           <motion.a
             href="/login"
@@ -262,13 +327,18 @@ function SidebarContent({ onNavigate, groupId = 'nav' }: { onNavigate?: () => vo
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const { profile } = useAuthStore();
+  const { collapsed, toggle } = useSidebarCollapsed();
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-card md:block">
-        <SidebarContent groupId="desktop" />
-      </aside>
+      <motion.aside
+        className="hidden shrink-0 overflow-hidden border-r border-border bg-card md:block"
+        initial={false}
+        animate={{ width: collapsed ? 72 : 256 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 30, mass: 0.7 }}
+      >
+        <SidebarContent groupId="desktop" collapsed={collapsed} />
+      </motion.aside>
 
       <AnimatePresence mode="wait">
         {mobileOpen && (
@@ -284,20 +354,22 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/40"
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               onClick={() => setMobileOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
             <motion.aside
-              className="absolute inset-y-0 left-0 w-64 bg-card shadow-lift"
-              initial={{ x: -300 }}
+              className="absolute inset-y-0 left-0 flex w-72 flex-col bg-card shadow-lift"
+              initial={{ x: -320 }}
               animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              exit={{ x: -320 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 240 }}
             >
-              <SidebarContent onNavigate={() => setMobileOpen(false)} groupId="mobile" />
+              <div className="flex h-full flex-col">
+                <SidebarContent onNavigate={() => setMobileOpen(false)} groupId="mobile" />
+              </div>
             </motion.aside>
           </motion.div>
         )}
@@ -311,22 +383,36 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:hidden"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
-            animate={{ rotate: mobileOpen ? 90 : 0 }}
-            transition={{ duration: 0.2 }}
           >
             <Menu className="h-5 w-5" />
           </motion.button>
           <div className="flex-1" />
+          <motion.button
+            onClick={toggle}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="hidden h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:flex"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={collapsed ? 'open' : 'close'}
+                initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                transition={{ duration: 0.15 }}
+                className="flex"
+              >
+                {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              </motion.span>
+            </AnimatePresence>
+          </motion.button>
           <ThemeToggle />
         </header>
-        <motion.main
-          className="flex-1 p-4 md:p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-        >
-          {children}
-        </motion.main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
+          <PageTransition>{children}</PageTransition>
+        </main>
         <footer className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
           {SITE_NAME} Dashboard · Built for the committee
         </footer>

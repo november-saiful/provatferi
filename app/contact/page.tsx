@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Avatar } from '@/components/ui/avatar';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function ContactPage() {
   const { data: contacts, isLoading } = useCommitteeContacts();
@@ -20,10 +21,7 @@ export default function ContactPage() {
       <Seo title="Contact" />
       <PublicNav />
       <main className="mx-auto max-w-5xl px-4 py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Committee</h1>
-          <p className="mt-1 text-muted-foreground">Meet the current Provatferi committee.</p>
-        </div>
+        <PageHeader title="Committee" description="Meet the current Provatferi committee." />
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           <Card>

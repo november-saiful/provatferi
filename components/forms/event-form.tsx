@@ -118,7 +118,7 @@ export function EventForm({
           <Label htmlFor="description">Description</Label>
           <Textarea id="description" rows={4} {...register('description')} placeholder="What is this event about?" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select id="status" {...register('status')}>

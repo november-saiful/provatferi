@@ -118,6 +118,7 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
                     alt={event.title}
                     className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                     loading="lazy"
+                    decoding="async"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 to-taupe-300 text-2xl font-bold text-coffee-700">

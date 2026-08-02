@@ -153,7 +153,7 @@ export function Expenses() {
       <Dialog open={!!receipt} onClose={() => setReceipt(null)} title="Receipt">
         {receipt && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={storageUrl(receipt)} alt="Receipt" className="w-full rounded-lg" />
+          <img src={storageUrl(receipt)} alt="Receipt" className="w-full rounded-lg" loading="lazy" decoding="async" />
         )}
       </Dialog>
     </Stagger>

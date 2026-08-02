@@ -1,8 +1,28 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
 import { Seo } from '@/components/seo';
-import { CourseInsights } from '@/components/modules/course-insights';
+import { PageHeader } from '@/components/ui/page-header';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const CourseInsights = dynamic(
+  () => import('@/components/modules/course-insights').then((m) => m.CourseInsights),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <Skeleton className="h-72 w-full" />
+        <Skeleton className="h-72 w-full" />
+      </div>
+    )
+  }
+);
 
 export default function InsightsPage() {
   return (
@@ -10,10 +30,7 @@ export default function InsightsPage() {
       <Seo title="Course insights" />
       <PublicNav />
       <main className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Course insights</h1>
-          <p className="mt-1 text-muted-foreground">Visual analytics of course attendance and completion.</p>
-        </div>
+        <PageHeader title="Course insights" description="Visual analytics of course attendance and completion." />
         <CourseInsights />
       </main>
       <PublicFooter />

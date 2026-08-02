@@ -1,14 +1,12 @@
 'use client';
 
 import { Courses } from '@/components/modules/courses';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function DashboardAttendancePage() {
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">Course attendance</h1>
-        <p className="text-sm text-muted-foreground">Public view of all six music courses.</p>
-      </div>
+      <PageHeader size="md" title="Course attendance" description="Public view of all six music courses." />
       <Courses />
     </div>
   );

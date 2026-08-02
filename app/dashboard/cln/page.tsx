@@ -1,14 +1,18 @@
 'use client';
 
-import { CalendarView } from '@/components/modules/calendar-view';
+import dynamic from 'next/dynamic';
+import { PageHeader } from '@/components/ui/page-header';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const CalendarView = dynamic(
+  () => import('@/components/modules/calendar-view').then((m) => m.CalendarView),
+  { ssr: false, loading: () => <Skeleton className="h-[70vh] w-full" /> }
+);
 
 export default function DashboardCalendarPage() {
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold">Calendar</h1>
-        <p className="text-sm text-muted-foreground">Club schedule at a glance.</p>
-      </div>
+      <PageHeader size="md" title="Calendar" description="Club schedule at a glance." />
       <CalendarView />
     </div>
   );
