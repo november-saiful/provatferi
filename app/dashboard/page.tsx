@@ -73,7 +73,7 @@ export default function DashboardHome() {
   const { data: schedules } = useCourseSchedules();
   const { data: attendance } = useAllAttendance(true);
   const { data: recruitment } = useAppConfig('recruitment_url');
-  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://example.com/recruitment';
+  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://recruitment.provatferi2009.workers.dev/';
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 4);
   const pinned = (notices ?? []).filter((n) => n.is_pinned).slice(0, 3);

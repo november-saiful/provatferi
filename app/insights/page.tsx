@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
+import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
 import { PageHeader } from '@/components/ui/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,14 +26,12 @@ const CourseInsights = dynamic(
 
 export default function InsightsPage() {
   return (
-    <>
+    <PublicShell>
       <Seo title="Course insights" />
-      <PublicNav />
-      <main className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-10">
         <PageHeader title="Course insights" description="Visual analytics of course attendance and completion." />
         <CourseInsights />
-      </main>
-      <PublicFooter />
-    </>
+      </div>
+    </PublicShell>
   );
 }

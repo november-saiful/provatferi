@@ -16,7 +16,7 @@ import {
   Heart,
   MapPin
 } from 'lucide-react';
-import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
+import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
 import { useEvents, useNotices, useDonorBoard, useAppConfig, useRealtimeInvalidate } from '@/lib/queries';
 import { storageThumb } from '@/lib/supabase/client';
@@ -42,17 +42,16 @@ export default function LandingPage() {
   useRealtimeInvalidate('events', [['events']]);
   useRealtimeInvalidate('notices', [['notices']]);
   useRealtimeInvalidate('donations', [['donor-board'], ['donations']]);
-  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://example.com/recruitment';
+  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://recruitment.provatferi2009.workers.dev/';
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 3);
   const pinned = (notices ?? []).filter((n) => n.is_pinned).slice(0, 3);
   const recentDonors = (donors ?? []).slice(0, 6);
 
   return (
-    <>
+    <PublicShell>
       <Seo title="Provatferi" />
-      <PublicNav />
-      <main>
+      <div>
         <section className="relative overflow-hidden bg-gradient-to-br from-coffee-800 via-coffee-700 to-taupe-700 text-white">
           {/* Decorative texture + glow */}
           <div className="pointer-events-none absolute inset-0 bg-grid opacity-60" aria-hidden />
@@ -303,8 +302,7 @@ export default function LandingPage() {
             </div>
           </Reveal>
         </section>
-      </main>
-      <PublicFooter />
-    </>
+      </div>
+    </PublicShell>
   );
 }

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Music } from 'lucide-react';
-import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
+import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { LoginForm } from '@/components/auth/login-form';
@@ -18,10 +18,9 @@ export default function LoginPage() {
   }, [user, loading, router]);
 
   return (
-    <>
+    <PublicShell>
       <Seo title="Sign in" />
-      <PublicNav />
-      <main className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
+      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coffee-600 text-white">
           <Music className="h-7 w-7" />
         </span>
@@ -34,8 +33,7 @@ export default function LoginPage() {
             <LoginForm />
           </CardContent>
         </Card>
-      </main>
-      <PublicFooter />
-    </>
+      </div>
+    </PublicShell>
   );
 }

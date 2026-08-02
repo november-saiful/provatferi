@@ -27,6 +27,7 @@ import {
   UserCog,
   PanelLeftClose,
   PanelLeftOpen,
+  Phone,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
@@ -42,8 +43,7 @@ interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  module: ModuleId;
-  writeOnly?: boolean;
+  module?: ModuleId;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -62,8 +62,21 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/admin', label: 'Admin Panel', icon: UserCog, module: 'admin' }
 ];
 
+const PUBLIC_NAV_ITEMS: NavItem[] = [
+  { href: '/', label: 'Home', icon: LayoutDashboard },
+  { href: '/events', label: 'Events', icon: CalendarDays },
+  { href: '/gallery', label: 'Gallery', icon: Images },
+  { href: '/calendar', label: 'Calendar', icon: Calendar },
+  { href: '/notices', label: 'Notices', icon: Bell },
+  { href: '/donate', label: 'Donate', icon: HandCoins },
+  { href: '/sponsor', label: 'Sponsor', icon: Handshake },
+  { href: '/courses', label: 'Courses', icon: Music4 },
+  { href: '/insights', label: 'Insights', icon: BarChart3 },
+  { href: '/contact', label: 'Contact', icon: Phone }
+];
+
 const RECRUITMENT_URL =
-  process.env.NEXT_PUBLIC_RECRUITMENT_URL ?? 'https://example.com/recruitment';
+  process.env.NEXT_PUBLIC_RECRUITMENT_URL ?? 'https://recruitment.provatferi2009.workers.dev/';
 
 const SIDEBAR_PREF_KEY = 'provatferi:sidebar-collapsed';
 
@@ -131,24 +144,18 @@ function ThemeToggle() {
 }
 
 function SidebarContent({
+  items,
   onNavigate,
   groupId = 'nav',
   collapsed = false
 }: {
+  items: NavItem[];
   onNavigate?: () => void;
   groupId?: string;
   collapsed?: boolean;
 }) {
   const pathname = usePathname();
   const { user, profile, role, signOut } = useAuthStore();
-
-  const visible = NAV_ITEMS.filter((item) => {
-    if (item.module === 'admin') return canRead(role, 'admin');
-    if (item.href === '/dashboard') return true;
-    // Show write-only management entries to those with permission
-    if (item.module === 'cia' && pathname?.startsWith('/dashboard/cia')) return true;
-    return canRead(role, item.module) || canWrite(role, item.module);
-  });
 
   const itemVariants = {
     hidden: { opacity: 0, x: -16 },
@@ -191,10 +198,10 @@ function SidebarContent({
           collapsed ? 'px-2' : 'px-3'
         )}
       >
-        {visible.map((item, index) => {
+        {items.map((item, index) => {
           const active =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
+            item.href === '/' || item.href === '/dashboard'
+              ? pathname === item.href
               : pathname?.startsWith(item.href);
           const Icon = item.icon;
           return (
@@ -248,7 +255,7 @@ function SidebarContent({
           initial="hidden"
           animate="visible"
           variants={itemVariants}
-          custom={visible.length}
+          custom={items.length}
           whileHover={{ x: collapsed ? 0 : 3 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -277,7 +284,7 @@ function SidebarContent({
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {role ? ROLE_NAMES[role] : 'Unknown'} · {profile?.display_id ?? ''}
+                  {role ? ROLE_NAMES[role as keyof typeof ROLE_NAMES] : 'Unknown'} · {profile?.display_id ?? ''}
                 </p>
               </div>
             )}
@@ -325,7 +332,17 @@ function SidebarContent({
   );
 }
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+function AppShell({
+  items,
+  footerLabel,
+  mainClassName,
+  children
+}: {
+  items: NavItem[];
+  footerLabel: string;
+  mainClassName?: string;
+  children: React.ReactNode;
+}) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { collapsed, toggle } = useSidebarCollapsed();
 
@@ -337,7 +354,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ type: 'spring', stiffness: 260, damping: 30, mass: 0.7 }}
       >
-        <SidebarContent groupId="desktop" collapsed={collapsed} />
+        <SidebarContent items={items} groupId="desktop" collapsed={collapsed} />
       </motion.aside>
 
       <AnimatePresence mode="wait">
@@ -368,7 +385,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               transition={{ type: 'spring', damping: 28, stiffness: 240 }}
             >
               <div className="flex h-full flex-col">
-                <SidebarContent onNavigate={() => setMobileOpen(false)} groupId="mobile" />
+                <SidebarContent items={items} onNavigate={() => setMobileOpen(false)} groupId="mobile" />
               </div>
             </motion.aside>
           </motion.div>
@@ -410,13 +427,44 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </motion.button>
           <ThemeToggle />
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className={cn('flex-1', mainClassName ?? 'p-4 md:p-6 lg:p-8')}>
           <PageTransition>{children}</PageTransition>
         </main>
         <footer className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
-          {SITE_NAME} Dashboard · Built for the committee
+          {footerLabel}
         </footer>
       </div>
     </div>
+  );
+}
+
+export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { role } = useAuthStore();
+
+  const visible = NAV_ITEMS.filter((item) => {
+    if (item.module === 'admin') return canRead(role, 'admin');
+    if (item.href === '/dashboard') return true;
+    // Show write-only management entries to those with permission
+    if (item.module === 'cia' && pathname?.startsWith('/dashboard/cia')) return true;
+    return item.module ? canRead(role, item.module) || canWrite(role, item.module) : true;
+  });
+
+  return (
+    <AppShell items={visible} footerLabel={`${SITE_NAME} Dashboard · Built for the committee`}>
+      {children}
+    </AppShell>
+  );
+}
+
+export function PublicShell({ children }: { children: React.ReactNode }) {
+  return (
+    <AppShell
+      items={PUBLIC_NAV_ITEMS}
+      footerLabel={`${SITE_NAME} · Music, culture and community`}
+      mainClassName="flex-1"
+    >
+      {children}
+    </AppShell>
   );
 }

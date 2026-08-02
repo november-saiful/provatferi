@@ -1,7 +1,7 @@
 'use client';
 
 import { Mail, Phone, MapPin, Music } from 'lucide-react';
-import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
+import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
 import { useCommitteeContacts, useAppConfig } from '@/lib/queries';
 import { ROLE_NAMES } from '@/lib/permissions';
@@ -17,10 +17,9 @@ export default function ContactPage() {
   const { data: phone } = useAppConfig('contact_phone');
 
   return (
-    <>
+    <PublicShell>
       <Seo title="Contact" />
-      <PublicNav />
-      <main className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mx-auto max-w-5xl px-4 py-10">
         <PageHeader title="Committee" description="Meet the current Provatferi committee." />
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
@@ -82,8 +81,7 @@ export default function ContactPage() {
             </Card>
           ))}
         </div>
-      </main>
-      <PublicFooter />
-    </>
+      </div>
+    </PublicShell>
   );
 }
