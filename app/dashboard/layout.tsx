@@ -37,8 +37,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
         <ShieldX className="h-12 w-12 text-taupe-400" />
-        <h1 className="text-xl font-semibold">Sign in to access the dashboard</h1>
-        <Button onClick={() => router.push('/login')}>Go to sign in</Button>
+        <h1 className="text-xl font-semibold">ড্যাশবোর্ডে প্রবেশ করতে সাইন ইন করুন</h1>
+        <Button onClick={() => router.push('/login')}>সাইন ইন করতে যান</Button>
       </motion.div>
     );
   }

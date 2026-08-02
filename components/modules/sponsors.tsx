@@ -8,7 +8,7 @@ import { useSponsors, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canManageSponsors } from '@/lib/permissions';
 import { formatDate, cn, downloadCsv } from '@/lib/utils';
-import { SPONSOR_STATUSES } from '@/lib/constants';
+import { SPONSOR_STATUSES, SPONSOR_STATUS_LABELS } from '@/lib/constants';
 import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export function Sponsors() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(`Status updated to ${status}`);
+      toast.success(`অবস্থা আপডেট হয়েছে: ${SPONSOR_STATUS_LABELS[status] ?? status}`);
       qc.invalidateQueries({ queryKey: ['sponsors'] });
     }
   };
@@ -49,7 +49,7 @@ export function Sponsors() {
         <StaggerItem>
           <Card className="mx-auto max-w-lg">
             <CardHeader>
-              <CardTitle>Become a sponsor</CardTitle>
+              <CardTitle>স্পনসর হোন</CardTitle>
             </CardHeader>
             <CardContent>
               <SponsorForm />
@@ -62,7 +62,7 @@ export function Sponsors() {
         <StaggerItem>
           <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
-            <CardTitle>Sponsorship inquiries</CardTitle>
+            <CardTitle>স্পনসরশিপ আবেদন</CardTitle>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -83,29 +83,29 @@ export function Sponsors() {
                   ])
                 }
               >
-                <Download /> Export CSV
+                <Download /> CSV এক্সপোর্ট
               </Button>
               <Button variant="outline" size="sm" onClick={() => document.getElementById('sponsor-form-toggle')?.scrollIntoView({ behavior: 'smooth' })}>
-                View public form
+                পাবলিক ফর্ম দেখুন
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             {isLoading && <Skeleton className="h-40 w-full" />}
             {!isLoading && (!sponsors || sponsors.length === 0) && (
-              <EmptyState title="No inquiries yet" description="Sponsor submissions will appear here." />
+              <EmptyState title="এখনো কোনো আবেদন নেই" description="স্পনসর জমাগুলো এখানে দেখা যাবে।" />
             )}
             {sponsors && sponsors.length > 0 && (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Representative</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Proposed event</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>প্রতিষ্ঠান</TableHead>
+                    <TableHead>প্রতিনিধি</TableHead>
+                    <TableHead>যোগাযোগ</TableHead>
+                    <TableHead>প্রস্তাবিত ইভেন্ট</TableHead>
+                    <TableHead>অবস্থা</TableHead>
+                    <TableHead>তারিখ</TableHead>
+                    <TableHead className="text-right">কার্যক্রম</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -118,10 +118,10 @@ export function Sponsors() {
                           {s.contact_email}
                         </a>
                       </TableCell>
-                      <TableCell>{s.proposed_event ?? 'General'}</TableCell>
+                      <TableCell>{s.proposed_event ?? 'সাধারণ'}</TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_VARIANT[s.status] ?? 'secondary'} className="capitalize">
-                          {s.status}
+                        <Badge variant={STATUS_VARIANT[s.status] ?? 'secondary'}>
+                          {SPONSOR_STATUS_LABELS[s.status] ?? s.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(s.created_at)}</TableCell>
@@ -132,8 +132,8 @@ export function Sponsors() {
                           className="h-8 w-32 text-xs"
                         >
                           {SPONSOR_STATUSES.map((st) => (
-                            <option key={st} value={st} className="capitalize">
-                              {st}
+                            <option key={st} value={st}>
+                              {SPONSOR_STATUS_LABELS[st] ?? st}
                             </option>
                           ))}
                         </Select>
@@ -153,7 +153,7 @@ export function Sponsors() {
           <div id="sponsor-form-toggle">
             <Card className="mx-auto max-w-lg">
               <CardHeader>
-                <CardTitle>Public form preview</CardTitle>
+                <CardTitle>পাবলিক ফর্ম প্রিভিউ</CardTitle>
               </CardHeader>
               <CardContent>
                 <SponsorForm />

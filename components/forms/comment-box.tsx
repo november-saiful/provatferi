@@ -34,11 +34,11 @@ export function CommentBox({ eventId, className }: CommentBoxProps) {
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Share your thoughts…"
+        placeholder="আপনার মতামত শেয়ার করুন…"
         rows={3}
       />
       <Button onClick={submit} disabled={!content.trim() || addComment.isPending}>
-        {addComment.isPending ? 'Posting…' : 'Post comment'}
+        {addComment.isPending ? 'পোস্ট হচ্ছে…' : 'মন্তব্য পোস্ট করুন'}
       </Button>
     </div>
   );

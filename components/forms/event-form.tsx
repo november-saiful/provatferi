@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 
 const schema = z.object({
-  title: z.string().min(2, 'Title is required'),
+  title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
   description: z.string().optional(),
   status: z.enum(['upcoming', 'ongoing', 'past']),
   event_date: z.string().optional(),
@@ -70,7 +70,7 @@ export function EventForm({
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error('Sign in required');
+      toast.error('সাইন ইন প্রয়োজন');
       return;
     }
     setUploading(true);
@@ -91,60 +91,60 @@ export function EventForm({
       if (event) {
         const { error } = await supabase.from('events').update(payload).eq('id', event.id);
         if (error) throw error;
-        toast.success('Event updated');
+        toast.success('ইভেন্ট আপডেট হয়েছে');
       } else {
         const { error } = await supabase.from('events').insert(payload);
         if (error) throw error;
-        toast.success('Event created');
+        toast.success('ইভেন্ট তৈরি হয়েছে');
       }
       onSaved?.();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save event');
+      toast.error(err instanceof Error ? err.message : 'ইভেন্ট সংরক্ষণ ব্যর্থ হয়েছে');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title={event ? 'Edit event' : 'Add event'}>
+    <Dialog open={open} onClose={onClose} title={event ? 'ইভেন্ট সম্পাদনা' : 'ইভেন্ট যোগ করুন'}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" {...register('title')} placeholder="Event title" />
+          <Label htmlFor="title">শিরোনাম</Label>
+          <Input id="title" {...register('title')} placeholder="ইভেন্টের শিরোনাম" />
           {errors.title && <p className="text-xs text-warmred-500">{errors.title.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" rows={4} {...register('description')} placeholder="What is this event about?" />
+          <Label htmlFor="description">বিবরণ</Label>
+          <Textarea id="description" rows={4} {...register('description')} placeholder="এই ইভেন্টটি কী নিয়ে?" />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status">অবস্থা</Label>
             <Select id="status" {...register('status')}>
-              <option value="upcoming">Upcoming</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="past">Past</option>
+              <option value="upcoming">আসন্ন</option>
+              <option value="ongoing">চলমান</option>
+              <option value="past">সমাপ্ত</option>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="event_date">Date &amp; time</Label>
+            <Label htmlFor="event_date">তারিখ ও সময়</Label>
             <Input id="event_date" type="datetime-local" {...register('event_date')} />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input id="location" {...register('location')} placeholder="Venue / address" />
+          <Label htmlFor="location">স্থান</Label>
+          <Input id="location" {...register('location')} placeholder="অবস্থান / ঠিকানা" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="cover">Cover image</Label>
+          <Label htmlFor="cover">কভার ছবি</Label>
           <Input id="cover" type="file" accept="image/*" onChange={(e) => setCover(e.target.files?.[0] ?? null)} />
-          {event?.cover_image && !cover && <p className="text-xs text-muted-foreground">Current cover kept if no new file chosen.</p>}
+          {event?.cover_image && !cover && <p className="text-xs text-muted-foreground">নতুন ফাইল না বেছে নিলে বর্তমান কভার রাখা হবে।</p>}
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="outline" onClick={onClose}>বাতিল</Button>
           <Button type="submit" disabled={isSubmitting || uploading}>
-            {isSubmitting || uploading ? 'Saving…' : event ? 'Save changes' : 'Create event'}
+            {isSubmitting || uploading ? 'সংরক্ষণ হচ্ছে…' : event ? 'পরিবর্তন সংরক্ষণ' : 'ইভেন্ট তৈরি করুন'}
           </Button>
         </div>
       </form>

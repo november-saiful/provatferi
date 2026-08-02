@@ -19,17 +19,18 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
-import { useEvents, useNotices, useExpenses, useBudgets, useCourseSchedules, useAllAttendance, useAppConfig } from '@/lib/queries';
+import { useEvents, useNotices, useExpenses, useBudgets, useCourseSchedules, useAllAttendance } from '@/lib/queries';
 import { canRead } from '@/lib/permissions';
 import { ROLE_NAMES } from '@/lib/permissions';
-import { formatDate, formatMoney } from '@/lib/utils';
+import { formatDate, formatMoney, toBengaliDigits } from '@/lib/utils';
+import { RECRUITMENT_URL, EVENT_STATUS_LABELS } from '@/lib/constants';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 function CountUp({
   value,
-  format = (n) => n.toLocaleString(),
+  format = (n) => n.toLocaleString('bn'),
   className
 }: {
   value: number;
@@ -72,8 +73,7 @@ export default function DashboardHome() {
   const { data: budgets } = useBudgets(canRead(role, 'bgm'));
   const { data: schedules } = useCourseSchedules();
   const { data: attendance } = useAllAttendance(true);
-  const { data: recruitment } = useAppConfig('recruitment_url');
-  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://recruitment.provatferi2009.workers.dev/';
+  const recruitmentUrl = RECRUITMENT_URL;
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 4);
   const pinned = (notices ?? []).filter((n) => n.is_pinned).slice(0, 3);
@@ -83,7 +83,7 @@ export default function DashboardHome() {
   const stats = [
     {
       key: 'total',
-      label: 'Total expenses',
+      label: 'মোট ব্যয়',
       icon: Receipt,
       node: (
         <CountUp value={totalSpent} format={(n) => formatMoney(n)} className="mt-1 text-2xl font-bold tracking-tight" />
@@ -91,7 +91,7 @@ export default function DashboardHome() {
     },
     {
       key: 'budgets',
-      label: 'Active budgets',
+      label: 'সক্রিয় বাজেট',
       icon: Wallet,
       node: (
         <CountUp
@@ -102,18 +102,18 @@ export default function DashboardHome() {
     },
     {
       key: 'events',
-      label: 'Upcoming events',
+      label: 'আসন্ন ইভেন্ট',
       icon: CalendarDays,
       node: <CountUp value={upcoming.length} className="mt-1 text-2xl font-bold tracking-tight" />
     },
     {
       key: 'classes',
-      label: 'Classes held',
+      label: 'অনুষ্ঠিত ক্লাস',
       icon: Music4,
       node: (
         <p className="mt-1 text-2xl font-bold tracking-tight">
           <CountUp value={classesHeld} />
-          <span className="text-base font-medium text-muted-foreground">/{schedules?.length ?? 6} courses</span>
+          <span className="text-base font-medium text-muted-foreground">/{toBengaliDigits(schedules?.length ?? 6)} কোর্স</span>
         </p>
       )
     }
@@ -128,9 +128,9 @@ export default function DashboardHome() {
           aria-hidden
         />
         <div className="relative">
-          <p className="text-sm text-white/80">Welcome back,</p>
+          <p className="text-sm text-white/80">আবারও স্বাগতম,</p>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight md:text-3xl">
-            {profile?.full_name ?? 'Member'}
+            {profile?.full_name ?? 'সদস্য'}
           </h1>
           <p className="mt-1 text-sm text-white/80">
             {role ? ROLE_NAMES[role] : ''}
@@ -173,8 +173,8 @@ export default function DashboardHome() {
             <ExternalLink className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">Recruitment open</p>
-            <p className="truncate text-sm text-white/80">Join the team — applications are being accepted.</p>
+            <p className="font-semibold">নিয়োগ চলছে</p>
+            <p className="truncate text-sm text-white/80">দলে যোগ দিন — আবেদন গ্রহণ করা হচ্ছে।</p>
           </div>
           <ArrowRight className="h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
         </a>
@@ -184,13 +184,13 @@ export default function DashboardHome() {
         <StaggerItem>
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle>Upcoming events</CardTitle>
+              <CardTitle>আসন্ন ইভেন্ট</CardTitle>
               <Link href="/dashboard/evf" className="text-sm font-medium text-primary hover:underline">
-                View all
+                সব দেখুন
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
-              {upcoming.length === 0 && <p className="text-sm text-muted-foreground">No upcoming events.</p>}
+              {upcoming.length === 0 && <p className="text-sm text-muted-foreground">কোনো আসন্ন ইভেন্ট নেই।</p>}
               {upcoming.map((e) => (
                 <Link
                   key={e.id}
@@ -206,7 +206,7 @@ export default function DashboardHome() {
                       <p className="text-xs text-muted-foreground">{formatDate(e.event_date)}</p>
                     </div>
                   </div>
-                  <Badge variant="coffee" className="shrink-0 capitalize">{e.status}</Badge>
+                  <Badge variant="coffee" className="shrink-0">{EVENT_STATUS_LABELS[e.status] ?? e.status}</Badge>
                 </Link>
               ))}
             </CardContent>
@@ -216,13 +216,13 @@ export default function DashboardHome() {
         <StaggerItem>
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle>Pinned notices</CardTitle>
+              <CardTitle>পিন করা নোটিশ</CardTitle>
               <Link href="/dashboard/ntb" className="text-sm font-medium text-primary hover:underline">
-                Notice board
+                নোটিশ বোর্ড
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
-              {pinned.length === 0 && <p className="text-sm text-muted-foreground">No pinned notices.</p>}
+              {pinned.length === 0 && <p className="text-sm text-muted-foreground">কোনো পিন করা নোটিশ নেই।</p>}
               {pinned.map((n) => (
                 <Link
                   key={n.id}
@@ -246,21 +246,21 @@ export default function DashboardHome() {
       <div>
         <StaggerItem className="mb-3 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-coffee-600" />
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Quick access</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">দ্রুত প্রবেশ</h2>
         </StaggerItem>
         <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8" gap={6} y={10}>
           {(
             [
-              { href: '/dashboard/evf', label: 'Events', icon: CalendarDays, read: true },
-              { href: '/dashboard/glr', label: 'Gallery', icon: Images, read: true },
-              { href: '/dashboard/cln', label: 'Calendar', icon: Calendar, read: true },
-              { href: '/dashboard/ntb', label: 'Notices', icon: Bell, read: true },
-              { href: '/dashboard/dnt', label: 'Donations', icon: HandCoins, read: true },
-              { href: '/dashboard/xpm', label: 'Expenses', icon: Receipt, read: canRead(role, 'xpm') },
-              { href: '/dashboard/bgm', label: 'Budgets', icon: Wallet, read: canRead(role, 'bgm') },
-              { href: '/dashboard/rcd', label: 'Records', icon: History, read: canRead(role, 'rcd') },
-              { href: '/dashboard/cia', label: 'Attendance', icon: Music4, read: true },
-              { href: '/dashboard/coi', label: 'Insights', icon: BarChart3, read: true }
+              { href: '/dashboard/evf', label: 'ইভেন্ট', icon: CalendarDays, read: true },
+              { href: '/dashboard/glr', label: 'গ্যালারি', icon: Images, read: true },
+              { href: '/dashboard/cln', label: 'ক্যালেন্ডার', icon: Calendar, read: true },
+              { href: '/dashboard/ntb', label: 'নোটিশ', icon: Bell, read: true },
+              { href: '/dashboard/dnt', label: 'অনুদান', icon: HandCoins, read: true },
+              { href: '/dashboard/xpm', label: 'ব্যয়', icon: Receipt, read: canRead(role, 'xpm') },
+              { href: '/dashboard/bgm', label: 'বাজেট', icon: Wallet, read: canRead(role, 'bgm') },
+              { href: '/dashboard/rcd', label: 'রেকর্ড', icon: History, read: canRead(role, 'rcd') },
+              { href: '/dashboard/cia', label: 'উপস্থিতি', icon: Music4, read: true },
+              { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, read: true }
             ] as { href: string; label: string; icon: typeof CalendarDays; read: boolean }[]
           )
             .filter((item) => item.read)

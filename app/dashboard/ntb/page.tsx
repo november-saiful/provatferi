@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function DashboardNoticesPage() {
   return (
     <div className="space-y-5">
-      <PageHeader size="md" title="Notice board" description="Official announcements." />
+      <PageHeader size="md" title="নোটিশ বোর্ড" description="অফিসিয়াল ঘোষণা।" />
       <NoticeBoard />
     </div>
   );

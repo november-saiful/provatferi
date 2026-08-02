@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { cn, toBengaliDigits } from '@/lib/utils';
 
 export function GalleryUpload({ onDone }: { onDone?: () => void }) {
   const qc = useQueryClient();
@@ -31,7 +31,7 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     if (files.length === 0) {
-      toast.error('Choose at least one image');
+      toast.error('কমপক্ষে একটি ছবি বেছে নিন');
       return;
     }
     setUploading(true);
@@ -47,7 +47,7 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
           is_public: true
         });
       }
-      toast.success(`${files.length} image${files.length > 1 ? 's' : ''} uploaded`);
+      toast.success(`${toBengaliDigits(files.length)}টি ছবি আপলোড হয়েছে`);
       setFiles([]);
       setTitle('');
       setEventId('');
@@ -79,10 +79,10 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
         )}
       >
         <UploadCloud className="h-8 w-8 text-coffee-500" />
-        <p className="text-sm font-medium">Drag &amp; drop images here</p>
-        <p className="text-xs text-muted-foreground">or</p>
+        <p className="text-sm font-medium">এখানে ছবি টেনে আনুন</p>
+        <p className="text-xs text-muted-foreground">অথবা</p>
         <Button variant="outline" size="sm" type="button" onClick={() => document.getElementById('g-upload')?.click()}>
-          Browse files
+          ফাইল বেছে নিন
         </Button>
         <Input
           id="g-upload"
@@ -103,7 +103,7 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
                 type="button"
                 className="text-muted-foreground hover:text-warmred-500"
                 onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
-                aria-label="Remove file"
+                aria-label="ফাইল সরান"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -114,13 +114,13 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="g-title">Title (optional)</Label>
-          <Input id="g-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Photo title" />
+          <Label htmlFor="g-title">শিরোনাম (ঐচ্ছিক)</Label>
+          <Input id="g-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ছবির শিরোনাম" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="g-event">Link to event (optional)</Label>
+          <Label htmlFor="g-event">ইভেন্টের সাথে যুক্ত করুন (ঐচ্ছিক)</Label>
           <Select id="g-event" value={eventId} onChange={(e) => setEventId(e.target.value)}>
-            <option value="">General</option>
+            <option value="">সাধারণ</option>
             {events?.map((ev) => (
               <option key={ev.id} value={ev.id}>{ev.title}</option>
             ))}
@@ -130,7 +130,7 @@ export function GalleryUpload({ onDone }: { onDone?: () => void }) {
 
       <div className="flex justify-end">
         <Button onClick={submit} disabled={uploading || files.length === 0}>
-          {uploading ? 'Uploading…' : `Upload ${files.length || ''} image${files.length !== 1 ? 's' : ''}`}
+          {uploading ? 'আপলোড হচ্ছে…' : `আপলোড ${files.length ? toBengaliDigits(files.length) : ''}টি ছবি`}
         </Button>
       </div>
     </div>

@@ -33,7 +33,7 @@ import {
 import { useAuthStore } from '@/lib/auth-store';
 import { canRead, canWrite, ROLE_NAMES } from '@/lib/permissions';
 import type { ModuleId } from '@/lib/types';
-import { SITE_NAME } from '@/lib/constants';
+import { RECRUITMENT_URL, SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
 import { SPRING, EASE } from '@/components/ui/motion';
@@ -47,36 +47,33 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard, module: 'evf' },
-  { href: '/dashboard/evf', label: 'Events', icon: CalendarDays, module: 'evf' },
-  { href: '/dashboard/glr', label: 'Gallery', icon: Images, module: 'glr' },
-  { href: '/dashboard/cln', label: 'Calendar', icon: Calendar, module: 'cln' },
-  { href: '/dashboard/ntb', label: 'Notices', icon: Bell, module: 'ntb' },
-  { href: '/dashboard/dnt', label: 'Donations', icon: HandCoins, module: 'dnt' },
-  { href: '/dashboard/spn', label: 'Sponsors', icon: Handshake, module: 'spn' },
-  { href: '/dashboard/xpm', label: 'Expenses', icon: Receipt, module: 'xpm' },
-  { href: '/dashboard/bgm', label: 'Budgets', icon: Wallet, module: 'bgm' },
-  { href: '/dashboard/rcd', label: 'Records', icon: History, module: 'rcd' },
-  { href: '/dashboard/cia', label: 'Attendance', icon: Music4, module: 'cia' },
-  { href: '/dashboard/coi', label: 'Insights', icon: BarChart3, module: 'coi' },
-  { href: '/dashboard/admin', label: 'Admin Panel', icon: UserCog, module: 'admin' }
+  { href: '/dashboard', label: 'হোম', icon: LayoutDashboard, module: 'evf' },
+  { href: '/dashboard/evf', label: 'ইভেন্ট', icon: CalendarDays, module: 'evf' },
+  { href: '/dashboard/glr', label: 'গ্যালারি', icon: Images, module: 'glr' },
+  { href: '/dashboard/cln', label: 'ক্যালেন্ডার', icon: Calendar, module: 'cln' },
+  { href: '/dashboard/ntb', label: 'নোটিশ', icon: Bell, module: 'ntb' },
+  { href: '/dashboard/dnt', label: 'অনুদান', icon: HandCoins, module: 'dnt' },
+  { href: '/dashboard/spn', label: 'স্পনসর', icon: Handshake, module: 'spn' },
+  { href: '/dashboard/xpm', label: 'ব্যয়', icon: Receipt, module: 'xpm' },
+  { href: '/dashboard/bgm', label: 'বাজেট', icon: Wallet, module: 'bgm' },
+  { href: '/dashboard/rcd', label: 'রেকর্ড', icon: History, module: 'rcd' },
+  { href: '/dashboard/cia', label: 'উপস্থিতি', icon: Music4, module: 'cia' },
+  { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, module: 'coi' },
+  { href: '/dashboard/admin', label: 'অ্যাডমিন প্যানেল', icon: UserCog, module: 'admin' }
 ];
 
 const PUBLIC_NAV_ITEMS: NavItem[] = [
-  { href: '/', label: 'Home', icon: LayoutDashboard },
-  { href: '/events', label: 'Events', icon: CalendarDays },
-  { href: '/gallery', label: 'Gallery', icon: Images },
-  { href: '/calendar', label: 'Calendar', icon: Calendar },
-  { href: '/notices', label: 'Notices', icon: Bell },
-  { href: '/donate', label: 'Donate', icon: HandCoins },
-  { href: '/sponsor', label: 'Sponsor', icon: Handshake },
-  { href: '/courses', label: 'Courses', icon: Music4 },
-  { href: '/insights', label: 'Insights', icon: BarChart3 },
-  { href: '/contact', label: 'Contact', icon: Phone }
+  { href: '/', label: 'হোম', icon: LayoutDashboard },
+  { href: '/events', label: 'ইভেন্ট', icon: CalendarDays },
+  { href: '/gallery', label: 'গ্যালারি', icon: Images },
+  { href: '/calendar', label: 'ক্যালেন্ডার', icon: Calendar },
+  { href: '/notices', label: 'নোটিশ', icon: Bell },
+  { href: '/donate', label: 'অনুদান', icon: HandCoins },
+  { href: '/sponsor', label: 'স্পনসর', icon: Handshake },
+  { href: '/courses', label: 'কোর্স', icon: Music4 },
+  { href: '/insights', label: 'বিশ্লেষণ', icon: BarChart3 },
+  { href: '/contact', label: 'যোগাযোগ', icon: Phone }
 ];
-
-const RECRUITMENT_URL =
-  process.env.NEXT_PUBLIC_RECRUITMENT_URL ?? 'https://recruitment.provatferi2009.workers.dev/';
 
 const SIDEBAR_PREF_KEY = 'provatferi:sidebar-collapsed';
 
@@ -121,7 +118,7 @@ function ThemeToggle() {
   const isDark = theme === 'dark';
   return (
     <motion.button
-      aria-label="Toggle theme"
+      aria-label="থিম পরিবর্তন করুন"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.92 }}
@@ -246,8 +243,8 @@ function SidebarContent({
           href={RECRUITMENT_URL}
           target="_blank"
           rel="noreferrer"
-          aria-label="Recruitment"
-          title={collapsed ? 'Recruitment' : undefined}
+          aria-label="নিয়োগ"
+          title={collapsed ? 'নিয়োগ' : undefined}
           className={cn(
             'mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
             collapsed && 'justify-center px-0'
@@ -260,7 +257,7 @@ function SidebarContent({
           whileTap={{ scale: 0.98 }}
         >
           <ExternalLink className="h-4 w-4" />
-          {!collapsed && <span className="relative z-10">Recruitment</span>}
+          {!collapsed && <span className="relative z-10">নিয়োগ</span>}
         </motion.a>
       </motion.nav>
 
@@ -277,20 +274,20 @@ function SidebarContent({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <motion.a href="/dashboard" title="Dashboard" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.a href="/dashboard" title="ড্যাশবোর্ড" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Avatar name={profile?.full_name} src={profile?.avatar_url} className="h-9 w-9 ring-2 ring-primary/20" />
             </motion.a>
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{profile?.full_name ?? user.email}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {role ? ROLE_NAMES[role as keyof typeof ROLE_NAMES] : 'Unknown'} · {profile?.display_id ?? ''}
+                  {role ? ROLE_NAMES[role as keyof typeof ROLE_NAMES] : 'অজানা'} · {profile?.display_id ?? ''}
                 </p>
               </div>
             )}
             <motion.button
-              aria-label="Sign out"
-              title="Sign out"
+            aria-label="সাইন আউট"
+            title="সাইন আউট"
               onClick={signOut}
               className="p-2 rounded-lg transition-colors hover:bg-accent"
               whileHover={{ scale: 1.1, rotate: 90 }}
@@ -302,8 +299,8 @@ function SidebarContent({
         ) : collapsed ? (
           <motion.a
             href="/login"
-            aria-label="Sign in"
-            title="Sign in"
+            aria-label="সাইন ইন"
+            title="সাইন ইন"
             className="flex h-10 w-full items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -324,7 +321,7 @@ function SidebarContent({
             whileTap={{ scale: 0.98 }}
           >
             <LogIn className="h-4 w-4" />
-            Sign in
+            সাইন ইন
           </motion.a>
         )}
       </motion.div>
@@ -396,7 +393,7 @@ function AppShell({
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/70 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
           <motion.button
             onClick={() => setMobileOpen(true)}
-            aria-label="Open menu"
+            aria-label="মেনু খুলুন"
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:hidden"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
@@ -406,8 +403,8 @@ function AppShell({
           <div className="flex-1" />
           <motion.button
             onClick={toggle}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? 'সাইডবার খুলুন' : 'সাইডবার বন্ধ করুন'}
+            title={collapsed ? 'সাইডবার খুলুন' : 'সাইডবার বন্ধ করুন'}
             className="hidden h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground md:flex"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.92 }}
@@ -451,7 +448,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <AppShell items={visible} footerLabel={`${SITE_NAME} Dashboard · Built for the committee`}>
+    <AppShell items={visible}    footerLabel={`${SITE_NAME} ড্যাশবোর্ড · কমিটির জন্য নির্মিত`}>
       {children}
     </AppShell>
   );
@@ -461,8 +458,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
     <AppShell
       items={PUBLIC_NAV_ITEMS}
-      footerLabel={`${SITE_NAME} · Music, culture and community`}
-      mainClassName="flex-1"
+      footerLabel={`${SITE_NAME} · সংগীত, সংস্কৃতি ও কমিউনিটি`}
     >
       {children}
     </AppShell>

@@ -12,7 +12,7 @@ const CalendarView = dynamic(
 export default function DashboardCalendarPage() {
   return (
     <div className="space-y-5">
-      <PageHeader size="md" title="Calendar" description="Club schedule at a glance." />
+      <PageHeader size="md" title="ক্যালেন্ডার" description="ক্লাবের সময়সূচি এক নজরে।" />
       <CalendarView />
     </div>
   );

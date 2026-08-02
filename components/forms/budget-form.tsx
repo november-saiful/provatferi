@@ -16,8 +16,8 @@ import { Select } from '@/components/ui/select';
 import type { Budget } from '@/lib/types';
 
 const schema = z.object({
-  project_name: z.string().min(2, 'Project name is required'),
-  allocated_amount: z.coerce.number().min(0.01, 'Enter an amount'),
+  project_name: z.string().min(2, 'প্রকল্পের নাম প্রয়োজন'),
+  allocated_amount: z.coerce.number().min(0.01, 'পরিমাণ লিখুন'),
   description: z.string().optional(),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
@@ -63,7 +63,7 @@ export function BudgetForm({
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error('Sign in required');
+      toast.error('সাইন ইন প্রয়োজন');
       return;
     }
     try {
@@ -79,48 +79,48 @@ export function BudgetForm({
       if (budget) {
         const { error } = await supabase.from('budgets').update(payload).eq('id', budget.id);
         if (error) throw error;
-        toast.success('Budget updated');
+        toast.success('বাজেট আপডেট হয়েছে');
       } else {
         const { error } = await supabase.from('budgets').insert(payload);
         if (error) throw error;
-        toast.success('Budget created');
+        toast.success('বাজেট তৈরি হয়েছে');
       }
       onSaved?.();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save budget');
+      toast.error(err instanceof Error ? err.message : 'বাজেট সংরক্ষণ ব্যর্থ হয়েছে');
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title={budget ? 'Edit budget' : 'Create budget'}>
+    <Dialog open={open} onClose={onClose} title={budget ? 'বাজেট সম্পাদনা' : 'বাজেট তৈরি করুন'}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="b-name">Project name</Label>
-          <Input id="b-name" {...register('project_name')} placeholder="e.g. Cultural Week" />
+          <Label htmlFor="b-name">প্রকল্পের নাম</Label>
+          <Input id="b-name" {...register('project_name')} placeholder="যেমন: সাংস্কৃতিক সপ্তাহ" />
           {errors.project_name && <p className="text-xs text-warmred-500">{errors.project_name.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="b-alloc">Allocated amount (BDT)</Label>
+          <Label htmlFor="b-alloc">বরাদ্দকৃত পরিমাণ (টাকা)</Label>
           <Input id="b-alloc" type="number" step="0.01" min="0" {...register('allocated_amount')} />
           {errors.allocated_amount && <p className="text-xs text-warmred-500">{errors.allocated_amount.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="b-desc">Description</Label>
+          <Label htmlFor="b-desc">বিবরণ</Label>
           <Textarea id="b-desc" rows={3} {...register('description')} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="b-start">Start date</Label>
+            <Label htmlFor="b-start">শুরুর তারিখ</Label>
             <Input id="b-start" type="date" {...register('start_date')} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="b-end">End date</Label>
+            <Label htmlFor="b-end">শেষের তারিখ</Label>
             <Input id="b-end" type="date" {...register('end_date')} />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="b-status">Status</Label>
+          <Label htmlFor="b-status">অবস্থা</Label>
           <Select id="b-status" {...register('status')}>
             {BUDGET_STATUSES.map((s) => (
               <option key={s} value={s} className="capitalize">{s}</option>
@@ -128,8 +128,8 @@ export function BudgetForm({
           </Select>
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving…' : budget ? 'Save changes' : 'Create budget'}</Button>
+          <Button type="button" variant="outline" onClick={onClose}>বাতিল</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'সংরক্ষণ হচ্ছে…' : budget ? 'পরিবর্তন সংরক্ষণ' : 'বাজেট তৈরি করুন'}</Button>
         </div>
       </form>
     </Dialog>

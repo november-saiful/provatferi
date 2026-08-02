@@ -8,9 +8,9 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function NoticesPage() {
   return (
     <PublicShell>
-      <Seo title="Notices" />
+      <Seo title="নোটিশ" />
       <div className="mx-auto max-w-4xl px-4 py-10">
-        <PageHeader title="Notice board" description="Official announcements from the committee." />
+        <PageHeader title="নোটিশ বোর্ড" description="কমিটি থেকে অফিসিয়াল ঘোষণা।" />
         <NoticeBoard basePath="/notices" />
       </div>
     </PublicShell>

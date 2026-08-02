@@ -61,7 +61,7 @@ npm run dev        # http://localhost:3000
 ### 2. Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor** and run every file in `supabase/migrations/` **in order** (00001 → 00009). This creates the tables, RLS policies, triggers, storage bucket, seed data, and enables Realtime for the public tables.
+2. Open **SQL Editor** and run every file in `supabase/migrations/` **in order** (00001 → 00012). This creates the tables, RLS policies, triggers, storage bucket, seed data, and enables Realtime for the public tables. Migration 00012 is required for the expanded attendance roles.
 3. Storage: the `gallery` bucket is created by migration `00007`. Verify it exists under **Storage**, is **public**, and has the RLS policies applied.
 4. Auth settings → add redirect URLs for your Cloudflare Workers domain and `http://localhost:3000`.
 
@@ -105,7 +105,6 @@ Creates 2 accounts per role (password `Provatferi@2026`), e.g. `pr1@provatferi.t
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL`
-   - `NEXT_PUBLIC_RECRUITMENT_URL` (recruitment bookmark)
    - `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_CONTACT_PHONE`
 3. Deploy: `npx wrangler deploy` (needs `CF_API_TOKEN`), or push to GitHub and let `.github/workflows/deploy.yml` build + deploy.
 4. `next.config.mjs` already uses `output: 'export'` and `images.unoptimized`.
@@ -122,12 +121,12 @@ Highlights:
 
 | Capability | Roles |
 |---|---|
-| Everything / super-admin | `pr`, `vp` |
+| Everything / super-admin (the app's admin roles) | `pr`, `vp` |
 | Edit expenses (audited) | `pr`, `vp`, `rds` |
 | Add expenses | + `tr`, `ofs`, `ors` |
 | View expenses | + `gs` (not `jgs`) |
 | Budgets (view/edit) | `pr`, `vp`, `cs`, `acs`, `rds` |
-| Attendance management | `pr`, `vp`, `cc` |
+| Attendance management | `pr`, `vp`, `gs`, `jgs`, `cc` |
 | Pin notices | `pr`, `vp` |
 | Upload gallery | `pr`, `vp`, `gs`, `jgs`, `pps`, `prs`, `ofs`, `ors` |
 | View audit log | all signed-in except `alm` |
@@ -145,7 +144,7 @@ Highlights:
 - **Detail pages** (`event item`, `notice item`) use query strings (`?id=…`) instead of dynamic path segments so the static export (`output: 'export'`) works without `generateStaticParams`.
 - **Role assignment** (admin panel) updates `profiles.role_id` and auto-assigns a `display_id` following the `{role}-NN` convention (e.g. `tr-01`); it cannot change your own role. Role changes are not yet written to `records_log` (the enum covers operational tables) — documented as a future enhancement.
 - **Comments** are stored plain text; notices support a basic markdown toolbar (bold, italic, headings, lists, code, links) rendered safely by `renderMarkdown` in `lib/utils.ts`.
-- **Attendance** progress on the public course cards reads all attendance rows and filters per schedule, so every course shows its own completion; recording attendance invalidates the shared `['attendance']` cache so the insights charts refresh immediately.
+- **Attendance** management is available to `pr`, `vp`, `gs`, `jgs`, and `cc`. The public course cards read all attendance rows and filter per schedule, so every course shows its own completion; recording attendance invalidates the shared `['attendance']` cache so the insights charts refresh immediately.
 - **Realtime** (migration `00009`): events, comments, gallery, calendar, notices, donations and sponsors are added to the `supabase_realtime` publication; the client's `useRealtimeInvalidate` hook refreshes those lists on change.
 
 ## Commands

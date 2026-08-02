@@ -18,8 +18,9 @@ import {
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
-import { useEvents, useNotices, useDonorBoard, useAppConfig, useRealtimeInvalidate } from '@/lib/queries';
+import { useEvents, useNotices, useDonorBoard, useRealtimeInvalidate } from '@/lib/queries';
 import { storageThumb } from '@/lib/supabase/client';
+import { RECRUITMENT_URL } from '@/lib/constants';
 import { formatDate, truncate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,11 +39,10 @@ export default function LandingPage() {
   const { data: events, isLoading: loadingEvents } = useEvents('all');
   const { data: notices } = useNotices();
   const { data: donors } = useDonorBoard();
-  const { data: recruitment } = useAppConfig('recruitment_url');
   useRealtimeInvalidate('events', [['events']]);
   useRealtimeInvalidate('notices', [['notices']]);
   useRealtimeInvalidate('donations', [['donor-board'], ['donations']]);
-  const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://recruitment.provatferi2009.workers.dev/';
+  const recruitmentUrl = RECRUITMENT_URL;
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 3);
   const pinned = (notices ?? []).filter((n) => n.is_pinned).slice(0, 3);
@@ -51,7 +51,7 @@ export default function LandingPage() {
   return (
     <PublicShell>
       <Seo title="Provatferi" />
-      <div>
+      <div className="-m-4 md:-m-6 lg:-m-8">
         <section className="relative overflow-hidden bg-gradient-to-br from-coffee-800 via-coffee-700 to-taupe-700 text-white">
           {/* Decorative texture + glow */}
           <div className="pointer-events-none absolute inset-0 bg-grid opacity-60" aria-hidden />
@@ -68,7 +68,7 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-28">
             <motion.div {...heroSection}>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium backdrop-blur">
-                <Sparkles className="h-4 w-4" /> Celebrating music &amp; culture
+                <Sparkles className="h-4 w-4" /> সংগীত ও সংস্কৃতির উৎসব
               </span>
             </motion.div>
             <motion.h1
@@ -83,8 +83,8 @@ export default function LandingPage() {
               {...heroSection}
               transition={{ duration: 0.6, delay: 0.16, ease: EASE }}
             >
-              A home for music, courses and community. Explore our events, follow our courses and stay
-              connected with the club.
+              সংগীত, কোর্স ও কমিউনিটির আবাস। আমাদের ইভেন্টগুলো দেখুন, কোর্সগুলো অনুসরণ করুন এবং ক্লাবের সাথে
+              যুক্ত থাকুন।
             </motion.p>
             <motion.div
               className="mt-8 flex flex-wrap gap-3"
@@ -97,7 +97,7 @@ export default function LandingPage() {
                 className="bg-white text-coffee-700 shadow-lg shadow-black/10 hover:bg-cream-100 hover:shadow-xl hover:shadow-black/15"
                 onClick={() => router.push('/events')}
               >
-                Explore events <ArrowRight />
+                ইভেন্ট দেখুন <ArrowRight />
               </Button>
               <Button
                 size="lg"
@@ -105,7 +105,7 @@ export default function LandingPage() {
                 className="border border-white/25 bg-white/5 text-white backdrop-blur hover:bg-white/15 hover:text-white"
                 onClick={() => router.push('/courses')}
               >
-                View courses
+                কোর্স দেখুন
               </Button>
               <a
                 href={recruitmentUrl}
@@ -113,7 +113,7 @@ export default function LandingPage() {
                 rel="noreferrer"
                 className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/30 px-6 text-base font-medium text-white transition-colors hover:bg-white/10"
               >
-                <ExternalLink className="h-4 w-4" /> Recruitment
+                <ExternalLink className="h-4 w-4" /> নিয়োগ
               </a>
             </motion.div>
           </div>
@@ -122,11 +122,11 @@ export default function LandingPage() {
         <section className="mx-auto max-w-6xl px-4 py-14 md:py-16">
           <Reveal className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Upcoming events</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Programs and gatherings worth marking on your calendar.</p>
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">আসন্ন ইভেন্ট</h2>
+              <p className="mt-1 text-sm text-muted-foreground">ক্যালেন্ডারে চিহ্নিত করার মতো প্রোগ্রাম ও সমাবেশ।</p>
             </div>
             <Link href="/events" className="group flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-              View all{' '}
+              সব দেখুন{' '}
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
           </Reveal>
@@ -138,7 +138,7 @@ export default function LandingPage() {
             </div>
           )}
           {!loadingEvents && upcoming.length === 0 && (
-            <p className="text-muted-foreground">No upcoming events right now — check back soon.</p>
+            <p className="text-muted-foreground">এখন কোনো আসন্ন ইভেন্ট নেই — শীঘ্রই আবার দেখুন।</p>
           )}
           <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((e) => (
@@ -186,20 +186,20 @@ export default function LandingPage() {
               {
                 href: '/calendar',
                 icon: Calendar,
-                title: 'Club calendar',
-                desc: 'Meetings, events and rehearsals in one place.'
+                title: 'ক্লাব ক্যালেন্ডার',
+                desc: 'সভা, ইভেন্ট ও রিহার্সাল এক জায়গায়।'
               },
               {
                 href: '/notices',
                 icon: Bell,
-                title: 'Notice board',
-                desc: 'Official announcements and updates.'
+                title: 'নোটিশ বোর্ড',
+                desc: 'অফিসিয়াল ঘোষণা ও আপডেট।'
               },
               {
                 href: '/insights',
                 icon: BarChart3,
-                title: 'Course insights',
-                desc: 'Attendance trends for all six courses.'
+                title: 'কোর্স বিশ্লেষণ',
+                desc: 'ছয়টি কোর্সের উপস্থিতির প্রবণতা।'
               }
             ].map((c) => (
               <Reveal key={c.href}>
@@ -221,7 +221,7 @@ export default function LandingPage() {
         {pinned.length > 0 && (
           <section className="mx-auto max-w-6xl px-4 py-14">
             <Reveal className="mb-6">
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Featured notices</h2>
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">বিশেষ নোটিশ</h2>
             </Reveal>
             <RevealStagger className="grid gap-4 md:grid-cols-3">
               {pinned.map((n) => (
@@ -242,8 +242,8 @@ export default function LandingPage() {
           <section className="border-t border-border">
             <div className="mx-auto max-w-6xl px-4 py-14">
               <Reveal className="mb-6">
-                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Recent supporters</h2>
-                <p className="mt-1 text-sm text-muted-foreground">The generous hearts keeping the music playing.</p>
+                <h2 className="text-2xl font-bold tracking-tight md:text-3xl">সম্প্রতি সহায়তাকারীরা</h2>
+                <p className="mt-1 text-sm text-muted-foreground">সংগীতকে বাঁচিয়ে রাখা উদার হৃদয়গুলো।</p>
               </Reveal>
               <RevealStagger className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                 {recentDonors.map((d) => (
@@ -262,7 +262,7 @@ export default function LandingPage() {
                   href="/donate"
                   className="group mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                 >
-                  Become a supporter{' '}
+                  সহায়তাকারী হোন{' '}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Link>
               </Reveal>
@@ -282,22 +282,22 @@ export default function LandingPage() {
             >
               <Handshake className="h-7 w-7 text-white/90" />
             </motion.span>
-            <h2 className="text-2xl font-bold md:text-3xl">Partner with Provatferi</h2>
+            <h2 className="text-2xl font-bold md:text-3xl">প্রভাতফেরীর সাথে অংশীদার হোন</h2>
             <p className="max-w-xl text-white/85">
-              Reach a passionate community of musicians and culture lovers.
+              সংগীতশিল্পী ও সংস্কৃতিপ্রেমীদের একটি আবেগী কমিউনিটিতে পৌঁছান।
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
                 href="/sponsor"
                 className="inline-flex h-11 items-center rounded-lg bg-white px-6 font-medium text-coffee-700 shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cream-100 hover:shadow-xl"
               >
-                Sponsor us
+                স্পনসর করুন
               </Link>
               <Link
                 href="/contact"
                 className="inline-flex h-11 items-center rounded-lg border border-white/30 px-6 font-medium transition-colors hover:bg-white/10"
               >
-                Meet the committee
+                কমিটির সাথে দেখা করুন
               </Link>
             </div>
           </Reveal>

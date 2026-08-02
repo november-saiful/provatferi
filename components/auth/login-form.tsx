@@ -15,8 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(8, 'Password must be at least 8 characters')
+  email: z.string().email('সঠিক ইমেইল দিন'),
+  password: z.string().min(8, 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে')
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -33,8 +33,8 @@ export function LoginForm() {
   if (!isSupabaseConfigured) {
     return (
       <p className="text-sm text-muted-foreground">
-        Supabase is not configured. Add <code>NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
-        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to your environment.
+        Supabase কনফিগার করা নেই। <code>NEXT_PUBLIC_SUPABASE_URL</code> এবং{' '}
+        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> এনভায়রনমেন্টে যোগ করুন।
       </p>
     );
   }
@@ -46,7 +46,7 @@ export function LoginForm() {
       return;
     }
     await refreshProfile();
-    toast.success('Signed in');
+    toast.success('সাইন ইন হয়েছে');
     router.push('/dashboard');
     router.refresh();
   };
@@ -54,22 +54,22 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">ইমেইল</Label>
         <Input id="email" type="email" placeholder="you@example.com" {...register('email')} />
         {errors.email && <p className="text-xs text-warmred-500">{errors.email.message}</p>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">পাসওয়ার্ড</Label>
         <Input id="password" type="password" placeholder="••••••••" {...register('password')} />
         {errors.password && <p className="text-xs text-warmred-500">{errors.password.message}</p>}
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Signing in…' : 'Sign in'}
+        {isSubmitting ? 'সাইন ইন হচ্ছে…' : 'সাইন ইন'}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        No account?{' '}
+        অ্যাকাউন্ট নেই?{' '}
         <Link href="/register" className="font-medium text-primary underline-offset-4 hover:underline">
-          Create one
+          একটি তৈরি করুন
         </Link>
       </p>
     </form>

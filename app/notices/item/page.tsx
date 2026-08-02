@@ -9,7 +9,7 @@ export default function NoticeItemPage() {
   const id = useQueryParam('id');
   return (
     <PublicShell>
-      <Seo title="Notice" />
+      <Seo title="নোটিশ" />
       <div className="mx-auto max-w-4xl px-4 py-10">
         <NoticeDetail noticeId={id} />
       </div>

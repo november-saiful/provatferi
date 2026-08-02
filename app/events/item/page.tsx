@@ -9,7 +9,7 @@ export default function EventItemPage() {
   const id = useQueryParam('id');
   return (
     <PublicShell>
-      <Seo title="Event details" />
+      <Seo title="ইভেন্টের বিবরণ" />
       <div className="mx-auto max-w-4xl px-4 py-10">
         <EventDetail eventId={id} />
       </div>

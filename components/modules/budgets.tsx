@@ -8,7 +8,8 @@ import { supabase } from '@/lib/supabase/client';
 import { useBudgets } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite, canEditBudget } from '@/lib/permissions';
-import { formatMoney, cn } from '@/lib/utils';
+import { BUDGET_STATUS_LABELS } from '@/lib/constants';
+import { formatMoney, cn, toBengaliDigits } from '@/lib/utils';
 import type { Budget } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,12 +32,12 @@ export function Budgets() {
   const canEdit = canEditBudget(role);
 
   const handleDelete = async (b: Budget) => {
-    if (!confirm(`Delete budget "${b.project_name}"?`)) return;
+    if (!confirm(`বাজেট "${b.project_name}" মুছে ফেলবেন?`)) return;
     const { error } = await supabase.from('budgets').delete().eq('id', b.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Budget deleted');
+      toast.success('বাজেট মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['budgets'] });
       qc.invalidateQueries({ queryKey: ['records'] });
     }
@@ -52,7 +53,7 @@ export function Budgets() {
               setFormOpen(true);
             }}
           >
-            <Plus /> New budget
+            <Plus /> নতুন বাজেট
           </Button>
         )}
       </StaggerItem>
@@ -60,7 +61,7 @@ export function Budgets() {
       {isLoading && <Skeleton className="h-64 w-full" />}
 
       {!isLoading && (!budgets || budgets.length === 0) && (
-        <EmptyState title="No budgets" description="Project budgets will appear here." />
+        <EmptyState title="কোনো বাজেট নেই" description="প্রকল্পের বাজেট এখানে দেখা যাবে।" />
       )}
 
       {budgets && budgets.length > 0 && (
@@ -77,24 +78,24 @@ export function Budgets() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold">{b.project_name}</h3>
-                    <p className="text-xs text-muted-foreground">{b.status}</p>
+                    <p className="text-xs text-muted-foreground">{BUDGET_STATUS_LABELS[b.status] ?? b.status}</p>
                   </div>
-                  <Badge variant={b.status === 'active' ? 'coffee' : b.status === 'completed' ? 'success' : 'secondary'} className="capitalize">
-                    {b.status}
+                  <Badge variant={b.status === 'active' ? 'coffee' : b.status === 'completed' ? 'success' : 'secondary'}>
+                    {BUDGET_STATUS_LABELS[b.status] ?? b.status}
                   </Badge>
                 </div>
 
                 <div className="mt-4 space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Allocated</span>
+                    <span className="text-muted-foreground">বরাদ্দ</span>
                     <span className="font-medium">{formatMoney(allocated)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Spent</span>
+                    <span className="text-muted-foreground">ব্যয়</span>
                     <span className="font-medium">{formatMoney(spent)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Remaining</span>
+                    <span className="text-muted-foreground">অবশিষ্ট</span>
                     <span className={cn('font-semibold', remaining < 0 ? 'text-warmred-500' : 'text-sage-600')}>
                       {formatMoney(remaining)}
                     </span>
@@ -102,17 +103,17 @@ export function Budgets() {
                 </div>
 
                 <Progress value={pct} className="mt-3" barClassName={barColor} />
-                <p className="mt-1 text-right text-xs text-muted-foreground">{pct.toFixed(1)}% spent</p>
+                <p className="mt-1 text-right text-xs text-muted-foreground">{toBengaliDigits(pct.toFixed(1))}% ব্যয় হয়েছে</p>
 
                 {b.description && <p className="mt-2 text-sm text-muted-foreground">{b.description}</p>}
 
                 {canEdit && (
                   <div className="mt-4 flex justify-end gap-2 border-t border-border pt-3">
                     <Button variant="outline" size="sm" onClick={() => { setEditing(b); setFormOpen(true); }}>
-                      <Pencil /> Edit
+                      <Pencil /> সম্পাদনা
                     </Button>
                     <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => handleDelete(b)}>
-                      <Trash2 /> Delete
+                      <Trash2 /> মুছুন
                     </Button>
                   </div>
                 )}

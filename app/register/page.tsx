@@ -19,15 +19,15 @@ export default function RegisterPage() {
 
   return (
     <PublicShell>
-      <Seo title="Create account" />
+      <Seo title="অ্যাকাউন্ট তৈরি করুন" />
       <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coffee-600 text-white">
           <Music className="h-7 w-7" />
         </span>
         <Card className="mt-6 w-full">
           <CardHeader>
-            <CardTitle>Join Provatferi</CardTitle>
-            <CardDescription>Create your account to comment on events and access member areas.</CardDescription>
+            <CardTitle>প্রভাতফেরীতে যোগ দিন</CardTitle>
+            <CardDescription>ইভেন্টে মন্তব্য করতে এবং সদস্য অঞ্চল ব্যবহার করতে আপনার অ্যাকাউন্ট তৈরি করুন।</CardDescription>
           </CardHeader>
           <CardContent>
             <RegisterForm />

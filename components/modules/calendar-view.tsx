@@ -5,8 +5,8 @@ import { Calendar as RBCalendar, dateFnsLocalizer, type View, type SlotInfo } fr
 import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { format as dateFnsFormat, parse, startOfWeek, getDay } from 'date-fns';
+import { bn } from 'date-fns/locale';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,7 +17,7 @@ import { useCalendarEvents, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite } from '@/lib/permissions';
 import { CALENDAR_CATEGORIES } from '@/lib/constants';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, toBengaliDigits } from '@/lib/utils';
 import type { CalendarEvent } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,7 +25,29 @@ import { Dialog } from '@/components/ui/dialog';
 import { CalendarEventForm } from '@/components/forms/calendar-event-form';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
-const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales: { 'en-US': enUS } });
+const localizer = dateFnsLocalizer({
+  format: (date: Date | string, formatString: string) =>
+    toBengaliDigits(dateFnsFormat(new Date(date), formatString, { locale: bn })),
+  parse,
+  startOfWeek,
+  getDay,
+  locales: { bn }
+});
+
+// Bengali toolbar / view labels for react-big-calendar
+const CALENDAR_MESSAGES = {
+  today: 'আজ',
+  previous: 'পেছনে',
+  next: 'পরবর্তী',
+  month: 'মাস',
+  week: 'সপ্তাহ',
+  day: 'দিন',
+  agenda: 'এজেন্ডা',
+  date: 'তারিখ',
+  time: 'সময়',
+  event: 'ইভেন্ট',
+  showMore: (total: number) => `+${toBengaliDigits(total)} আরও`
+};
 
 interface RbcEvent {
   id: string;
@@ -92,12 +114,12 @@ export function CalendarView() {
   };
 
   const handleDelete = async (e: CalendarEvent) => {
-    if (!confirm('Delete this calendar event?')) return;
+    if (!confirm('এই ক্যালেন্ডার ইভেন্টটি মুছে ফেলবেন?')) return;
     const { error } = await supabase.from('calendar_events').delete().eq('id', e.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Event deleted');
+      toast.success('ইভেন্ট মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['calendar-events'] });
       setFormOpen(false);
     }
@@ -115,7 +137,7 @@ export function CalendarView() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Event rescheduled');
+      toast.success('ইভেন্ট পুনর্নির্ধারিত হয়েছে');
       qc.invalidateQueries({ queryKey: ['calendar-events'] });
     }
   };
@@ -131,7 +153,7 @@ export function CalendarView() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Event resized');
+      toast.success('ইভেন্টের আকার পরিবর্তন হয়েছে');
       qc.invalidateQueries({ queryKey: ['calendar-events'] });
     }
   };
@@ -147,7 +169,7 @@ export function CalendarView() {
               setFormOpen(true);
             }}
           >
-            <Plus /> Add event
+            <Plus /> ইভেন্ট যোগ করুন
           </Button>
         </StaggerItem>
       )}
@@ -156,6 +178,8 @@ export function CalendarView() {
         <DndProvider backend={HTML5Backend}>
           <DragAndDropCalendar
             localizer={localizer}
+            messages={CALENDAR_MESSAGES}
+            culture="bn"
             events={rbcEvents}
             view={view}
             onView={setView}
@@ -193,8 +217,8 @@ export function CalendarView() {
               {detail.custom_category ? ` · ${detail.custom_category}` : ''}
             </p>
             <div className="space-y-1 text-sm">
-              <p>From {formatDateTime(detail.start_date)}</p>
-              {detail.end_date && <p>To {formatDateTime(detail.end_date)}</p>}
+              <p>শুরু {formatDateTime(detail.start_date)}</p>
+              {detail.end_date && <p>শেষ {formatDateTime(detail.end_date)}</p>}
               {detail.location && <p>📍 {detail.location}</p>}
             </div>
             {detail.description && <p className="whitespace-pre-line text-sm text-muted-foreground">{detail.description}</p>}
@@ -211,7 +235,7 @@ export function CalendarView() {
         footer={
           canEdit && formEvent ? (
             <Button type="button" variant="destructive" onClick={() => handleDelete(formEvent)}>
-              <Trash2 /> Delete
+              <Trash2 /> মুছুন
             </Button>
           ) : undefined
         }

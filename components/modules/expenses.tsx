@@ -10,7 +10,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { canWrite, canEditExpense } from '@/lib/permissions';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
 import { storageUrl } from '@/lib/supabase/client';
-import { formatDate, formatMoney, cn } from '@/lib/utils';
+import { formatDate, formatMoney, cn, toBengaliDigits } from '@/lib/utils';
 import type { Expense } from '@/lib/types';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -97,12 +97,12 @@ export function Expenses() {
   );
 
   const handleDelete = async (e: Expense) => {
-    if (!confirm(`Delete expense "${e.title}"? This is logged in the audit trail.`)) return;
+    if (!confirm(`ব্যয় "${e.title}" মুছে ফেলবেন? এটি অডিট ট্রেইলে রেকর্ড হবে।`)) return;
     const { error } = await supabase.from('expenses').delete().eq('id', e.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Expense deleted — original creator notified');
+      toast.success('ব্যয় মুছে ফেলা হয়েছে — মূল স্রষ্টাকে জানানো হয়েছে');
       qc.invalidateQueries({ queryKey: ['expenses'] });
       qc.invalidateQueries({ queryKey: ['records'] });
     }
@@ -112,14 +112,14 @@ export function Expenses() {
     <Stagger className="space-y-5">
       <StaggerItem className="flex flex-wrap items-center gap-3">
         <Select value={category} onChange={(e) => setCategory(e.target.value)} className="w-48">
-          <option value="">All categories</option>
+          <option value="">সব বিভাগ</option>
           {EXPENSE_CATEGORIES.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </Select>
         <div className="ml-auto flex items-center gap-3">
           <span className="text-sm text-muted-foreground">
-            Total: <span className="font-semibold text-coffee-700">{formatMoney(total)}</span>
+            মোট: <span className="font-semibold text-coffee-700">{formatMoney(total)}</span>
           </span>
           {canCreate && (
             <Button
@@ -128,7 +128,7 @@ export function Expenses() {
                 setFormOpen(true);
               }}
             >
-              <Plus /> Add expense
+              <Plus /> ব্যয় যোগ করুন
             </Button>
           )}
         </div>
@@ -137,7 +137,7 @@ export function Expenses() {
       {isLoading && <Skeleton className="h-64 w-full" />}
 
       {!isLoading && filtered.length === 0 && (
-        <EmptyState title="No expenses recorded" description="Expenses you can view will appear here." />
+        <EmptyState title="কোনো ব্যয় রেকর্ড নেই" description="আপনি যে ব্যয় দেখতে পারেন তা এখানে দেখা যাবে।" />
       )}
 
       {filtered.length > 0 && (
@@ -145,13 +145,13 @@ export function Expenses() {
           <Table>
           <TableHeader>
             <TableRow>
-              <TableHead><SortHeader label="Date" k="expense_date" /></TableHead>
-              <TableHead><SortHeader label="Title" k="title" /></TableHead>
-              <TableHead><SortHeader label="Category" k="category" /></TableHead>
-              <TableHead className="text-right"><SortHeader label="Amount" k="amount" className="justify-end" /></TableHead>
-              <TableHead>Receipt</TableHead>
-              <TableHead>Created by</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead><SortHeader label="তারিখ" k="expense_date" /></TableHead>
+              <TableHead><SortHeader label="শিরোনাম" k="title" /></TableHead>
+              <TableHead><SortHeader label="বিভাগ" k="category" /></TableHead>
+              <TableHead className="text-right"><SortHeader label="পরিমাণ" k="amount" className="justify-end" /></TableHead>
+              <TableHead>রসিদ</TableHead>
+              <TableHead>যিনি তৈরি করেছেন</TableHead>
+              <TableHead className="text-right">কার্যক্রম</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -166,13 +166,13 @@ export function Expenses() {
                 <TableCell>
                   {e.receipt_url ? (
                     <Button variant="ghost" size="sm" onClick={() => setReceipt(e.receipt_url!)}>
-                      <Receipt /> View
+                      <Receipt /> দেখুন
                     </Button>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{e.profiles?.full_name ?? 'Committee'}</TableCell>
+                <TableCell className="text-muted-foreground">{e.profiles?.full_name ?? 'কমিটি'}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     {(canEdit || user?.id === e.created_by) && (
@@ -197,14 +197,14 @@ export function Expenses() {
       {filtered.length > PAGE_SIZE && (
         <StaggerItem className="flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            Page {page} of {pageCount} · {filtered.length} expenses
+            পৃষ্ঠা {toBengaliDigits(page)} / {toBengaliDigits(pageCount)} · {toBengaliDigits(filtered.length)} ব্যয়
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
+              আগের
             </Button>
             <Button variant="outline" size="sm" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>
-              Next
+              পরের
             </Button>
           </div>
         </StaggerItem>
@@ -220,7 +220,7 @@ export function Expenses() {
         }}
       />
 
-      <Dialog open={!!receipt} onClose={() => setReceipt(null)} title="Receipt">
+      <Dialog open={!!receipt} onClose={() => setReceipt(null)} title="রসিদ">
         {receipt && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={storageUrl(receipt)} alt="Receipt" className="w-full rounded-lg" loading="lazy" decoding="async" />

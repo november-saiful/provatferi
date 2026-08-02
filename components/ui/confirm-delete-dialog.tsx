@@ -29,9 +29,9 @@ export function ConfirmDeleteDialog({
   onConfirm,
   title,
   name,
-  nameLabel = 'Record name',
+  nameLabel = 'রেকর্ডের নাম',
   description,
-  confirmLabel = 'Delete',
+  confirmLabel = 'মুছুন',
   isDeleting = false
 }: ConfirmDeleteDialogProps) {
   const [typed, setTyped] = React.useState('');
@@ -53,7 +53,7 @@ export function ConfirmDeleteDialog({
       >
         <div className="space-y-2">
           <Label htmlFor="confirm-name">
-            Type <span className="font-semibold">“{name}”</span> to confirm
+            নিশ্চিত করতে <span className="font-semibold">“{name}”</span> টাইপ করুন
           </Label>
           <Input
             id="confirm-name"
@@ -63,15 +63,15 @@ export function ConfirmDeleteDialog({
             autoFocus
           />
           {typed.trim().length > 0 && !matches && (
-            <p className="text-xs text-warmred-500">Name does not match.</p>
+            <p className="text-xs text-warmred-500">নাম মেলেনি।</p>
           )}
         </div>
         <div className="flex justify-end gap-2 pt-1">
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+            বাতিল
           </Button>
           <Button type="submit" variant="destructive" disabled={!matches || isDeleting}>
-            {isDeleting ? 'Deleting…' : confirmLabel}
+            {isDeleting ? 'মুছে ফেলা হচ্ছে…' : confirmLabel}
           </Button>
         </div>
       </form>

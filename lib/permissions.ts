@@ -5,21 +5,21 @@
 import type { ModuleId, RoleId } from './types';
 
 export const ROLE_NAMES: Record<RoleId, string> = {
-  pr: 'President',
-  vp: 'Vice President',
-  gs: 'General Secretary',
-  jgs: 'Joint General Secretary',
-  tr: 'Treasurer',
-  ofs: 'Office Secretary',
-  ors: 'Organizing Secretary',
-  cs: 'Cultural Secretary',
-  acs: 'Assistant Cultural Secretary',
-  pps: 'Publicity and Publication Secretary',
-  prs: 'Public Relations Secretary',
-  rds: 'Record and Documentation Secretary',
-  cc: 'Course Coordinator',
-  alm: 'Alumni',
-  visitor: 'Visitor'
+  pr: 'সভাপতি',
+  vp: 'সহ-সভাপতি',
+  gs: 'সাধারণ সম্পাদক',
+  jgs: 'যুগ্ম সাধারণ সম্পাদক',
+  tr: 'কোষাধ্যক্ষ',
+  ofs: 'অফিস সম্পাদক',
+  ors: 'সাংগঠনিক সম্পাদক',
+  cs: 'সাংস্কৃতিক সম্পাদক',
+  acs: 'সহকারী সাংস্কৃতিক সম্পাদক',
+  pps: 'প্রচার ও প্রকাশনা সম্পাদক',
+  prs: 'জনসংযোগ সম্পাদক',
+  rds: 'রেকর্ড ও ডকুমেন্টেশন সম্পাদক',
+  cc: 'কোর্স কো-অর্ডিনেটর',
+  alm: 'অ্যালামনাই',
+  visitor: 'ভিজিটর'
 };
 
 export const ROLE_ORDER: RoleId[] = [
@@ -68,7 +68,7 @@ export const MODULE_WRITE: Record<ModuleId, RoleSet> = {
   xpm: ['pr', 'vp', 'tr', 'ofs', 'ors', 'rds'],
   bgm: ['pr', 'vp', 'cs', 'acs', 'rds'],
   rcd: ['pr', 'vp', 'rds'],
-  cia: ['pr', 'vp', 'cc'],
+  cia: ['pr', 'vp', 'gs', 'jgs', 'cc'],
   coi: [],
   admin: ['pr', 'vp']
 };
@@ -106,5 +106,5 @@ export function canManageSponsors(role: RoleId | null | undefined): boolean {
 }
 
 export function canManageAttendance(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'cc'].includes(role);
+  return !!role && ['pr', 'vp', 'gs', 'jgs', 'cc'].includes(role);
 }

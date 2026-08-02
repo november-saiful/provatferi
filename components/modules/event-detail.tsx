@@ -8,8 +8,9 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth-store';
 import { useEvent, useEventComments, useGallery, useDeleteComment, useRealtimeInvalidate } from '@/lib/queries';
 import { canWrite } from '@/lib/permissions';
+import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
-import { formatDate, formatDateTime, relativeTime, initials, cn } from '@/lib/utils';
+import { formatDate, formatDateTime, relativeTime, initials, cn, toBengaliDigits } from '@/lib/utils';
 import type { EventComment } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,14 +50,14 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Event deleted');
+      toast.success('ইভেন্ট মুছে ফেলা হয়েছে');
       router.push('/dashboard/evf');
     }
   };
 
   const handleDeleteComment = async (c: EventComment) => {
     await deleteComment.mutateAsync({ id: c.id, eventId: event!.id }, {
-      onSuccess: () => toast.success('Comment deleted'),
+      onSuccess: () => toast.success('মন্তব্য মুছে ফেলা হয়েছে'),
       onError: (err) => toast.error(err.message)
     });
   };
@@ -73,9 +74,9 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   if (!event) {
     return (
       <EmptyState
-        title="Event not found"
-        description="The event may have been removed."
-        action={<Button onClick={() => router.push('/dashboard/evf')}>Back to events</Button>}
+        title="ইভেন্ট পাওয়া যায়নি"
+        description="ইভেন্টটি সরিয়ে ফেলা হতে পারে।"
+        action={<Button onClick={() => router.push('/dashboard/evf')}>ইভেন্টে ফিরুন</Button>}
       />
     );
   }
@@ -84,14 +85,14 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
     <Stagger className="space-y-6">
       <StaggerItem className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" onClick={() => router.push('/dashboard/evf')}>
-          <ArrowLeft /> Back to events
+          <ArrowLeft /> ইভেন্টে ফিরুন
         </Button>
         <div className="flex flex-wrap gap-2">
           {canEditEvent && (
             <>
-              <Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
+              <Button variant="outline" onClick={() => setEditing(true)}>সম্পাদনা</Button>
               <Button variant="destructive" onClick={() => setConfirmDelete(true)}>
-                <Trash2 /> Delete
+                <Trash2 /> মুছুন
               </Button>
             </>
           )}
@@ -110,8 +111,8 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
               </div>
             )}
             <div className="absolute right-3 top-3">
-              <Badge variant={event.status === 'ongoing' ? 'success' : event.status === 'upcoming' ? 'coffee' : 'taupe'} className="capitalize">
-                {event.status}
+              <Badge variant={event.status === 'ongoing' ? 'success' : event.status === 'upcoming' ? 'coffee' : 'taupe'}>
+                {EVENT_STATUS_LABELS[event.status] ?? event.status}
               </Badge>
             </div>
           </div>
@@ -120,7 +121,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
               <span>📅 {formatDateTime(event.event_date)}</span>
               {event.location && <span>📍 {event.location}</span>}
-              {event.profiles?.full_name && <span>Posted by {event.profiles.full_name}</span>}
+              {event.profiles?.full_name && <span>পোস্ট করেছেন {event.profiles.full_name}</span>}
             </div>
             {event.description && (
               <p className="mt-4 whitespace-pre-line text-foreground/90">{event.description}</p>
@@ -133,7 +134,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
         <StaggerItem>
           <Card>
             <CardHeader>
-              <CardTitle>Gallery</CardTitle>
+              <CardTitle>গ্যালারি</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -157,12 +158,12 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
       <StaggerItem>
         <Card>
           <CardHeader>
-            <CardTitle>Comments ({comments?.length ?? 0})</CardTitle>
+            <CardTitle>মন্তব্য ({toBengaliDigits(comments?.length ?? 0)})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <CommentBox eventId={event.id} />
             {comments && comments.length === 0 && (
-              <p className="text-sm text-muted-foreground">No comments yet. Be the first to share your thoughts.</p>
+              <p className="text-sm text-muted-foreground">এখনো কোনো মন্তব্য নেই। প্রথম মতামত দিন।</p>
             )}
             <ul className="space-y-4">
               {comments?.map((c) => {
@@ -172,13 +173,13 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
                     <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-8 w-8 text-xs" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{c.profiles?.full_name ?? 'Member'}</span>
+                        <span className="text-sm font-medium">{c.profiles?.full_name ?? 'সদস্য'}</span>
                         <span className="text-xs text-muted-foreground">{relativeTime(c.created_at)}</span>
                         {canDelete && (
                           <button
                             className="ml-auto text-muted-foreground hover:text-warmred-500"
                             onClick={() => handleDeleteComment(c)}
-                            aria-label="Delete comment"
+                            aria-label="মন্তব্য মুছুন"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -205,9 +206,9 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
-        title="Delete event"
+        title="ইভেন্ট মুছুন"
         name={event.title}
-        description="This cannot be undone. Type the event name to confirm."
+        description="এটি ফেরানো যাবে না। নিশ্চিত করতে ইভেন্টের নাম টাইপ করুন।"
         isDeleting={deleting}
       />
     </Stagger>

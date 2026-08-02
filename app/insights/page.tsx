@@ -27,9 +27,9 @@ const CourseInsights = dynamic(
 export default function InsightsPage() {
   return (
     <PublicShell>
-      <Seo title="Course insights" />
+      <Seo title="কোর্স বিশ্লেষণ" />
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader title="Course insights" description="Visual analytics of course attendance and completion." />
+        <PageHeader title="কোর্স বিশ্লেষণ" description="কোর্স উপস্থিতি ও সমাপ্তির ভিজ্যুয়াল বিশ্লেষণ।" />
         <CourseInsights />
       </div>
     </PublicShell>

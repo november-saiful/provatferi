@@ -38,6 +38,10 @@ export interface Profile {
   full_name: string | null;
   email: string;
   phone: string | null;
+  academic_session: string | null;
+  department: string | null;
+  hall_name: string | null;
+  reg_id: string | null;
   avatar_url: string | null;
   is_active: boolean;
   created_at: string;

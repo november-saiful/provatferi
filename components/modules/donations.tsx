@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Heart, UserRound } from 'lucide-react';
 import { useDonorBoard, useDonations } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
-import { formatMoney, formatDate, relativeTime, downloadCsv } from '@/lib/utils';
+import { formatMoney, formatDate, relativeTime, downloadCsv, toBengaliDigits } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,9 +41,9 @@ export function Donations() {
           value={tab}
           onValueChange={setTab}
           items={[
-            { value: 'donate', label: 'Donate' },
-            { value: 'wall', label: 'Donor Wall' },
-            ...(signedIn ? [{ value: 'records', label: 'Amounts (members)' }] : [])
+            { value: 'donate', label: 'অনুদান দিন' },
+            { value: 'wall', label: 'দাতাদের তালিকা' },
+            ...(signedIn ? [{ value: 'records', label: 'পরিমাণ (সদস্য)' }] : [])
           ]}
         />
       </StaggerItem>
@@ -52,7 +52,7 @@ export function Donations() {
         <StaggerItem>
           <Card className="mx-auto max-w-lg">
             <CardHeader>
-              <CardTitle>Support Provatferi</CardTitle>
+              <CardTitle>প্রভাতফেরীকে সহায়তা করুন</CardTitle>
             </CardHeader>
             <CardContent>
               <DonationForm />
@@ -65,7 +65,7 @@ export function Donations() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Heart className="h-4 w-4 text-warmred-500" />
-            {board?.length ?? 0} generous supporters
+            {toBengaliDigits(board?.length ?? 0)} জন উদার সহায়তাকারী
           </div>
           {isLoading && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,7 +75,7 @@ export function Donations() {
             </div>
           )}
           {!isLoading && (!board || board.length === 0) && (
-            <EmptyState title="No donors yet" description="Be the first to support Provatferi!" />
+            <EmptyState title="এখনো কোনো দাতা নেই" description="প্রভাতফেরীকে সহায়তা করা প্রথম ব্যক্তি হোন!" />
           )}
           <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" gap={8} y={12}>
             {board?.map((d) => (
@@ -107,7 +107,7 @@ export function Donations() {
               <StaggerItem>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">Total donated</p>
+                    <p className="text-sm text-muted-foreground">মোট অনুদান</p>
                     <p className="mt-1 text-2xl font-bold text-coffee-700">{formatMoney(stats.total)}</p>
                   </CardContent>
                 </Card>
@@ -115,7 +115,7 @@ export function Donations() {
               <StaggerItem>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">Average donation</p>
+                    <p className="text-sm text-muted-foreground">গড় অনুদান</p>
                     <p className="mt-1 text-2xl font-bold">{formatMoney(stats.average)}</p>
                   </CardContent>
                 </Card>
@@ -123,7 +123,7 @@ export function Donations() {
               <StaggerItem>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">Highest donation</p>
+                    <p className="text-sm text-muted-foreground">সর্বোচ্চ অনুদান</p>
                     <p className="mt-1 text-2xl font-bold">{formatMoney(stats.highest)}</p>
                   </CardContent>
                 </Card>
@@ -146,7 +146,7 @@ export function Donations() {
                   ])
                 }
               >
-                <Download /> Export CSV
+                <Download /> CSV এক্সপোর্ট
               </Button>
             </div>
           )}
@@ -156,9 +156,9 @@ export function Donations() {
               <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Donor</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>দাতা</TableHead>
+                  <TableHead>পরিমাণ</TableHead>
+                  <TableHead>তারিখ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,7 +168,7 @@ export function Donations() {
                       <span className="flex items-center gap-2">
                         {d.is_anonymous ? (
                           <>
-                            <UserRound className="h-4 w-4 text-muted-foreground" /> Anonymous
+                            <UserRound className="h-4 w-4 text-muted-foreground" /> বেনামী
                           </>
                         ) : (
                           d.donor_name

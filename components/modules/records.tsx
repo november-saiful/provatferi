@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Eye, Search } from 'lucide-react';
 import { useRecords } from '@/lib/queries';
 import { formatDateTime, cn } from '@/lib/utils';
+import { ACTION_LABELS } from '@/lib/constants';
 import type { RecordsLog } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,15 +23,15 @@ const ACTION_VARIANT: Record<string, 'warning' | 'destructive' | 'success'> = {
 };
 
 const TABLE_LABELS: Record<string, string> = {
-  expenses: 'Expenses',
-  budgets: 'Budgets',
-  notices: 'Notices',
-  calendar_events: 'Calendar',
-  events: 'Events'
+  expenses: 'ব্যয়',
+  budgets: 'বাজেট',
+  notices: 'নোটিশ',
+  calendar_events: 'ক্যালেন্ডার',
+  events: 'ইভেন্ট'
 };
 
 function DiffView({ original, next }: { original: Record<string, unknown> | null; next: Record<string, unknown> | null }) {
-  if (!original && !next) return <p className="text-sm text-muted-foreground">No data.</p>;
+  if (!original && !next) return <p className="text-sm text-muted-foreground">কোনো তথ্য নেই।</p>;
 
   const keys = Array.from(new Set([...(original ? Object.keys(original) : []), ...(next ? Object.keys(next) : [])]));
 
@@ -39,9 +40,9 @@ function DiffView({ original, next }: { original: Record<string, unknown> | null
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/50 text-left text-xs text-muted-foreground">
-            <th className="px-3 py-2 font-medium">Field</th>
-            <th className="px-3 py-2 font-medium">Before</th>
-            <th className="px-3 py-2 font-medium">After</th>
+            <th className="px-3 py-2 font-medium">ক্ষেত্র</th>
+            <th className="px-3 py-2 font-medium">আগে</th>
+            <th className="px-3 py-2 font-medium">পরে</th>
           </tr>
         </thead>
         <tbody>
@@ -91,27 +92,27 @@ export function Records() {
     <Stagger className="space-y-5">
       <StaggerItem className="flex flex-wrap items-center gap-3">
         <Select value={tableFilter} onChange={(e) => setTableFilter(e.target.value)} className="w-44">
-          <option value="">All tables</option>
+          <option value="">সব টেবিল</option>
           {Object.entries(TABLE_LABELS).map(([v, l]) => (
             <option key={v} value={v}>{l}</option>
           ))}
         </Select>
         <Select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className="w-36">
-          <option value="">All actions</option>
-          <option value="create">Create</option>
-          <option value="update">Update</option>
-          <option value="delete">Delete</option>
+          <option value="">সব কার্যক্রম</option>
+          <option value="create">{ACTION_LABELS.create}</option>
+          <option value="update">{ACTION_LABELS.update}</option>
+          <option value="delete">{ACTION_LABELS.delete}</option>
         </Select>
         <div className="relative min-w-[200px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="খুঁজুন…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </StaggerItem>
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
       {!isLoading && filtered.length === 0 && (
-        <EmptyState title="No audit entries" description="Changes to expenses and budgets will be recorded here." />
+        <EmptyState title="কোনো অডিট এন্ট্রি নেই" description="ব্যয় ও বাজেটের পরিবর্তনগুলো এখানে রেকর্ড হবে।" />
       )}
 
       {filtered.length > 0 && (
@@ -119,12 +120,12 @@ export function Records() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date / time</TableHead>
-                <TableHead>Table</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Modified by</TableHead>
-                <TableHead>Original creator</TableHead>
-                <TableHead className="text-right">Changes</TableHead>
+                <TableHead>তারিখ / সময়</TableHead>
+                <TableHead>টেবিল</TableHead>
+                <TableHead>কার্যক্রম</TableHead>
+                <TableHead>যিনি পরিবর্তন করেছেন</TableHead>
+                <TableHead>মূল স্রষ্টা</TableHead>
+                <TableHead className="text-right">পরিবর্তন</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -133,15 +134,15 @@ export function Records() {
                   <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(r.created_at)}</TableCell>
                   <TableCell>{TABLE_LABELS[r.table_name] ?? r.table_name}</TableCell>
                   <TableCell>
-                    <Badge variant={ACTION_VARIANT[r.action] ?? 'secondary'} className="capitalize">
-                      {r.action}
+                    <Badge variant={ACTION_VARIANT[r.action] ?? 'secondary'}>
+                      {ACTION_LABELS[r.action] ?? r.action}
                     </Badge>
                   </TableCell>
-                  <TableCell>{r.modifier?.full_name ?? 'System'}</TableCell>
+                  <TableCell>{r.modifier?.full_name ?? 'সিস্টেম'}</TableCell>
                   <TableCell>{r.creator?.full_name ?? '—'}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="sm" onClick={() => setDetail(r)}>
-                      <Eye /> View
+                      <Eye /> দেখুন
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -151,20 +152,20 @@ export function Records() {
         </StaggerItem>
       )}
 
-      <Dialog open={!!detail} onClose={() => setDetail(null)} title="Change details" className="max-w-2xl">
+      <Dialog open={!!detail} onClose={() => setDetail(null)} title="পরিবর্তনের বিবরণ" className="max-w-2xl">
         {detail && (
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2 text-sm">
-              <Badge variant={ACTION_VARIANT[detail.action] ?? 'secondary'} className="capitalize">
-                {detail.action}
+              <Badge variant={ACTION_VARIANT[detail.action] ?? 'secondary'}>
+                {ACTION_LABELS[detail.action] ?? detail.action}
               </Badge>
               <span className="text-muted-foreground">
                 {TABLE_LABELS[detail.table_name] ?? detail.table_name} · {formatDateTime(detail.created_at)}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Modified by <span className="font-medium text-foreground">{detail.modifier?.full_name ?? 'System'}</span>
-              {detail.creator?.full_name ? ` · originally created by ${detail.creator.full_name}` : ''}
+              পরিবর্তন করেছেন <span className="font-medium text-foreground">{detail.modifier?.full_name ?? 'সিস্টেম'}</span>
+              {detail.creator?.full_name ? ` · মূলত তৈরি করেছেন ${detail.creator.full_name}` : ''}
             </p>
             <DiffView original={detail.original_data} next={detail.new_data} />
           </div>

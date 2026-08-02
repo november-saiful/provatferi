@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useEvents } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite } from '@/lib/permissions';
+import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
 import { supabase } from '@/lib/supabase/client';
 import { formatDate, truncate, cn } from '@/lib/utils';
@@ -58,7 +59,7 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Event deleted');
+      toast.success('ইভেন্ট মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['events'] });
       setDeleteTarget(null);
     }
@@ -72,20 +73,20 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             options={[
-              { value: 'all', label: 'All statuses' },
-              { value: 'upcoming', label: 'Upcoming' },
-              { value: 'ongoing', label: 'Ongoing' },
-              { value: 'past', label: 'Past' }
+              { value: 'all', label: 'সব অবস্থা' },
+              { value: 'upcoming', label: 'আসন্ন' },
+              { value: 'ongoing', label: 'চলমান' },
+              { value: 'past', label: 'সমাপ্ত' }
             ]}
             className="w-40"
           />
           <div className="relative min-w-[220px] flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search events…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="ইভেন্ট খুঁজুন…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           {canManage && (
             <Button onClick={() => setShowForm(true)}>
-              <Plus /> Add event
+              <Plus /> ইভেন্ট যোগ করুন
             </Button>
           )}
         </div>
@@ -101,9 +102,9 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
 
       {!isLoading && filtered.length === 0 && (
         <EmptyState
-          title="No events found"
-          description="There are no events matching your filters yet."
-          action={canManage ? <Button onClick={() => setShowForm(true)}><Plus /> Add the first event</Button> : undefined}
+          title="কোনো ইভেন্ট পাওয়া যায়নি"
+          description="আপনার ফিল্টারের সাথে মিলে এমন কোনো ইভেন্ট এখনো নেই।"
+          action={canManage ? <Button onClick={() => setShowForm(true)}><Plus /> প্রথম ইভেন্ট যোগ করুন</Button> : undefined}
         />
       )}
 
@@ -132,8 +133,8 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
                   </div>
                 )}
                 <div className="absolute right-2 top-2">
-                  <Badge variant={STATUS_STYLE[event.status]} className="capitalize">
-                    {event.status}
+                  <Badge variant={STATUS_STYLE[event.status]}>
+                    {EVENT_STATUS_LABELS[event.status] ?? event.status}
                   </Badge>
                 </div>
               </div>
@@ -151,10 +152,10 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
             {(user?.id === event.created_by || canWrite(role, 'evf')) && canManage && (
               <div className="flex items-center justify-between border-t border-border px-4 py-2">
                 <span className="text-xs text-muted-foreground">
-                  {event.profiles?.full_name ?? 'Committee'}
+                  {event.profiles?.full_name ?? 'কমিটি'}
                 </span>
                 <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => setDeleteTarget(event)}>
-                  <Trash2 /> Delete
+                  <Trash2 /> মুছুন
                 </Button>
               </div>
             )}
@@ -169,9 +170,9 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
-        title="Delete event"
+        title="ইভেন্ট মুছুন"
         name={deleteTarget?.title ?? ''}
-        description="This cannot be undone. Type the event name to confirm."
+        description="এটি ফেরানো যাবে না। নিশ্চিত করতে ইভেন্টের নাম টাইপ করুন।"
         isDeleting={deleting}
       />
     </Stagger>

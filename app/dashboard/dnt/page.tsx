@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/page-header';
 export default function DashboardDonationsPage() {
   return (
     <div className="space-y-5">
-      <PageHeader size="md" title="Donations" description="Donate, view the donor wall, and track amounts." />
+      <PageHeader size="md" title="অনুদান" description="অনুদান দিন, দাতাদের তালিকা দেখুন ও পরিমাণ ট্র্যাক করুন।" />
       <Donations />
     </div>
   );

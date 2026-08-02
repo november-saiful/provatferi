@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { CheckCircle2, XCircle, Music } from 'lucide-react';
 import { useCourseSchedules, useAllAttendance } from '@/lib/queries';
-import { COURSES, COURSE_ORDER } from '@/lib/constants';
-import { formatTime, cn } from '@/lib/utils';
+import { COURSES, COURSE_ORDER, COURSE_STATUS_LABELS } from '@/lib/constants';
+import { formatTime, cn, toBengaliDigits } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -52,12 +52,12 @@ export function Courses() {
                 <div className="flex-1">
                   <CardTitle className="text-base">{meta.label}</CardTitle>
                   <p className="text-xs text-muted-foreground">
-                    {schedule?.instructor?.full_name ?? 'Instructor TBA'}
+                    {schedule?.instructor?.full_name ?? 'শিক্ষক নির্ধারিত হবে'}
                   </p>
                 </div>
                 {schedule && (
-                  <Badge variant={schedule.status === 'active' ? 'success' : 'secondary'} className="capitalize">
-                    {schedule.status}
+                  <Badge variant={schedule.status === 'active' ? 'success' : 'secondary'}>
+                    {COURSE_STATUS_LABELS[schedule.status] ?? schedule.status}
                   </Badge>
                 )}
               </div>
@@ -67,8 +67,8 @@ export function Courses() {
                 <>
                   <div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{completed}/{total} classes</span>
-                      <span>{pct.toFixed(0)}%</span>
+                      <span>{toBengaliDigits(completed)}/{toBengaliDigits(total)} ক্লাস</span>
+                      <span>{toBengaliDigits(pct.toFixed(0))}%</span>
                     </div>
                     <Progress value={pct} className="mt-1" barClassName="bg-coffee-500" />
                   </div>
@@ -77,7 +77,7 @@ export function Courses() {
                     className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm font-medium hover:bg-muted"
                     onClick={() => setExpanded(isExpanded ? null : schedule.id)}
                   >
-                    {isExpanded ? 'Hide details' : 'View class days'}
+                    {isExpanded ? 'বিস্তারিত লুকান' : 'ক্লাসের দিন দেখুন'}
                   </button>
                   {isExpanded && (
                     <ul className="space-y-1">
@@ -90,7 +90,7 @@ export function Courses() {
                             ) : (
                               <XCircle className="h-4 w-4 text-warmred-300" />
                             )}
-                            <span className="w-6 font-medium">Day {day}</span>
+                            <span className="w-6 font-medium">দিন {toBengaliDigits(day)}</span>
                             {rec && (
                               <span className="ml-auto text-xs text-muted-foreground">
                                 {rec.arrival_time ? `${formatTime(rec.arrival_time)}` : ''}
@@ -99,7 +99,7 @@ export function Courses() {
                                 {rec.note ? ` · ${rec.note}` : ''}
                               </span>
                             )}
-                            {!rec && <span className="ml-auto text-xs text-muted-foreground">not held</span>}
+                            {!rec && <span className="ml-auto text-xs text-muted-foreground">অনুষ্ঠিত হয়নি</span>}
                           </li>
                         );
                       })}
@@ -107,7 +107,7 @@ export function Courses() {
                   )}
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">No schedule yet for this course.</p>
+                <p className="text-sm text-muted-foreground">এই কোর্সের জন্য এখনো কোনো সময়সূচি নেই।</p>
               )}
             </CardContent>
             </Card>

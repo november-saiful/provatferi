@@ -8,7 +8,7 @@ export default function DashboardAdminRolesPage() {
   return (
     <RoleGuard allowedRoles={['pr', 'vp']}>
       <div className="space-y-5">
-        <PageHeader size="md" title="Role permissions" description="Reference view of module access by role." />
+        <PageHeader size="md" title="ভূমিকা অনুমতি" description="ভূমিকা অনুযায়ী মডিউল অ্যাক্সেসের রেফারেন্স ভিউ।" />
         <AdminRoles />
       </div>
     </RoleGuard>

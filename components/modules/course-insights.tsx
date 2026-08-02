@@ -20,6 +20,7 @@ import {
 } from 'recharts';
 import { useCourseSchedules, useAllAttendance } from '@/lib/queries';
 import { COURSES, COURSE_ORDER } from '@/lib/constants';
+import { toBengaliDigits } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -84,7 +85,7 @@ export function CourseInsights() {
 
   const trendData = Array.from({ length: 16 }, (_, i) => {
     const day = i + 1;
-    const row: Record<string, string | number> = { day: `Day ${day}` };
+    const row: Record<string, string | number> = { day: `দিন ${toBengaliDigits(day)}` };
     for (const c of perCourse) {
       const rec = c.records.find((a) => a.class_day === day);
       row[c.label] = rec === undefined ? 0 : rec.is_present ? 1 : 0;
@@ -98,28 +99,28 @@ export function CourseInsights() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Total classes held</p>
-            <p className="mt-1 text-3xl font-bold">{totalHeld}</p>
+            <p className="text-sm text-muted-foreground">মোট অনুষ্ঠিত ক্লাস</p>
+            <p className="mt-1 text-3xl font-bold">{toBengaliDigits(totalHeld)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Average attendance rate</p>
-            <p className="mt-1 text-3xl font-bold text-sage-600">{avgRate.toFixed(0)}%</p>
+            <p className="text-sm text-muted-foreground">গড় উপস্থিতির হার</p>
+            <p className="mt-1 text-3xl font-bold text-sage-600">{toBengaliDigits(avgRate.toFixed(0))}%</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Most attended</p>
+            <p className="text-sm text-muted-foreground">সর্বাধিক উপস্থিতি</p>
             <p className="mt-1 text-xl font-bold">{withData.length ? best.label : '—'}</p>
-            {withData.length > 0 && <p className="text-xs text-muted-foreground">{best.rate.toFixed(0)}%</p>}
+            {withData.length > 0 && <p className="text-xs text-muted-foreground">{toBengaliDigits(best.rate.toFixed(0))}%</p>}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">Needs attention</p>
+            <p className="text-sm text-muted-foreground">মনোযোগ প্রয়োজন</p>
             <p className="mt-1 text-xl font-bold">{withData.length ? worst.label : '—'}</p>
-            {withData.length > 0 && <p className="text-xs text-muted-foreground">{worst.rate.toFixed(0)}%</p>}
+            {withData.length > 0 && <p className="text-xs text-muted-foreground">{toBengaliDigits(worst.rate.toFixed(0))}%</p>}
           </CardContent>
         </Card>
         </div>
@@ -127,14 +128,14 @@ export function CourseInsights() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Completion overview</CardTitle>
-          <CardDescription>Present classes vs remaining (out of {perCourse[0]?.total ?? 16} per course)</CardDescription>
+          <CardTitle>সমাপ্তির সারসংক্ষেপ</CardTitle>
+          <CardDescription>উপস্থিত ক্লাস বনাম বাকি (প্রতি কোর্সে {toBengaliDigits(perCourse[0]?.total ?? 16)}টির মধ্যে)</CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={completionData} layout="vertical" margin={{ left: 8, right: 24 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} />
+              <XAxis type="number" allowDecimals={false} tickFormatter={toBengaliDigits} />
               <YAxis type="category" dataKey="name" width={110} />
               <Tooltip />
               <Legend />
@@ -147,15 +148,15 @@ export function CourseInsights() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Attendance trend over 16 days</CardTitle>
-          <CardDescription>Daily presence per course (0 = not held or absent, 1 = present)</CardDescription>
+          <CardTitle>১৬ দিনের উপস্থিতির প্রবণতা</CardTitle>
+          <CardDescription>প্রতি কোর্সে দৈনিক উপস্থিতি (০ = অনুষ্ঠিত হয়নি বা অনুপস্থিত, ১ = উপস্থিত)</CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ left: 8, right: 16 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" interval={1} />
-              <YAxis domain={[0, 1]} ticks={[0, 1]} />
+              <XAxis dataKey="day" interval={1} tickFormatter={toBengaliDigits} />
+              <YAxis domain={[0, 1]} ticks={[0, 1]} tickFormatter={toBengaliDigits} />
               <Tooltip />
               <Legend />
               {perCourse.map((c) => (
@@ -168,8 +169,8 @@ export function CourseInsights() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Course comparison</CardTitle>
-          <CardDescription>Attendance rate across all six courses (0–100%)</CardDescription>
+          <CardTitle>কোর্স তুলনা</CardTitle>
+          <CardDescription>ছয়টি কোর্সের উপস্থিতির হার (০–১০০%)</CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -177,14 +178,14 @@ export function CourseInsights() {
               <PolarGrid />
               <PolarAngleAxis dataKey="label" tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Radar name="Attendance rate" dataKey="Rate" stroke="#93452A" fill="#93452A" fillOpacity={0.35} />
+              <Radar name="উপস্থিতির হার" dataKey="Rate" stroke="#93452A" fill="#93452A" fillOpacity={0.35} />
             </RadarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {totalHeld === 0 && (
-        <EmptyState title="No attendance data yet" description="Once the Course Coordinator records classes, charts will appear here." />
+        <EmptyState title="এখনো কোনো উপস্থিতির তথ্য নেই" description="কোর্স কো-অর্ডিনেটর ক্লাস রেকর্ড করলে এখানে চার্ট দেখা যাবে।" />
       )}
     </Stagger>
   );

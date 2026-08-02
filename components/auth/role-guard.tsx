@@ -35,10 +35,10 @@ export function RoleGuard({ allowedRoles, allowSignedIn = false, children, fallb
       <div className={cn('flex flex-col items-center justify-center gap-4 py-24 text-center', fallbackClassName)}>
         <ShieldX className="h-12 w-12 text-taupe-400" />
         <div>
-          <h2 className="text-xl font-semibold">Sign in required</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Please sign in to access this page.</p>
+          <h2 className="text-xl font-semibold">সাইন ইন প্রয়োজন</h2>
+          <p className="mt-1 text-sm text-muted-foreground">এই পেজে প্রবেশ করতে সাইন ইন করুন।</p>
         </div>
-        <Button onClick={() => router.push('/login')}>Go to sign in</Button>
+        <Button onClick={() => router.push('/login')}>সাইন ইন করতে যান</Button>
       </div>
     );
   }
@@ -50,14 +50,14 @@ export function RoleGuard({ allowedRoles, allowSignedIn = false, children, fallb
       <div className={cn('flex flex-col items-center justify-center gap-4 py-24 text-center', fallbackClassName)}>
         <ShieldX className="h-12 w-12 text-warmred-400" />
         <div>
-          <h2 className="text-xl font-semibold">403 — Insufficient permissions</h2>
+          <h2 className="text-xl font-semibold">৪০৩ — পর্যাপ্ত অনুমতি নেই</h2>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Your role ({role}) does not have access to this module. Contact the President or Vice President if you
-            believe this is a mistake.
+            আপনার ভূমিকা ({role}) এই মডিউলে প্রবেশাধিকার রাখে না। এটি ভুল মনে হলে সভাপতি বা সহ-সভাপতির সাথে যোগাযোগ
+            করুন।
           </p>
         </div>
         <Button variant="outline" onClick={() => router.push('/dashboard')}>
-          Back to dashboard
+          ড্যাশবোর্ডে ফিরুন
         </Button>
       </div>
     );

@@ -14,9 +14,9 @@ const CalendarView = dynamic(
 export default function CalendarPage() {
   return (
     <PublicShell>
-      <Seo title="Calendar" />
+      <Seo title="ক্যালেন্ডার" />
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader title="Calendar" description="Meetings, events and rehearsals at a glance." />
+        <PageHeader title="ক্যালেন্ডার" description="সভা, ইভেন্ট ও রিহার্সাল এক নজরে।" />
         <CalendarView />
       </div>
     </PublicShell>

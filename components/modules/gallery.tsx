@@ -39,7 +39,7 @@ export function Gallery() {
   );
 
   const handleDelete = async (item: GalleryItem) => {
-    if (!confirm('Delete this image?')) return;
+    if (!confirm('এই ছবিটি মুছে ফেলবেন?')) return;
     try {
       await deleteImage(item.image_url);
     } catch {
@@ -49,7 +49,7 @@ export function Gallery() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Image deleted');
+      toast.success('ছবি মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['gallery'] });
     }
   };
@@ -63,14 +63,14 @@ export function Gallery() {
             onChange={(e) => setEventFilter(e.target.value)}
             className="w-56"
           >
-            <option value="">All events</option>
+            <option value="">সব ইভেন্ট</option>
             {events?.map((ev) => (
               <option key={ev.id} value={ev.id}>{ev.title}</option>
             ))}
           </Select>
           {canUpload && (
             <Button onClick={() => setShowUpload(true)}>
-              <Plus /> Upload photos
+              <Plus /> ছবি আপলোড করুন
             </Button>
           )}
         </div>
@@ -86,8 +86,8 @@ export function Gallery() {
 
       {!isLoading && filtered.length === 0 && (
         <EmptyState
-          title="No photos yet"
-          description="The gallery is empty. Check back soon for photos of club events."
+          title="এখনো কোনো ছবি নেই"
+          description="গ্যালারি খালি। ক্লাব ইভেন্টের ছবির জন্য শীঘ্রই আবার দেখুন।"
         />
       )}
 
@@ -114,7 +114,7 @@ export function Gallery() {
                 <button
                   className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-warmred-600 group-hover:opacity-100"
                   onClick={() => handleDelete(item)}
-                  aria-label="Delete image"
+                  aria-label="ছবি মুছুন"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -124,7 +124,7 @@ export function Gallery() {
         ))}
       </div>
 
-      <Dialog open={showUpload} onClose={() => setShowUpload(false)} title="Upload photos">
+      <Dialog open={showUpload} onClose={() => setShowUpload(false)} title="ছবি আপলোড করুন">
         <GalleryUpload onDone={() => setShowUpload(false)} />
       </Dialog>
 
@@ -137,7 +137,7 @@ export function Gallery() {
           exit={{ opacity: 0 }}
         >
           <div className="flex items-center justify-between p-4 text-white">
-            <p className="text-sm">{lightbox.title ?? 'Gallery image'}</p>
+            <p className="text-sm">{lightbox.title ?? 'গ্যালারির ছবি'}</p>
             <button onClick={() => setLightbox(null)} aria-label="Close">
               <X className="h-6 w-6" />
             </button>

@@ -41,25 +41,25 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
   const togglePin = async (n: Notice) => {
     const pinnedCount = notices?.filter((x) => x.is_pinned).length ?? 0;
     if (!n.is_pinned && pinnedCount >= 3) {
-      toast.error('Maximum 3 pinned notices');
+      toast.error('সর্বোচ্চ ৩টি নোটিশ পিন করা যায়');
       return;
     }
     const { error } = await supabase.from('notices').update({ is_pinned: !n.is_pinned }).eq('id', n.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(n.is_pinned ? 'Unpinned' : 'Pinned');
+      toast.success(n.is_pinned ? 'পিন খোলা হয়েছে' : 'পিন করা হয়েছে');
       qc.invalidateQueries({ queryKey: ['notices'] });
     }
   };
 
   const handleDelete = async (n: Notice) => {
-    if (!confirm(`Delete notice "${n.title}"?`)) return;
+    if (!confirm(`নোটিশ "${n.title}" মুছে ফেলবেন?`)) return;
     const { error } = await supabase.from('notices').delete().eq('id', n.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Notice deleted');
+      toast.success('নোটিশ মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['notices'] });
     }
   };
@@ -69,7 +69,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
       <StaggerItem className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search notices…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="নোটিশ খুঁজুন…" className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         {canEdit && (
           <Button
@@ -78,7 +78,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
               setFormOpen(true);
             }}
           >
-            <Plus /> New notice
+            <Plus /> নতুন নোটিশ
           </Button>
         )}
       </StaggerItem>
@@ -92,7 +92,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <EmptyState title="No notices" description="There are no notices yet." />
+        <EmptyState title="কোনো নোটিশ নেই" description="এখনো কোনো নোটিশ নেই।" />
       )}
 
       <StaggerItem className="space-y-3">
@@ -110,13 +110,13 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{truncate(n.content, 160)}</p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {formatDate(n.created_at)} · {n.profiles?.full_name ?? 'Committee'}
+                    {formatDate(n.created_at)} · {n.profiles?.full_name ?? 'কমিটি'}
                   </p>
                 </button>
                 {canEdit && (
                   <div className="flex shrink-0 gap-1">
                     {canPin && (
-                      <Button variant="ghost" size="sm" onClick={() => togglePin(n)} title="Pin / unpin">
+                      <Button variant="ghost" size="sm" onClick={() => togglePin(n)} title="পিন / আনপিন">
                         <Pin className={cn('h-4 w-4', n.is_pinned && 'text-amber-500')} />
                       </Button>
                     )}

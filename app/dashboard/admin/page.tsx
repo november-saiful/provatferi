@@ -11,5 +11,5 @@ export default function DashboardAdminPage() {
     router.replace('/dashboard/admin/users');
   }, [router]);
 
-  return <RoleGuard allowedRoles={['pr', 'vp']}>Redirecting…</RoleGuard>;
+  return <RoleGuard allowedRoles={['pr', 'vp']}>রিডিরেক্ট হচ্ছে…</RoleGuard>;
 }

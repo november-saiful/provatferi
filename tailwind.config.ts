@@ -118,6 +118,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
+          'Noto Serif Bengali',
           'Inter',
           'ui-sans-serif',
           'system-ui',

@@ -27,8 +27,8 @@ export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
   if (!notice) {
     return (
       <EmptyState
-        title="Notice not found"
-        action={<Button onClick={() => router.push('/dashboard/ntb')}>Back to notices</Button>}
+        title="নোটিশ পাওয়া যায়নি"
+        action={<Button onClick={() => router.push('/dashboard/ntb')}>নোটিশে ফিরুন</Button>}
       />
     );
   }
@@ -37,7 +37,7 @@ export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
     <Stagger className="mx-auto max-w-3xl space-y-4">
       <StaggerItem>
         <Button variant="ghost" onClick={() => router.push('/dashboard/ntb')}>
-          <ArrowLeft /> Back to notices
+          <ArrowLeft /> নোটিশে ফিরুন
         </Button>
       </StaggerItem>
       <StaggerItem>
@@ -48,7 +48,7 @@ export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
               <h1 className="text-2xl font-bold">{notice.title}</h1>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {formatDateTime(notice.created_at)} · {notice.profiles?.full_name ?? 'Committee'}
+              {formatDateTime(notice.created_at)} · {notice.profiles?.full_name ?? 'কমিটি'}
             </p>
             <div
               className="mt-6 text-foreground/90"

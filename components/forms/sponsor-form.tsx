@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 const schema = z.object({
-  company_name: z.string().min(2, 'Company name is required'),
+  company_name: z.string().min(2, 'প্রতিষ্ঠানের নাম প্রয়োজন'),
   representative_name: z.string().optional(),
-  contact_email: z.string().email('Enter a valid email'),
+  contact_email: z.string().email('সঠিক ইমেইল দিন'),
   contact_phone: z.string().optional(),
   brand_details: z.string().optional(),
   proposed_event: z.string().optional()
@@ -42,10 +42,10 @@ export function SponsorForm() {
         status: 'pending'
       });
       if (error) throw error;
-      toast.success('Inquiry submitted. The committee will reach out.');
+      toast.success('আবেদন জমা হয়েছে। কমিটি যোগাযোগ করবে।');
       reset();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to submit inquiry');
+      toast.error(err instanceof Error ? err.message : 'আবেদন জমা ব্যর্থ হয়েছে');
     }
   };
 
@@ -53,36 +53,36 @@ export function SponsorForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="s-company">Company name</Label>
-          <Input id="s-company" {...register('company_name')} placeholder="Your company" />
+          <Label htmlFor="s-company">প্রতিষ্ঠানের নাম</Label>
+          <Input id="s-company" {...register('company_name')} placeholder="আপনার প্রতিষ্ঠান" />
           {errors.company_name && <p className="text-xs text-warmred-500">{errors.company_name.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="s-rep">Representative name</Label>
-          <Input id="s-rep" {...register('representative_name')} placeholder="Contact person" />
+          <Label htmlFor="s-rep">প্রতিনিধির নাম</Label>
+          <Input id="s-rep" {...register('representative_name')} placeholder="যোগাযোগের ব্যক্তি" />
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="s-email">Contact email</Label>
+          <Label htmlFor="s-email">যোগাযোগের ইমেইল</Label>
           <Input id="s-email" type="email" {...register('contact_email')} placeholder="you@company.com" />
           {errors.contact_email && <p className="text-xs text-warmred-500">{errors.contact_email.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="s-phone">Contact phone</Label>
+          <Label htmlFor="s-phone">যোগাযোগের ফোন</Label>
           <Input id="s-phone" {...register('contact_phone')} placeholder="+880…" />
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="s-details">What you offer / brand details</Label>
-        <Textarea id="s-details" rows={3} {...register('brand_details')} placeholder="Products, services, budget for sponsorship…" />
+        <Label htmlFor="s-details">আপনি কী দিতে পারেন / ব্র্যান্ডের বিবরণ</Label>
+        <Textarea id="s-details" rows={3} {...register('brand_details')} placeholder="পণ্য, সেবা, স্পনসরশিপের বাজেট…" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="s-event">Proposed event / program</Label>
-        <Input id="s-event" {...register('proposed_event')} placeholder="e.g. Annual Cultural Evening" />
+        <Label htmlFor="s-event">প্রস্তাবিত ইভেন্ট / প্রোগ্রাম</Label>
+        <Input id="s-event" {...register('proposed_event')} placeholder="যেমন: বার্ষিক সাংস্কৃতিক সন্ধ্যা" />
       </div>
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Submitting…' : 'Submit inquiry'}
+        {isSubmitting ? 'জমা হচ্ছে…' : 'আবেদন জমা দিন'}
       </Button>
     </form>
   );

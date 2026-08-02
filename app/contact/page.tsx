@@ -18,16 +18,16 @@ export default function ContactPage() {
 
   return (
     <PublicShell>
-      <Seo title="Contact" />
+      <Seo title="যোগাযোগ" />
       <div className="mx-auto max-w-5xl px-4 py-10">
-        <PageHeader title="Committee" description="Meet the current Provatferi committee." />
+        <PageHeader title="কমিটি" description="বর্তমান প্রভাতফেরী কমিটির সাথে পরিচিত হোন।" />
 
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           <Card>
             <CardContent className="flex items-center gap-3 p-4">
               <Mail className="h-5 w-5 text-coffee-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="text-xs text-muted-foreground">ইমেইল</p>
                 <a href={`mailto:${email ?? ''}`} className="text-sm font-medium hover:underline">
                   {email || process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'contact@provatferi.org'}
                 </a>
@@ -38,7 +38,7 @@ export default function ContactPage() {
             <CardContent className="flex items-center gap-3 p-4">
               <Phone className="h-5 w-5 text-coffee-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Phone</p>
+                <p className="text-xs text-muted-foreground">ফোন</p>
                 <p className="text-sm font-medium">{phone || process.env.NEXT_PUBLIC_CONTACT_PHONE || '—'}</p>
               </div>
             </CardContent>
@@ -47,8 +47,8 @@ export default function ContactPage() {
             <CardContent className="flex items-center gap-3 p-4">
               <MapPin className="h-5 w-5 text-coffee-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Club house</p>
-                <p className="text-sm font-medium">Main Campus</p>
+                <p className="text-xs text-muted-foreground">ক্লাব হাউস</p>
+                <p className="text-sm font-medium">মূল ক্যাম্পাস</p>
               </div>
             </CardContent>
           </Card>
@@ -63,7 +63,7 @@ export default function ContactPage() {
         )}
 
         {!isLoading && (!contacts || contacts.length === 0) && (
-          <EmptyState title="Committee list coming soon" description="Member profiles will appear here." />
+          <EmptyState title="কমিটির তালিকা শীঘ্রই আসছে" description="সদস্যদের প্রোফাইল এখানে দেখা যাবে।" />
         )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -72,9 +72,9 @@ export default function ContactPage() {
               <CardContent className="flex items-center gap-3 p-5">
                 <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-12 w-12 text-sm" />
                 <div className="min-w-0">
-                  <p className="font-medium">{c.profiles?.full_name ?? 'Committee member'}</p>
+                  <p className="font-medium">{c.profiles?.full_name ?? 'কমিটি সদস্য'}</p>
                   <p className="text-xs text-muted-foreground">
-                    {c.roles?.name ?? (c.role_id ? ROLE_NAMES[c.role_id as keyof typeof ROLE_NAMES] : 'Member')}
+                    {c.roles?.name ?? (c.role_id ? ROLE_NAMES[c.role_id as keyof typeof ROLE_NAMES] : 'সদস্য')}
                   </p>
                 </div>
               </CardContent>

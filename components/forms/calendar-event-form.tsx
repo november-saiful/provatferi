@@ -16,16 +16,16 @@ import type { CalendarEvent, CalendarCategory } from '@/lib/types';
 
 const schema = z
   .object({
-    title: z.string().min(2, 'Title is required'),
+    title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
     category: z.enum(['general', 'meeting', 'event', 'emergency', 'custom']),
     custom_category: z.string().optional(),
-    start_date: z.string().min(1, 'Start date is required'),
+    start_date: z.string().min(1, 'শুরুর তারিখ প্রয়োজন'),
     end_date: z.string().optional(),
     description: z.string().optional(),
     location: z.string().optional()
   })
   .refine((d) => !d.end_date || d.end_date >= d.start_date, {
-    message: 'End must be after start',
+    message: 'শেষ সময় শুরুর পরে হতে হবে',
     path: ['end_date']
   });
 
@@ -88,7 +88,7 @@ export function CalendarEventForm({
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast.error('Sign in required');
+      toast.error('সাইন ইন প্রয়োজন');
       return;
     }
     const payload = {
@@ -105,67 +105,67 @@ export function CalendarEventForm({
       if (event) {
         const { error } = await supabase.from('calendar_events').update(payload).eq('id', event.id);
         if (error) throw error;
-        toast.success('Calendar event updated');
+        toast.success('ক্যালেন্ডার ইভেন্ট আপডেট হয়েছে');
       } else {
         const { error } = await supabase.from('calendar_events').insert(payload);
         if (error) throw error;
-        toast.success('Calendar event created');
+        toast.success('ক্যালেন্ডার ইভেন্ট তৈরি হয়েছে');
       }
       onSaved?.();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save');
+      toast.error(err instanceof Error ? err.message : 'সংরক্ষণ ব্যর্থ হয়েছে');
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title={event ? 'Edit calendar event' : 'Add calendar event'}>
+    <Dialog open={open} onClose={onClose} title={event ? 'ক্যালেন্ডার ইভেন্ট সম্পাদনা' : 'ক্যালেন্ডার ইভেন্ট যোগ করুন'}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="c-title">Title</Label>
-          <Input id="c-title" {...register('title')} placeholder="Event title" />
+          <Label htmlFor="c-title">শিরোনাম</Label>
+          <Input id="c-title" {...register('title')} placeholder="ইভেন্টের শিরোনাম" />
           {errors.title && <p className="text-xs text-warmred-500">{errors.title.message}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="c-category">Category</Label>
+          <Label htmlFor="c-category">বিভাগ</Label>
           <Select id="c-category" {...register('category')}>
-            <option value="general">General</option>
-            <option value="meeting">Meeting</option>
-            <option value="event">Event / Program</option>
-            <option value="emergency">Emergency</option>
-            <option value="custom">Custom</option>
+            <option value="general">সাধারণ</option>
+            <option value="meeting">সভা</option>
+            <option value="event">অনুষ্ঠান / প্রোগ্রাম</option>
+            <option value="emergency">জরুরি</option>
+            <option value="custom">কাস্টম</option>
           </Select>
         </div>
         {category === 'custom' && (
           <div className="space-y-2">
-            <Label htmlFor="c-custom">Custom category title</Label>
-            <Input id="c-custom" {...register('custom_category')} placeholder="e.g. Rehearsal" />
+            <Label htmlFor="c-custom">কাস্টম বিভাগের শিরোনাম</Label>
+            <Input id="c-custom" {...register('custom_category')} placeholder="যেমন: রিহার্সাল" />
           </div>
         )}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="c-start">Starts</Label>
+            <Label htmlFor="c-start">শুরু</Label>
             <Input id="c-start" type="datetime-local" {...register('start_date')} />
             {errors.start_date && <p className="text-xs text-warmred-500">{errors.start_date.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="c-end">Ends (optional)</Label>
+            <Label htmlFor="c-end">শেষ (ঐচ্ছিক)</Label>
             <Input id="c-end" type="datetime-local" {...register('end_date')} />
             {errors.end_date && <p className="text-xs text-warmred-500">{errors.end_date.message}</p>}
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="c-desc">Description</Label>
+          <Label htmlFor="c-desc">বিবরণ</Label>
           <Textarea id="c-desc" rows={3} {...register('description')} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="c-loc">Location</Label>
+          <Label htmlFor="c-loc">স্থান</Label>
           <Input id="c-loc" {...register('location')} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           {footer}
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving…' : event ? 'Save changes' : 'Add event'}</Button>
+          <Button type="button" variant="outline" onClick={onClose}>বাতিল</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'সংরক্ষণ হচ্ছে…' : event ? 'পরিবর্তন সংরক্ষণ' : 'ইভেন্ট যোগ করুন'}</Button>
         </div>
       </form>
     </Dialog>

@@ -15,9 +15,15 @@ export function initials(name?: string | null): string {
     .toUpperCase();
 }
 
+// Convert Latin digits (0-9) to Bengali numerals (০-৯), preserving all other
+// characters. Safe to call on any user-facing number string.
+export function toBengaliDigits(value: string | number): string {
+  return String(value).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)]);
+}
+
 export function formatDate(value?: string | null): string {
   if (!value) return '—';
-  return new Date(value).toLocaleDateString(undefined, {
+  return new Date(value).toLocaleDateString('bn', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -26,7 +32,7 @@ export function formatDate(value?: string | null): string {
 
 export function formatDateTime(value?: string | null): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString('bn', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -37,15 +43,20 @@ export function formatDateTime(value?: string | null): string {
 
 export function formatTime(value?: string | null): string {
   if (!value) return '—';
-  const [h, m] = value.split(':');
+  const [h, m = '00'] = value.split(':');
   const hour = parseInt(h, 10);
-  const suffix = hour >= 12 ? 'PM' : 'AM';
-  const h12 = hour % 12 === 0 ? 12 : hour % 12;
-  return `${h12}:${m} ${suffix}`;
+  const minute = parseInt(m, 10);
+  // Render through the Bengali locale so hour AND minute use Bengali numerals
+  // (Intl 'bn' outputs ২:৩০ PM, matching the rest of the site).
+  return new Intl.DateTimeFormat('bn', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date(2000, 0, 1, hour, minute));
 }
 
 export function formatMoney(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('bn', {
     style: 'currency',
     currency: 'BDT',
     maximumFractionDigits: 0
@@ -56,12 +67,12 @@ export function relativeTime(value?: string | null): string {
   if (!value) return '';
   const diff = Date.now() - new Date(value).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return 'এইমাত্র';
+  if (mins < 60) return `${toBengaliDigits(mins)} মিনিট আগে`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${toBengaliDigits(hours)} ঘণ্টা আগে`;
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return `${toBengaliDigits(days)} দিন আগে`;
   return formatDate(value);
 }
 

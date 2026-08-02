@@ -25,7 +25,7 @@ const CourseInsights = dynamic(
 export default function DashboardInsightsPage() {
   return (
     <div className="space-y-5">
-      <PageHeader size="md" title="Course insights" description="Visual analytics of attendance and completion." />
+      <PageHeader size="md" title="কোর্স বিশ্লেষণ" description="উপস্থিতি ও সমাপ্তির ভিজ্যুয়াল বিশ্লেষণ।" />
       <CourseInsights />
     </div>
   );
