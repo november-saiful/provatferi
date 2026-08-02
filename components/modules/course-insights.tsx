@@ -10,6 +10,10 @@ import {
   Tooltip,
   LineChart,
   Line,
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
   CartesianGrid,
   Legend,
   Cell
@@ -158,6 +162,23 @@ export function CourseInsights() {
                 <Line key={c.course} type="monotone" dataKey={c.label} stroke={c.color} strokeWidth={2} dot={{ r: 2 }} connectNulls />
               ))}
             </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Course comparison</CardTitle>
+          <CardDescription>Attendance rate across all six courses (0–100%)</CardDescription>
+        </CardHeader>
+        <CardContent className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={withData.length ? perCourse.map((c) => ({ ...c, Rate: Number(c.rate.toFixed(1)) })) : []}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="label" tick={{ fontSize: 12 }} />
+              <Tooltip />
+              <Radar name="Attendance rate" dataKey="Rate" stroke="#93452A" fill="#93452A" fillOpacity={0.35} />
+            </RadarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

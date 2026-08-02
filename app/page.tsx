@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { PublicNav, PublicFooter } from '@/components/layout/public-nav';
 import { Seo } from '@/components/seo';
-import { useEvents, useNotices, useDonorBoard, useAppConfig } from '@/lib/queries';
+import { useEvents, useNotices, useDonorBoard, useAppConfig, useRealtimeInvalidate } from '@/lib/queries';
 import { storageThumb } from '@/lib/supabase/client';
 import { formatDate, truncate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,9 @@ export default function LandingPage() {
   const { data: notices } = useNotices();
   const { data: donors } = useDonorBoard();
   const { data: recruitment } = useAppConfig('recruitment_url');
+  useRealtimeInvalidate('events', [['events']]);
+  useRealtimeInvalidate('notices', [['notices']]);
+  useRealtimeInvalidate('donations', [['donor-board'], ['donations']]);
   const recruitmentUrl = recruitment || process.env.NEXT_PUBLIC_RECRUITMENT_URL || 'https://example.com/recruitment';
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 3);

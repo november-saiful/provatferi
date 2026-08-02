@@ -9,7 +9,7 @@ Built per the build specification in `club_dashboard_ai_prompt.md` and refined w
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 14 (App Router) + TypeScript, **static export** |
-| Hosting | Cloudflare Pages |
+| Hosting | Cloudflare Workers (static assets via `wrangler.jsonc` + `worker/index.ts` ASSETS binding) |
 | Backend / DB / Auth | Supabase (PostgreSQL, Auth, Storage, RLS) |
 | Email | Resend via a Supabase Edge Function |
 | Styling | Tailwind CSS + custom shadcn-style components |
@@ -39,6 +39,8 @@ supabase/
   migrations/         # SQL schema + RLS + triggers + seed (run in order)
   functions/send-notification/  # Email edge function
 .github/workflows/keepalive.yml # Prevents Supabase free-tier pause
+worker/                        # Cloudflare Worker: serves ./out with SPA fallback
+wrangler.jsonc                 # Worker config (ASSETS binding → ./out)
 ```
 
 ## Getting started
@@ -59,9 +61,9 @@ npm run dev        # http://localhost:3000
 ### 2. Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor** and run every file in `supabase/migrations/` **in order** (00001 → 00008). This creates the tables, RLS policies, triggers, storage bucket and seed data.
+2. Open **SQL Editor** and run every file in `supabase/migrations/` **in order** (00001 → 00009). This creates the tables, RLS policies, triggers, storage bucket, seed data, and enables Realtime for the public tables.
 3. Storage: the `gallery` bucket is created by migration `00007`. Verify it exists under **Storage**, is **public**, and has the RLS policies applied.
-4. Auth settings → add redirect URLs for your Cloudflare Pages domain and `http://localhost:3000`.
+4. Auth settings → add redirect URLs for your Cloudflare Workers domain and `http://localhost:3000`.
 
 ### 3. Seed test users
 
@@ -96,18 +98,16 @@ Creates 2 accounts per role (password `Provatferi@2026`), e.g. `pr1@provatferi.t
 
 > The `notify_on_record_change()` trigger emits `pg_notify` on every `records_log` insert as a fallback / for future realtime use. The webhook is the primary email path.
 
-### 5. Cloudflare Pages deploy
+### 5. Cloudflare Workers deploy
 
-1. Push this repo to GitHub and connect it to Cloudflare Pages.
-2. Build settings:
-   - Build command: `npm run build`
-   - Output directory: `out`
-3. Environment variables (Pages dashboard):
+1. The repo ships `wrangler.jsonc` and `worker/index.ts` (SPA fallback). `npm run build` emits the static export to `./out`, which the Worker serves through an `ASSETS` binding.
+2. Build with the env vars baked in:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `NEXT_PUBLIC_SITE_URL`
    - `NEXT_PUBLIC_RECRUITMENT_URL` (recruitment bookmark)
    - `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_CONTACT_PHONE`
+3. Deploy: `npx wrangler deploy` (needs `CF_API_TOKEN`), or push to GitHub and let `.github/workflows/deploy.yml` build + deploy.
 4. `next.config.mjs` already uses `output: 'export'` and `images.unoptimized`.
 
 ### 6. Keep-alive
@@ -143,8 +143,10 @@ Highlights:
 
 - **Donation amounts:** RLS is row-level only, so a single table cannot hide the `amount` column from the public. We expose names/messages through a public `donor_board` view and keep full rows (with amounts) behind the signed-in `donations` select policy. This is a safe, spec-compliant interpretation of the "public wall, members see amounts" requirement.
 - **Detail pages** (`event item`, `notice item`) use query strings (`?id=…`) instead of dynamic path segments so the static export (`output: 'export'`) works without `generateStaticParams`.
-- **Role assignment** (admin panel) updates `profiles.role_id`; it cannot change your own role. Role changes are not yet written to `records_log` (the enum covers operational tables) — documented as a future enhancement.
-- **Comments** are stored plain text; notices support basic line breaks (no rich-text editor in v1 to keep the bundle lean).
+- **Role assignment** (admin panel) updates `profiles.role_id` and auto-assigns a `display_id` following the `{role}-NN` convention (e.g. `tr-01`); it cannot change your own role. Role changes are not yet written to `records_log` (the enum covers operational tables) — documented as a future enhancement.
+- **Comments** are stored plain text; notices support a basic markdown toolbar (bold, italic, headings, lists, code, links) rendered safely by `renderMarkdown` in `lib/utils.ts`.
+- **Attendance** progress on the public course cards reads all attendance rows and filters per schedule, so every course shows its own completion; recording attendance invalidates the shared `['attendance']` cache so the insights charts refresh immediately.
+- **Realtime** (migration `00009`): events, comments, gallery, calendar, notices, donations and sponsors are added to the `supabase_realtime` publication; the client's `useRealtimeInvalidate` hook refreshes those lists on change.
 
 ## Commands
 

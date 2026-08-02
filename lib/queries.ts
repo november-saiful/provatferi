@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase/client';
 import type {
@@ -374,4 +375,34 @@ export function useRoles() {
       return asRows<{ id: string; name: string; display_order: number }>(data);
     }
   });
+}
+
+/**
+ * Subscribes to Supabase Realtime changes on a table and invalidates the given
+ * React Query keys, so lists/charts refresh without a manual reload.
+ * Requires the table to be part of the `supabase_realtime` publication
+ * (see supabase/migrations/00009_realtime.sql).
+ */
+export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<string | number>>) {
+  const qc = useQueryClient();
+  const keysKey = JSON.stringify(queryKeys);
+
+  React.useEffect(() => {
+    const channel = supabase
+      .channel(`realtime-${table}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table },
+        () => {
+          for (const key of queryKeys) {
+            qc.invalidateQueries({ queryKey: key });
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table, keysKey, qc]);
 }

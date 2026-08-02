@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { CheckCircle2, XCircle, Music } from 'lucide-react';
-import { useCourseSchedules, useAttendance } from '@/lib/queries';
+import { useCourseSchedules, useAllAttendance } from '@/lib/queries';
 import { COURSES, COURSE_ORDER } from '@/lib/constants';
 import { formatTime, cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,9 @@ import { Stagger, StaggerItem } from '@/components/ui/motion';
 export function Courses() {
   const { data: schedules, isLoading } = useCourseSchedules();
   const [expanded, setExpanded] = React.useState<string | null>(null);
-  const { data: attendance } = useAttendance(expanded ?? undefined);
+  // Fetch all attendance once and filter per schedule, so every card shows
+  // its own progress instead of sharing the expanded course's records.
+  const { data: allAttendance } = useAllAttendance();
 
   if (isLoading) {
     return (
@@ -33,7 +35,7 @@ export function Courses() {
       {COURSE_ORDER.map((course) => {
         const schedule = scheduleByCourse.get(course);
         const meta = COURSES[course];
-        const courseAttendance = attendance ?? [];
+        const courseAttendance = (allAttendance ?? []).filter((a) => a.course_schedule_id === schedule?.id);
         const completed = schedule ? courseAttendance.filter((a) => a.is_present).length : 0;
         const total = schedule?.total_classes ?? 16;
         const pct = schedule ? (completed / total) * 100 : 0;

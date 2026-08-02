@@ -48,11 +48,11 @@ alter table public.expenses enable row level security;
 alter table public.budgets enable row level security;
 alter table public.records_log enable row level security;
 
--- Expenses
+-- Expenses (read: matches planning ACL — jgs has no financial read)
 drop policy if exists "expenses_read_authorized" on public.expenses;
 create policy "expenses_read_authorized" on public.expenses
   for select using (
-    public.is_any_role(array['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'rds'])
+    public.is_any_role(array['pr', 'vp', 'gs', 'tr', 'ofs', 'ors', 'rds'])
   );
 
 drop policy if exists "expenses_create_authorized" on public.expenses;
@@ -76,11 +76,11 @@ create policy "expenses_delete_authorized" on public.expenses
     public.is_any_role(array['pr', 'vp', 'rds'])
   );
 
--- Budgets
+-- Budgets (read: matches planning ACL — only pr/vp/cs/acs/rds)
 drop policy if exists "budgets_read_authorized" on public.budgets;
 create policy "budgets_read_authorized" on public.budgets
   for select using (
-    public.is_any_role(array['pr', 'vp', 'gs', 'jgs', 'cs', 'acs', 'rds'])
+    public.is_any_role(array['pr', 'vp', 'cs', 'acs', 'rds'])
   );
 
 drop policy if exists "budgets_write_authorized" on public.budgets;

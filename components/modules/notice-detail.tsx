@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Pin } from 'lucide-react';
 import { useNotice } from '@/lib/queries';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, renderMarkdown } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -50,7 +50,10 @@ export function NoticeDetail({ noticeId }: { noticeId?: string | null }) {
             <p className="mt-2 text-sm text-muted-foreground">
               {formatDateTime(notice.created_at)} · {notice.profiles?.full_name ?? 'Committee'}
             </p>
-            <div className="mt-6 whitespace-pre-line text-foreground/90">{notice.content}</div>
+            <div
+              className="mt-6 text-foreground/90"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(notice.content) }}
+            />
           </CardContent>
         </Card>
       </StaggerItem>

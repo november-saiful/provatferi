@@ -6,7 +6,7 @@ import { Pin, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useNotices } from '@/lib/queries';
+import { useNotices, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite, canPinNotices } from '@/lib/permissions';
 import { formatDate, relativeTime, truncate, cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
   const qc = useQueryClient();
   const { role } = useAuthStore();
   const { data: notices, isLoading } = useNotices();
+  useRealtimeInvalidate('notices', [['notices']]);
   const [search, setSearch] = React.useState('');
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Notice | null>(null);

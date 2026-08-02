@@ -4,7 +4,9 @@ import * as React from 'react';
 import { Heart, UserRound } from 'lucide-react';
 import { useDonorBoard, useDonations } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
-import { formatMoney, formatDate, relativeTime } from '@/lib/utils';
+import { formatMoney, formatDate, relativeTime, downloadCsv } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -127,6 +129,26 @@ export function Donations() {
                 </Card>
               </StaggerItem>
             </Stagger>
+          )}
+          {!loadingDonations && donations && donations.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  downloadCsv('donations.csv', [
+                    ['Donor', 'Amount', 'Date'],
+                    ...donations.map((d) => [
+                      d.is_anonymous ? 'Anonymous' : d.donor_name,
+                      d.amount,
+                      new Date(d.created_at).toISOString()
+                    ])
+                  ])
+                }
+              >
+                <Download /> Export CSV
+              </Button>
+            </div>
           )}
           {loadingDonations && <Skeleton className="h-40 w-full" />}
           {!loadingDonations && donations && donations.length > 0 && (

@@ -81,7 +81,9 @@ export function AttendanceManage() {
       toast.error(error.message);
     } else {
       toast.success(existing ? 'Attendance updated' : 'Attendance recorded');
-      qc.invalidateQueries({ queryKey: ['attendance', courseId] });
+      // Invalidate every attendance key so the public course view and the
+      // course-insights charts refresh immediately (per spec scenario 5).
+      qc.invalidateQueries({ queryKey: ['attendance'] });
     }
   };
 

@@ -2,14 +2,18 @@
 
 import * as React from 'react';
 import { Calendar as RBCalendar, dateFnsLocalizer, type View, type SlotInfo } from 'react-big-calendar';
+import withDragAndDrop, { type EventInteractionArgs } from 'react-big-calendar/lib/addons/dragAndDrop';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { supabase } from '@/lib/supabase/client';
-import { useCalendarEvents } from '@/lib/queries';
+import { useCalendarEvents, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite } from '@/lib/permissions';
 import { CALENDAR_CATEGORIES } from '@/lib/constants';
@@ -31,10 +35,13 @@ interface RbcEvent {
   resource: CalendarEvent;
 }
 
+const DragAndDropCalendar = withDragAndDrop<RbcEvent, Record<string, unknown>>(RBCalendar);
+
 export function CalendarView() {
   const qc = useQueryClient();
   const { role } = useAuthStore();
   const { data: events, isLoading } = useCalendarEvents();
+  useRealtimeInvalidate('calendar_events', [['calendar-events']]);
 
   const [detail, setDetail] = React.useState<CalendarEvent | null>(null);
   const [formEvent, setFormEvent] = React.useState<CalendarEvent | null | undefined>(undefined);
@@ -96,6 +103,39 @@ export function CalendarView() {
     }
   };
 
+  const handleEventDrop = async ({ event, start, end }: EventInteractionArgs<RbcEvent>) => {
+    if (!canEdit) return;
+    // start/end can be string | Date; normalize to Date before serializing
+    const nextStart = new Date(start);
+    const nextEnd = end ? new Date(end) : null;
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({ start_date: nextStart.toISOString(), end_date: nextEnd ? nextEnd.toISOString() : null })
+      .eq('id', event.resource.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Event rescheduled');
+      qc.invalidateQueries({ queryKey: ['calendar-events'] });
+    }
+  };
+
+  const handleEventResize = async ({ event, start, end }: EventInteractionArgs<RbcEvent>) => {
+    if (!canEdit) return;
+    const nextStart = new Date(start);
+    const nextEnd = end ? new Date(end) : null;
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({ start_date: nextStart.toISOString(), end_date: nextEnd ? nextEnd.toISOString() : null })
+      .eq('id', event.resource.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Event resized');
+      qc.invalidateQueries({ queryKey: ['calendar-events'] });
+    }
+  };
+
   return (
     <Stagger className="space-y-4">
       {canEdit && (
@@ -113,21 +153,26 @@ export function CalendarView() {
       )}
 
       <StaggerItem className="rounded-xl2 border border-border bg-card p-3">
-        <RBCalendar
-          localizer={localizer}
-          events={rbcEvents}
-          view={view}
-          onView={setView}
-          date={date}
-          onNavigate={setDate}
-          views={['month', 'week', 'day', 'agenda']}
-          eventPropGetter={eventPropGetter}
-          onSelectEvent={handleSelectEvent}
-          onSelectSlot={handleSelectSlot}
-          selectable={canEdit}
-          popup
-          style={{ height: '70vh' }}
-        />
+        <DndProvider backend={HTML5Backend}>
+          <DragAndDropCalendar
+            localizer={localizer}
+            events={rbcEvents}
+            view={view}
+            onView={setView}
+            date={date}
+            onNavigate={setDate}
+            views={['month', 'week', 'day', 'agenda']}
+            eventPropGetter={eventPropGetter}
+            onSelectEvent={handleSelectEvent}
+            onSelectSlot={handleSelectSlot}
+            selectable={canEdit}
+            resizable={canEdit}
+            onEventDrop={handleEventDrop}
+            onEventResize={handleEventResize}
+            popup
+            style={{ height: '70vh' }}
+          />
+        </DndProvider>
       </StaggerItem>
 
       <StaggerItem className="flex flex-wrap gap-2">

@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { EventForm } from '@/components/forms/event-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
+import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 
 const STATUS_STYLE: Record<string, 'coffee' | 'success' | 'taupe'> = {
   upcoming: 'coffee',
@@ -35,6 +36,8 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
   const [status, setStatus] = React.useState('all');
   const [search, setSearch] = React.useState('');
   const [showForm, setShowForm] = React.useState(false);
+  const [deleteTarget, setDeleteTarget] = React.useState<EventItem | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   const canManage = canWrite(role, 'evf');
   const { data: events, isLoading } = useEvents(status);
@@ -47,14 +50,17 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
     );
   }, [events, search]);
 
-  const handleDelete = async (e: EventItem) => {
-    if (!confirm(`Delete event "${e.title}"? This cannot be undone.`)) return;
-    const { error } = await supabase.from('events').delete().eq('id', e.id);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const { error } = await supabase.from('events').delete().eq('id', deleteTarget.id);
+    setDeleting(false);
     if (error) {
       toast.error(error.message);
     } else {
       toast.success('Event deleted');
       qc.invalidateQueries({ queryKey: ['events'] });
+      setDeleteTarget(null);
     }
   };
 
@@ -147,7 +153,7 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
                 <span className="text-xs text-muted-foreground">
                   {event.profiles?.full_name ?? 'Committee'}
                 </span>
-                <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => handleDelete(event)}>
+                <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => setDeleteTarget(event)}>
                   <Trash2 /> Delete
                 </Button>
               </div>
@@ -158,6 +164,16 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
       </div>
 
       <EventForm open={showForm} onClose={() => setShowForm(false)} onSaved={() => qc.invalidateQueries({ queryKey: ['events'] })} />
+
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete event"
+        name={deleteTarget?.title ?? ''}
+        description="This cannot be undone. Type the event name to confirm."
+        isDeleting={deleting}
+      />
     </Stagger>
   );
 }

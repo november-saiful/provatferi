@@ -78,3 +78,77 @@ export function readFileAsDataUrl(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+export function downloadCsv(filename: string, rows: Array<Array<string | number>>): void {
+  const escape = (v: string | number) => {
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = rows.map((r) => r.map(escape).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Minimal, safe markdown renderer for notice content (bold, italic, code,
+// links, lists, headings, paragraphs). Escapes HTML first — never injects raw input.
+export function renderMarkdown(src: string): string {
+  const esc = src
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  const inline = (s: string) =>
+    s
+      .replace(/`([^`]+)`/g, '<code class="rounded bg-muted px-1.5 py-0.5 text-sm">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+      .replace(
+        /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+        '<a href="$2" target="_blank" rel="noreferrer" class="text-primary underline">$1</a>'
+      );
+
+  const lines = esc.split(/\r?\n/);
+  const out: string[] = [];
+  let list: 'ul' | 'ol' | null = null;
+
+  const closeList = () => {
+    if (list) {
+      out.push(`</${list}>`);
+      list = null;
+    }
+  };
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    const heading = line.match(/^(#{1,3})\s+(.*)$/);
+    const bullet = line.match(/^[-*]\s+(.*)$/);
+    const ordered = line.match(/^\d+\.\s+(.*)$/);
+
+    if (heading) {
+      closeList();
+      const lvl = Math.min(heading[1].length, 3);
+      out.push(`<h${lvl} class="mt-4 font-semibold">${inline(heading[2])}</h${lvl}>`);
+    } else if (bullet || ordered) {
+      const tag = bullet ? 'ul' : 'ol';
+      if (list !== tag) {
+        closeList();
+        list = tag;
+        out.push(`<${tag} class="my-2 space-y-1 pl-5 ${tag === 'ol' ? 'list-decimal' : 'list-disc'}">`);
+      }
+      out.push(`<li>${inline((bullet ?? ordered)![1])}</li>`);
+    } else if (line.trim() === '') {
+      closeList();
+      out.push('');
+    } else {
+      closeList();
+      out.push(`<p class="my-2">${inline(line)}</p>`);
+    }
+  }
+  closeList();
+  return out.join('\n');
+}

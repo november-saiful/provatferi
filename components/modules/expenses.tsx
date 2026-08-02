@@ -10,8 +10,9 @@ import { useAuthStore } from '@/lib/auth-store';
 import { canWrite, canEditExpense } from '@/lib/permissions';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
 import { storageUrl } from '@/lib/supabase/client';
-import { formatDate, formatMoney } from '@/lib/utils';
+import { formatDate, formatMoney, cn } from '@/lib/utils';
 import type { Expense } from '@/lib/types';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -31,6 +32,10 @@ export function Expenses() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Expense | null>(null);
   const [receipt, setReceipt] = React.useState<string | null>(null);
+  const [sortKey, setSortKey] = React.useState<'expense_date' | 'title' | 'category' | 'amount'>('expense_date');
+  const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = React.useState(1);
+  const PAGE_SIZE = 25;
 
   const canCreate = canWrite(role, 'xpm');
   const canEdit = canEditExpense(role);
@@ -40,7 +45,56 @@ export function Expenses() {
     [expenses, category]
   );
 
+  const sorted = React.useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      if (sortKey === 'amount') return (Number(a.amount) - Number(b.amount)) * dir;
+      const av = String(a[sortKey] ?? '').toLowerCase();
+      const bv = String(b[sortKey] ?? '').toLowerCase();
+      return av.localeCompare(bv) * dir;
+    });
+  }, [filtered, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const paged = React.useMemo(() => sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [sorted, page]);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [category]);
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'expense_date' || key === 'amount' ? 'desc' : 'asc');
+    }
+  };
+
   const total = React.useMemo(() => filtered.reduce((s, e) => s + Number(e.amount), 0), [filtered]);
+
+  const SortHeader = ({
+    label,
+    k,
+    className
+  }: {
+    label: string;
+    k: typeof sortKey;
+    className?: string;
+  }) => (
+    <button
+      type="button"
+      onClick={() => toggleSort(k)}
+      className={cn('inline-flex items-center gap-1 hover:text-foreground', className)}
+    >
+      {label}
+      {sortKey === k ? (
+        sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+      ) : (
+        <ArrowUpDown className="h-3 w-3 opacity-40" />
+      )}
+    </button>
+  );
 
   const handleDelete = async (e: Expense) => {
     if (!confirm(`Delete expense "${e.title}"? This is logged in the audit trail.`)) return;
@@ -91,17 +145,17 @@ export function Expenses() {
           <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead><SortHeader label="Date" k="expense_date" /></TableHead>
+              <TableHead><SortHeader label="Title" k="title" /></TableHead>
+              <TableHead><SortHeader label="Category" k="category" /></TableHead>
+              <TableHead className="text-right"><SortHeader label="Amount" k="amount" className="justify-end" /></TableHead>
               <TableHead>Receipt</TableHead>
               <TableHead>Created by</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((e) => (
+            {paged.map((e) => (
               <TableRow key={e.id}>
                 <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(e.expense_date)}</TableCell>
                 <TableCell className="font-medium">{e.title}</TableCell>
@@ -137,6 +191,22 @@ export function Expenses() {
             ))}
           </TableBody>
         </Table>
+        </StaggerItem>
+      )}
+
+      {filtered.length > PAGE_SIZE && (
+        <StaggerItem className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Page {page} of {pageCount} · {filtered.length} expenses
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </Button>
+          </div>
         </StaggerItem>
       )}
 

@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useGallery, useEvents } from '@/lib/queries';
+import { useGallery, useEvents, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite } from '@/lib/permissions';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
@@ -26,6 +26,7 @@ export function Gallery() {
   const { role, user } = useAuthStore();
   const { data: items, isLoading } = useGallery();
   const { data: events } = useEvents('all');
+  useRealtimeInvalidate('gallery_items', [['gallery']]);
   const [eventFilter, setEventFilter] = React.useState('');
   const [lightbox, setLightbox] = React.useState<GalleryItem | null>(null);
   const [showUpload, setShowUpload] = React.useState(false);

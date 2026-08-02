@@ -6,7 +6,7 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth-store';
-import { useEvent, useEventComments, useGallery, useDeleteComment } from '@/lib/queries';
+import { useEvent, useEventComments, useGallery, useDeleteComment, useRealtimeInvalidate } from '@/lib/queries';
 import { canWrite } from '@/lib/permissions';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
 import { formatDate, formatDateTime, relativeTime, initials, cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import { CommentBox } from '@/components/forms/comment-box';
 import { EventForm } from '@/components/forms/event-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
+import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 
 export function EventDetail({ eventId }: { eventId?: string | null }) {
   const router = useRouter();
@@ -30,8 +31,11 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   const { data: comments } = useEventComments(eventId ?? undefined);
   const { data: gallery } = useGallery();
   const deleteComment = useDeleteComment();
+  useRealtimeInvalidate('event_comments', [['event-comments', eventId ?? '']]);
 
   const [editing, setEditing] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
   const canManage = canWrite(role, 'evf');
   const canEditEvent = canManage;
 
@@ -39,8 +43,9 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
 
   const handleDelete = async () => {
     if (!event) return;
-    if (!confirm(`Delete event "${event.title}"? This cannot be undone.`)) return;
+    setDeleting(true);
     const { error } = await supabase.from('events').delete().eq('id', event.id);
+    setDeleting(false);
     if (error) {
       toast.error(error.message);
     } else {
@@ -85,7 +90,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
           {canEditEvent && (
             <>
               <Button variant="outline" onClick={() => setEditing(true)}>Edit</Button>
-              <Button variant="destructive" onClick={handleDelete}>
+              <Button variant="destructive" onClick={() => setConfirmDelete(true)}>
                 <Trash2 /> Delete
               </Button>
             </>
@@ -194,6 +199,16 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
         onClose={() => setEditing(false)}
         event={event}
         onSaved={() => qc.invalidateQueries({ queryKey: ['events', event.id] })}
+      />
+
+      <ConfirmDeleteDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDelete}
+        title="Delete event"
+        name={event.title}
+        description="This cannot be undone. Type the event name to confirm."
+        isDeleting={deleting}
       />
     </Stagger>
   );

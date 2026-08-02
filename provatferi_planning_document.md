@@ -3,7 +3,7 @@
 > **Version:** 1.0  
 > **Date:** 2026-08-01  
 > **Status:** Planning Phase — Open for Modifications  
-> **Platform:** Cloudflare Pages (Frontend) + Supabase (Backend)  
+> **Platform:** Cloudflare Workers (Frontend static assets) + Supabase (Backend)  
 > **Design:** Material 3 Neural Expressive, Light Theme, Coffee Accent  
 
 ---
@@ -37,7 +37,7 @@ A centralized digital hub for **Provatferi** — managing events, finances, atte
 | Layer | Service | Cost |
 |-------|---------|------|
 | Frontend | Next.js 14 (App Router) + TypeScript | Free |
-| Hosting | Cloudflare Pages | Free |
+| Hosting | Cloudflare Workers (static assets via wrangler + ASSETS binding) | Free |
 | Backend | Supabase (PostgreSQL, Auth, Storage, Realtime) | Free |
 | Email | Resend | Free (3,000/mo) |
 | Keep-Alive | GitHub Actions | Free |
@@ -701,7 +701,7 @@ The `display_id` field in the `profiles` table **must** follow this strict forma
 ### 9.3 Technical TODOs
 
 - [ ] Set up Supabase project and note the project reference + API keys
-- [ ] Create Cloudflare Pages project and connect GitHub repo
+- [ ] Create Cloudflare Worker (wrangler.jsonc + worker/index.ts SPA fallback serving `./out`) and connect GitHub repo
 - [ ] Register Resend account and verify sending domain
 - [ ] Set up GitHub repository with keep-alive workflow
 - [ ] Configure environment variables for all services

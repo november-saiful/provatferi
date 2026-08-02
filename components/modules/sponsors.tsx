@@ -4,11 +4,12 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useSponsors } from '@/lib/queries';
+import { useSponsors, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canManageSponsors } from '@/lib/permissions';
-import { formatDate, cn } from '@/lib/utils';
+import { formatDate, cn, downloadCsv } from '@/lib/utils';
 import { SPONSOR_STATUSES } from '@/lib/constants';
+import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +31,7 @@ export function Sponsors() {
   const { role } = useAuthStore();
   const canManage = canManageSponsors(role);
   const { data: sponsors, isLoading } = useSponsors(canManage);
+  useRealtimeInvalidate('sponsors', [['sponsors']]);
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from('sponsors').update({ status }).eq('id', id);
@@ -61,9 +63,32 @@ export function Sponsors() {
           <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle>Sponsorship inquiries</CardTitle>
-            <Button variant="outline" onClick={() => document.getElementById('sponsor-form-toggle')?.scrollIntoView({ behavior: 'smooth' })}>
-              View public form
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!sponsors || sponsors.length === 0}
+                onClick={() =>
+                  downloadCsv('sponsors.csv', [
+                    ['Company', 'Representative', 'Email', 'Phone', 'Proposed event', 'Status', 'Date'],
+                    ...(sponsors ?? []).map((s) => [
+                      s.company_name,
+                      s.representative_name ?? '',
+                      s.contact_email,
+                      s.contact_phone ?? '',
+                      s.proposed_event ?? 'General',
+                      s.status,
+                      new Date(s.created_at).toISOString()
+                    ])
+                  ])
+                }
+              >
+                <Download /> Export CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => document.getElementById('sponsor-form-toggle')?.scrollIntoView({ behavior: 'smooth' })}>
+                View public form
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading && <Skeleton className="h-40 w-full" />}

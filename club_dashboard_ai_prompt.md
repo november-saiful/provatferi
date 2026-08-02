@@ -10,8 +10,8 @@
 
 | Layer | Technology | Justification |
 |-------|------------|---------------|
-| **Frontend Framework** | Next.js 14+ (App Router) with TypeScript | Static export for Cloudflare Pages compatibility |
-| **Frontend Hosting** | **Cloudflare Pages** | Zero cold starts, edge-cached globally, free unlimited bandwidth |
+| **Frontend Framework** | Next.js 14+ (App Router) with TypeScript | Static export for Cloudflare Workers compatibility |
+| **Frontend Hosting** | **Cloudflare Workers** (static assets via wrangler + ASSETS binding) | Zero cold starts, edge-cached globally, free unlimited bandwidth |
 | **Backend/Database/Auth** | **Supabase** (PostgreSQL) | Native RLS for 14 roles, auto-generated REST API, free tier |
 | **File Storage** | **Supabase Storage** | Integrated with RLS, CDN-ready |
 | **Email Service** | **Resend** (free tier: 3,000 emails/month) | Triggered via Supabase Edge Functions or Database Webhooks |
@@ -22,7 +22,7 @@
 | **Forms** | React Hook Form + Zod | Type-safe validation matching database schema |
 | **Keep-Alive** | GitHub Actions cron workflow | Prevents Supabase free-tier pausing after 7 days |
 
-**CRITICAL:** The frontend must be built as a **static export** (`output: 'export'` in next.config.js) to deploy on Cloudflare Pages. All dynamic data fetching happens client-side via Supabase JS client.
+**CRITICAL:** The frontend must be built as a **static export** (`output: 'export'` in next.config.js) to deploy on **Cloudflare Workers** (`wrangler.jsonc` + `worker/index.ts` serving `./out` through an `ASSETS` binding with SPA fallback). All dynamic data fetching happens client-side via Supabase JS client.
 
 ---
 
@@ -30,7 +30,7 @@
 
 ### 2.1 Deployment Architecture
 ```
-User → Cloudflare Pages (Static HTML/JS) → Supabase API (PostgreSQL + Auth)
+User → Cloudflare Workers (Static HTML/JS from ./out via ASSETS binding) → Supabase API (PostgreSQL + Auth)
                                       ↓
                               Supabase Storage (Images)
                                       ↓
@@ -888,14 +888,14 @@ Build a dynamic sidebar that renders menu items based on the user's role:
 3. Create Storage bucket `gallery` with public read, authenticated write
 4. Set Edge Function secrets: `RESEND_API_KEY`, `SITE_URL`
 5. Configure Database Webhook on `records_log` → `INSERT` → Edge Function URL
-6. Add authorized redirect URLs in Auth settings (your Cloudflare Pages domain)
+6. Add authorized redirect URLs in Auth settings (your Cloudflare Workers domain)
 
-### Cloudflare Pages Setup
-1. Connect GitHub repo to Cloudflare Pages
-2. Build command: `npm run build`
-3. Build output directory: `out` (or `dist` depending on next.config)
-4. Add environment variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-5. Ensure `next.config.js` has `output: 'export'` and `images: { unoptimized: true }`
+### Cloudflare Workers Setup (static assets)
+1. The repo ships `wrangler.jsonc` and `worker/index.ts` (SPA fallback returning `/index.html` when a route is missing), serving the `./out` static export via an `ASSETS` binding
+2. Build command: `npm run build` (emits `./out`)
+3. Add environment variables at build time: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Ensure `next.config.js` has `output: 'export'` and `images: { unoptimized: true }`
+5. Deploy with `npx wrangler deploy` (or the GitHub Actions `deploy.yml` workflow)
 
 ### GitHub Keep-Alive
 1. Create `.github/workflows/keepalive.yml` in the repo
@@ -928,4 +928,4 @@ Build the app so these scenarios work:
 
 ---
 
-**FINAL INSTRUCTION:** Build the entire application following this specification exactly. Do not swap technologies. Do not skip RLS policies. Do not skip the audit log system. Prioritize functionality over visual perfection — the Provatferi system must be secure, role-accurate, and deployable to Cloudflare Pages + Supabase free tiers immediately.
+**FINAL INSTRUCTION:** Build the entire application following this specification exactly. Do not swap technologies. Do not skip RLS policies. Do not skip the audit log system. Prioritize functionality over visual perfection — the Provatferi system must be secure, role-accurate, and deployable to Cloudflare Workers + Supabase free tiers immediately.
