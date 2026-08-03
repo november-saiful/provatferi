@@ -20,13 +20,13 @@ export default function LoginPage() {
   return (
     <PublicShell>
       <Seo title="সাইন ইন" />
-      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-16">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coffee-600 text-white">
-          <Music className="h-7 w-7" />
+      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-20">
+        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-coffee-600 to-coffee-700 text-white shadow-lg shadow-coffee-500/25">
+          <Music className="h-8 w-8" />
         </span>
-        <Card className="mt-6 w-full">
-          <CardHeader>
-            <CardTitle>আবারও স্বাগতম</CardTitle>
+        <Card className="mt-8 w-full shadow-lg border-2">
+          <CardHeader className="text-center">
+            <CardTitle className="text-xl">আবারও স্বাগতম</CardTitle>
             <CardDescription>আপনার প্রভাতফেরী অ্যাকাউন্টে সাইন ইন করুন।</CardDescription>
           </CardHeader>
           <CardContent>

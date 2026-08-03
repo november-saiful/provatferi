@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useEvents } from '@/lib/queries';
+import { useEvents, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
 import { canWrite } from '@/lib/permissions';
 import { EVENT_STATUS_LABELS } from '@/lib/constants';
@@ -42,6 +42,8 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
 
   const canManage = canWrite(role, 'evf');
   const { data: events, isLoading } = useEvents(status);
+  // Spec §7.2: new events appear in the calendar/event lists without a refresh.
+  useRealtimeInvalidate('events', [['events']]);
 
   const filtered = React.useMemo(() => {
     if (!events) return [];

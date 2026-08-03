@@ -3,7 +3,9 @@
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase/client';
+import { useAuthStore } from './auth-store';
 import type {
+  AppNotification,
   AttendanceRecord,
   Budget,
   CalendarEvent,
@@ -405,4 +407,98 @@ export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<stri
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, keysKey, qc]);
+}
+
+// ---------- In-app notifications (spec §7) ----------
+
+/**
+ * Fetches the signed-in user's recent notifications and subscribes to Realtime
+ * so the bell badge updates the moment a new notification is inserted (the
+ * insert happens server-side via DB triggers — see 00017_inapp_notifications.sql).
+ */
+export function useNotifications(enabled = false) {
+  const { user } = useAuthStore();
+  const userId = user?.id;
+  const qc = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ['notifications', userId],
+    enabled: enabled && !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return asRows<AppNotification>(data);
+    }
+  });
+
+  React.useEffect(() => {
+    if (!enabled || !userId) return;
+    const channel = supabase
+      .channel(`notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ['notifications', userId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, userId, qc]);
+
+  return query;
+}
+
+export function useMarkNotificationRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] })
+  });
+}
+
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient();
+  const { user } = useAuthStore();
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] })
+  });
+}
+
+export function useClearNotifications() {
+  const qc = useQueryClient();
+  const { user } = useAuthStore();
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      const { error } = await supabase.from('notifications').delete().eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] })
+  });
 }

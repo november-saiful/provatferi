@@ -6,13 +6,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function initials(name?: string | null): string {
-  if (!name) return '?';
-  return name
+  // Empty string (not '?') so callers can decide their own fallback —
+  // e.g. AccountBlob prefers the brand logo over a question-mark glyph.
+  if (!name) return '';
+  const parts = name
     .split(/\s+/)
     .map((p) => p[0])
+    .filter(Boolean)
     .slice(0, 2)
     .join('')
     .toUpperCase();
+  return parts;
 }
 
 // Convert Latin digits (0-9) to Bengali numerals (০-৯), preserving all other

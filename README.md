@@ -10,8 +10,8 @@ Built per the build specification in `club_dashboard_ai_prompt.md` and refined w
 |-------|------------|
 | Frontend | Next.js 14 (App Router) + TypeScript, **static export** |
 | Hosting | Cloudflare Workers (static assets via `wrangler.jsonc` + `worker/index.ts` ASSETS binding) |
-| Backend / DB / Auth | Supabase (PostgreSQL, Auth, Storage, RLS) |
-| Email | Resend via a Supabase Edge Function |
+| Backend / DB / Auth | Supabase (PostgreSQL, Auth, Storage, RLS, Realtime) |
+| Notifications | In-app via DB triggers + Realtime (no email service) |
 | Styling | Tailwind CSS + custom shadcn-style components |
 | Charts | Recharts |
 | Calendar | react-big-calendar |
@@ -37,7 +37,7 @@ lib/
 scripts/seed-users.mjs # Creates test users (2 per role) via service-role key
 supabase/
   migrations/         # SQL schema + RLS + triggers + seed (run in order)
-  functions/send-notification/  # Email edge function
+  functions/user-admin/       # Edge function: ban/unban/delete users
 .github/workflows/keepalive.yml # Prevents Supabase free-tier pause
 worker/                        # Cloudflare Worker: serves ./out with SPA fallback
 wrangler.jsonc                 # Worker config (ASSETS binding → ./out)
@@ -84,21 +84,7 @@ npm run seed:users
 
 Creates 2 accounts per role (password `Provatferi@2026`), e.g. `pr1@provatferi.test`, `pr2@provatferi.test`, `tr1@provatferi.test`, `cc1@provatferi.test`, plus visitors. Profiles are auto-created by the `on_auth_user_created` trigger; the script then assigns roles and `display_id`.
 
-### 4. Email notifications (optional but required for audit emails)
-
-1. Create a Resend account and verify a sending domain.
-2. In Supabase Dashboard → **Edge Functions**, deploy `supabase/functions/send-notification`:
-   - `npx supabase functions deploy send-notification --project-ref YOUR_REF`
-   - Or paste the code into the dashboard editor.
-3. Set function secrets:
-   - `RESEND_API_KEY`
-   - `SITE_URL` (e.g. `https://home.provatferi2009.workers.dev`)
-   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` are auto-injected when deployed via CLI.
-4. Database → **Webhooks** → create a webhook on `records_log` → event `INSERT` → POST to your edge function URL with **POST** body of the row.
-
-> The `notify_on_record_change()` trigger emits `pg_notify` on every `records_log` insert as a fallback / for future realtime use. The webhook is the primary email path.
-
-### 5. Cloudflare Workers deploy
+### 4. Cloudflare Workers deploy
 
 1. The repo ships `wrangler.jsonc` and `worker/index.ts` (SPA fallback). `npm run build` emits the static export to `./out`, which the Worker serves through an `ASSETS` binding.
 2. Build with the env vars baked in:
@@ -109,7 +95,7 @@ Creates 2 accounts per role (password `Provatferi@2026`), e.g. `pr1@provatferi.t
 3. Deploy: `npx wrangler deploy` (needs `CF_API_TOKEN`), or push to GitHub and let `.github/workflows/deploy.yml` build + deploy.
 4. `next.config.mjs` already uses `output: 'export'` and `images.unoptimized`.
 
-### 6. Keep-alive
+### 5. Keep-alive
 
 Add repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` for `.github/workflows/keepalive.yml` (runs every 5 days).
 
@@ -136,7 +122,8 @@ Highlights:
 
 - `log_record_change()` (migration `00007`) fires on `UPDATE`/`DELETE` of `expenses` and `budgets`, writing before/after snapshots to `records_log`.
 - The dashboard **Records** module (`/dashboard/rcd`) shows the unified log with a side-by-side diff view.
-- When a record is changed, the edge function emails the original creator.
+- **In-app notifications** (migration `00017`) replace the old Resend email flow: DB triggers write to `notifications` when a record is edited/deleted (to its original creator), a sponsor inquiry arrives (`pr`/`vp`/`gs`/`tr`), a donation is received (`tr`/`pr`/`vp`), a role is changed (to the affected user), or someone comments on your event. The bell in the app bar shows an unread badge and a dropdown panel (mark-as-read / mark-all-read / clear all) that updates live over Realtime.
+- The old `send-notification` edge function, the `records_log_notify` trigger and the `records_log.notified` column were removed (migration `00016`). If you had deployed them, delete the edge function and the database webhook from the Supabase dashboard.
 
 ## Design notes & deliberate deviations
 
@@ -145,7 +132,7 @@ Highlights:
 - **Role assignment** (admin panel) updates `profiles.role_id` and auto-assigns a `display_id` following the `{role}-NN` convention (e.g. `tr-01`); it cannot change your own role. Role changes are not yet written to `records_log` (the enum covers operational tables) — documented as a future enhancement.
 - **Comments** are stored plain text; notices support a basic markdown toolbar (bold, italic, headings, lists, code, links) rendered safely by `renderMarkdown` in `lib/utils.ts`.
 - **Attendance** management is available to `pr`, `vp`, `gs`, `jgs`, and `cc`. The public course cards read all attendance rows and filter per schedule, so every course shows its own completion; recording attendance invalidates the shared `['attendance']` cache so the insights charts refresh immediately.
-- **Realtime** (migration `00009`): events, comments, gallery, calendar, notices, donations and sponsors are added to the `supabase_realtime` publication; the client's `useRealtimeInvalidate` hook refreshes those lists on change.
+- **Realtime** (migrations `00009` + `00017`): events, comments, gallery, calendar, notices, donations, sponsors and notifications are added to the `supabase_realtime` publication; the client's `useRealtimeInvalidate` hook refreshes those lists on change, and the notification bell updates without a page refresh.
 
 ## Commands
 

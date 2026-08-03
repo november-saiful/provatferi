@@ -7,6 +7,7 @@ import type { ModuleId, RoleId } from './types';
 export const ROLE_NAMES: Record<RoleId, string> = {
   pr: 'সভাপতি',
   vp: 'সহ-সভাপতি',
+  admin: 'অ্যাডমিন',
   gs: 'সাধারণ সম্পাদক',
   jgs: 'যুগ্ম সাধারণ সম্পাদক',
   tr: 'কোষাধ্যক্ষ',
@@ -25,6 +26,7 @@ export const ROLE_NAMES: Record<RoleId, string> = {
 export const ROLE_ORDER: RoleId[] = [
   'pr',
   'vp',
+  'admin',
   'gs',
   'jgs',
   'tr',
@@ -43,37 +45,37 @@ type RoleSet = RoleId[];
 
 // Per-module read access (from planning ACL matrix)
 export const MODULE_READ: Record<ModuleId, RoleSet> = {
-  evf: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  glr: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  cln: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  ntb: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  dnt: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  spn: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  xpm: ['pr', 'vp', 'gs', 'tr', 'ofs', 'ors', 'rds'],
-  bgm: ['pr', 'vp', 'cs', 'acs', 'rds'],
-  rcd: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc'],
-  cia: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  coi: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  admin: ['pr', 'vp']
+  evf: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  glr: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  cln: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  ntb: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  dnt: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  spn: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  xpm: ['pr', 'vp', 'admin', 'gs', 'tr', 'ofs', 'ors', 'rds'],
+  bgm: ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
+  rcd: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc'],
+  cia: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  coi: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  admin: ['pr', 'vp', 'admin']
 };
 
 // Per-module write access
 export const MODULE_WRITE: Record<ModuleId, RoleSet> = {
-  evf: ['pr', 'vp', 'gs', 'jgs', 'ofs', 'ors'],
-  glr: ['pr', 'vp', 'gs', 'jgs', 'pps', 'prs', 'ofs', 'ors'],
-  cln: ['pr', 'vp', 'gs', 'jgs', 'ofs', 'ors'],
-  ntb: ['pr', 'vp', 'gs', 'jgs', 'ofs', 'ors'],
-  dnt: ['pr', 'vp', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm'],
-  spn: ['pr', 'vp', 'gs', 'tr'],
-  xpm: ['pr', 'vp', 'tr', 'ofs', 'ors', 'rds'],
-  bgm: ['pr', 'vp', 'cs', 'acs', 'rds'],
-  rcd: ['pr', 'vp', 'rds'],
-  cia: ['pr', 'vp', 'gs', 'jgs', 'cc'],
+  evf: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  glr: ['pr', 'vp', 'admin', 'gs', 'jgs', 'pps', 'prs', 'ofs', 'ors'],
+  cln: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  ntb: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  dnt: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm'],
+  spn: ['pr', 'vp', 'admin', 'gs', 'tr'],
+  xpm: ['pr', 'vp', 'admin', 'tr', 'ofs', 'ors', 'rds'],
+  bgm: ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
+  rcd: ['pr', 'vp', 'admin', 'rds'],
+  cia: ['pr', 'vp', 'admin', 'gs', 'jgs', 'cc'],
   coi: [],
-  admin: ['pr', 'vp']
+  admin: ['pr', 'vp', 'admin']
 };
 
-export const SUPER_ADMINS: RoleSet = ['pr', 'vp'];
+export const SUPER_ADMINS: RoleSet = ['pr', 'vp', 'admin'];
 
 export function canRead(role: RoleId | null | undefined, module: ModuleId): boolean {
   if (!role) return false;
@@ -90,21 +92,21 @@ export function isAdmin(role: RoleId | null | undefined): boolean {
 }
 
 export function canEditExpense(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'rds'].includes(role);
+  return !!role && ['pr', 'vp', 'admin', 'rds'].includes(role);
 }
 
 export function canEditBudget(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'cs', 'acs', 'rds'].includes(role);
+  return !!role && ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'].includes(role);
 }
 
 export function canPinNotices(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp'].includes(role);
+  return !!role && ['pr', 'vp', 'admin'].includes(role);
 }
 
 export function canManageSponsors(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'gs', 'tr'].includes(role);
+  return !!role && ['pr', 'vp', 'admin', 'gs', 'tr'].includes(role);
 }
 
 export function canManageAttendance(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'gs', 'jgs', 'cc'].includes(role);
+  return !!role && ['pr', 'vp', 'admin', 'gs', 'jgs', 'cc'].includes(role);
 }

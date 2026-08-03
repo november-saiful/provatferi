@@ -1,7 +1,21 @@
 import type { Metadata, Viewport } from 'next';
+import { Noto_Serif_Bengali, Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
-import { PageTransition } from '@/components/layout/page-transition';
+
+const notoSerifBengali = Noto_Serif_Bengali({
+  subsets: ['bengali', 'latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-noto-serif-bengali',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -36,36 +50,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="bn" suppressHydrationWarning>
-      <head>
-        {/* Font linked here so the static export stays build-time network-free.
-            The stylesheet starts at media="print" so it never blocks first paint;
-            an inline script swaps it to screen media once it finishes loading. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-          media="print"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var l=document.querySelector('link[rel="stylesheet"][media="print"]');if(!l)return;var on=function(){l.media='all'};l.addEventListener('load',on);setTimeout(on,2500);})();`
-          }}
-        />
-        <noscript>
-          {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-          <link
-            href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
-            rel="stylesheet"
-          />
-        </noscript>
-      </head>
+    <html lang="bn" suppressHydrationWarning className={`${notoSerifBengali.variable} ${inter.variable}`}>
       <body>
-        <Providers>
-          <PageTransition topLevel>{children}</PageTransition>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

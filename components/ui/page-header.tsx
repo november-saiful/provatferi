@@ -16,24 +16,25 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, children, className, size = 'lg' }: PageHeaderProps) {
   return (
     <motion.div
-      className={cn('mb-6', className)}
-      initial={{ opacity: 0, y: 14 }}
+      className={cn('mb-8', className)}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
     >
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
+          <div className="mb-3 h-1 w-12 rounded-full bg-gradient-to-r from-primary to-accent" />
           <h1
             className={cn(
               'font-bold tracking-tight text-balance',
-              size === 'lg' ? 'text-3xl md:text-4xl' : 'text-2xl'
+              size === 'lg' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'
             )}
           >
             {title}
           </h1>
-          {description && <p className="mt-1.5 text-sm text-muted-foreground md:text-base">{description}</p>}
+          {description && <p className="mt-2 text-base text-muted-foreground max-w-2xl">{description}</p>}
         </div>
-        {children}
+        {children && <div className="flex-shrink-0">{children}</div>}
       </div>
     </motion.div>
   );

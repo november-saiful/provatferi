@@ -1,5 +1,7 @@
 -- 00007_triggers_functions.sql
--- Audit log trigger (rcd) + email notification trigger + storage setup
+-- Audit log trigger (rcd) + storage setup
+-- (The email notification trigger that used to live here was removed in
+--  favour of the in-app notification system — see 00016/00017.)
 
 -- 5.1 Audit log trigger for expenses + budgets
 create or replace function public.log_record_change()
@@ -51,26 +53,6 @@ drop trigger if exists budgets_audit on public.budgets;
 create trigger budgets_audit
   after update or delete on public.budgets
   for each row execute function public.log_record_change();
-
--- 5.2 Email notification trigger -> feeds a Supabase Database Webhook
-create or replace function public.notify_on_record_change()
-returns trigger as $$
-begin
-  perform pg_notify('record_changed', json_build_object(
-    'log_id', NEW.id,
-    'original_creator', NEW.original_creator,
-    'table_name', NEW.table_name,
-    'record_id', NEW.record_id,
-    'action', NEW.action
-  )::text);
-  return NEW;
-end;
-$$ language plpgsql security definer;
-
-drop trigger if exists records_log_notify on public.records_log;
-create trigger records_log_notify
-  after insert on public.records_log
-  for each row execute function public.notify_on_record_change();
 
 -- Storage: `gallery` bucket (public read, authenticated write for authorized roles)
 insert into storage.buckets (id, name, public)

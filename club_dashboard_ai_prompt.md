@@ -14,7 +14,7 @@
 | **Frontend Hosting** | **Cloudflare Workers** (static assets via wrangler + ASSETS binding) | Zero cold starts, edge-cached globally, free unlimited bandwidth |
 | **Backend/Database/Auth** | **Supabase** (PostgreSQL) | Native RLS for 14 roles, auto-generated REST API, free tier |
 | **File Storage** | **Supabase Storage** | Integrated with RLS, CDN-ready |
-| **Email Service** | **Resend** (free tier: 3,000 emails/month) | Triggered via Supabase Edge Functions or Database Webhooks |
+| **Notifications** | In-app via DB triggers + Supabase Realtime | Bell icon with unread badge; no email service |
 | **Styling** | Tailwind CSS + shadcn/ui components | Rapid, consistent UI without custom CSS bloat |
 | **Charts/Graphs** | Recharts | For course attendance insights (coi) |
 | **Calendar** | FullCalendar or react-big-calendar | For Provatferi calendar (cln) |
@@ -34,7 +34,7 @@ User → Cloudflare Workers (Static HTML/JS from ./out via ASSETS binding) → S
                                       ↓
                               Supabase Storage (Images)
                                       ↓
-                              Resend API (Email alerts)
+                    DB triggers → in-app notifications → Realtime (bell)
 ```
 
 ### 2.2 Keep-Alive Mechanism
@@ -627,69 +627,45 @@ create trigger budgets_audit
   for each row execute function log_record_change();
 ```
 
-### 5.2 Email Notification Trigger
+### 5.2 In-App Notification Triggers
 ```sql
-create or replace function notify_on_record_change()
-returns trigger as $$
-begin
-  -- This will be caught by a Supabase webhook
-  -- The webhook sends a POST to your edge function
-  perform pg_notify('record_changed', json_build_object(
-    'log_id', NEW.id,
-    'original_creator', NEW.original_creator,
-    'table_name', NEW.table_name,
-    'record_id', NEW.record_id
-  )::text);
+-- `notifications` table (RLS: users read/update/delete only their own rows)
+create table notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  type text not null,           -- record_edited | record_deleted | sponsor_inquiry | donation | role_changed | event_comment
+  title text not null,
+  body text not null,
+  data jsonb default '{}'::jsonb,  -- href, record_id, …
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
 
-  return NEW;
-end;
-$$ language plpgsql security definer;
+-- SECURITY DEFINER helpers
+create or replace function notify_user(p_user_id uuid, p_type text, p_title text, p_body text, p_data jsonb default '{}'::jsonb)
+returns void language plpgsql security definer …;
+create or replace function notify_users_by_role(p_roles text[], p_type text, p_title text, p_body text, p_data jsonb default '{}'::jsonb)
+returns void language plpgsql security definer …;
 
-create trigger records_log_notify
-  after insert on records_log
-  for each row execute function notify_on_record_change();
+-- Triggers (see migration 00017_inapp_notifications.sql for the full source):
+--   records_log  INSERT (update/delete)  → original creator
+--   sponsors     INSERT                  → pr, vp, gs, tr
+--   donations    INSERT                  → tr, pr, vp
+--   profiles     UPDATE role_id          → affected user
+--   event_comments INSERT                → event creator
+
+-- Realtime: `alter publication supabase_realtime add table notifications;`
 ```
 
 ---
 
-## 6. SUPABASE EDGE FUNCTION (EMAIL SENDER)
+## 6. NOTIFICATION UI (BELL + PANEL)
 
-Create `supabase/functions/send-notification/index.ts`:
-```typescript
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-
-serve(async (req) => {
-  const { record } = await req.json()
-
-  // Fetch original creator's email
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-  const { data: user } = await supabase.auth.admin.getUserById(record.original_creator)
-
-  if (!user.user?.email) return new Response('No email', { status: 200 })
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from: 'Provatferi <noreply@home.provatferi2009.workers.dev>',
-      to: user.user.email,
-      subject: 'Your record was modified',
-      html: `<p>Your ${record.table_name} record was modified. <a href="${Deno.env.get('SITE_URL')}/records">View changes</a></p>`
-    })
-  })
-
-  return new Response(JSON.stringify({ success: true }), {
-    headers: { 'Content-Type': 'application/json' }
-  })
-})
-```
-
-Wire this to a **Database Webhook** on `records_log` table, firing `INSERT` events.
+- **Bell icon** in the top app bar with an unread-count badge.
+- **Dropdown panel** listing the latest notifications (title, body, relative time).
+- **Mark as read** when a notification is opened; **mark all read** and **clear all** actions.
+- Types: record changes, new comments on your events, sponsor updates, donations, role changes.
+- The panel subscribes to Realtime on the user's `notifications` rows so the badge updates without a refresh.
 
 ---
 
@@ -823,7 +799,7 @@ Build a dynamic sidebar that renders menu items based on the user's role:
 - **View:** Unified table showing all changes from `records_log`. Columns: Date, Table, Action, Modified By (name lookup), Original Creator (name lookup), View Changes (modal showing diff).
 - **Read-only:** For all signed-in users except ALM. They see the log but cannot edit.
 - **Edit access:** PR/VP/RDS can click through to the actual record and modify it (which triggers another audit log entry).
-- **Email notification:** When a record is modified, the original creator receives an email via the edge function.
+- **In-app notification:** When a record is modified, the original creator receives an in-app notification (bell icon) generated by a DB trigger.
 
 ### 8.10 Course Instructor Attendance (cia)
 - **Public view:** Grid of 6 courses. Each course shows a progress bar (classes completed / 16) and a list of attendance entries.
@@ -863,7 +839,7 @@ Build a dynamic sidebar that renders menu items based on the user's role:
 - **Never** expose the Supabase service role key in the frontend.
 - **Never** disable RLS on any table.
 - Use `supabase.auth.getSession()` on every protected route.
-- Store the Resend API key only in Supabase Edge Function secrets, never in client code.
+- Never expose secrets in client code. The only edge function (`user-admin`) validates the caller's role from their JWT.
 - All file uploads must go through Supabase Storage with RLS policies (not direct client uploads with service key).
 - Sanitize all user inputs. Use parameterized queries (Supabase client does this automatically).
 - Implement rate limiting on public forms (donation, sponsor) using Supabase Edge Functions or client-side debouncing.
@@ -886,9 +862,8 @@ Build a dynamic sidebar that renders menu items based on the user's role:
 1. Create new Supabase project
 2. Run all SQL migrations (schema + RLS + triggers)
 3. Create Storage bucket `gallery` with public read, authenticated write
-4. Set Edge Function secrets: `RESEND_API_KEY`, `SITE_URL`
-5. Configure Database Webhook on `records_log` → `INSERT` → Edge Function URL
-6. Add authorized redirect URLs in Auth settings (your Cloudflare Workers domain)
+4. Deploy the `user-admin` edge function (ban/unban/delete users)
+5. Add authorized redirect URLs in Auth settings (your Cloudflare Workers domain)
 
 ### Cloudflare Workers Setup (static assets)
 1. The repo ships `wrangler.jsonc` and `worker/index.ts` (SPA fallback returning `/index.html` when a route is missing), serving the `./out` static export via an `ASSETS` binding
@@ -909,7 +884,7 @@ Build a dynamic sidebar that renders menu items based on the user's role:
 The AI agent must produce:
 1. **Complete Next.js codebase** with TypeScript, ready for static export
 2. **Supabase migration files** (all schema, RLS, triggers, functions)
-3. **Supabase Edge Function** for email notifications
+3. **In-app notification system** (DB triggers + bell UI + Realtime)
 4. **GitHub Actions workflow** for keep-alive
 5. **README.md** with setup instructions, environment variables, and deployment guide
 6. **Seed data** for roles and at least 2 test users per role for testing
@@ -922,7 +897,7 @@ Build the app so these scenarios work:
 1. A visitor lands on the site → sees events, calendar, notices, gallery, course insights. Cannot see financial modules.
 2. An Alumni logs in → can comment on events. Cannot see expenses/budgets.
 3. A Treasurer logs in → sees and can add expenses. Cannot edit budgets (unless also RDS).
-4. A Record Secretary edits an expense → the original creator gets an email notification.
+4. A Record Secretary edits an expense → the original creator gets an in-app notification.
 5. A Course Coordinator fills attendance for Violin Day 1 → the Course Insights chart updates immediately.
 6. The President can do everything, including changing another user's role in the admin panel.
 

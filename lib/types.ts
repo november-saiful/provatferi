@@ -3,6 +3,7 @@
 export type RoleId =
   | 'pr'
   | 'vp'
+  | 'admin'
   | 'gs'
   | 'jgs'
   | 'tr'
@@ -34,7 +35,6 @@ export type ModuleId =
 export interface Profile {
   id: string;
   role_id: RoleId;
-  display_id: string | null;
   full_name: string | null;
   email: string;
   phone: string | null;
@@ -44,6 +44,7 @@ export interface Profile {
   reg_id: string | null;
   avatar_url: string | null;
   is_active: boolean;
+  email_verified: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -153,7 +154,6 @@ export interface RecordsLog {
   new_data: Record<string, unknown> | null;
   modified_by: string | null;
   original_creator: string | null;
-  notified: boolean;
   created_at: string;
   modifier?: Pick<Profile, 'id' | 'full_name'> | null;
   creator?: Pick<Profile, 'id' | 'full_name'> | null;
@@ -226,4 +226,25 @@ export interface CommitteeContact {
 export interface AppConfig {
   key: string;
   value: string;
+}
+
+// ── In-app notifications (spec §7) ───────────────────────────────────────
+
+export type AppNotificationType =
+  | 'record_edited'
+  | 'record_deleted'
+  | 'sponsor_inquiry'
+  | 'donation'
+  | 'role_changed'
+  | 'event_comment';
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: AppNotificationType;
+  title: string;
+  body: string;
+  data: { href?: string; [key: string]: unknown } | null;
+  is_read: boolean;
+  created_at: string;
 }

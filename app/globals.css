@@ -4,45 +4,110 @@
 
 @layer base {
   :root {
-    --background: 38 33% 97%;
-    --foreground: 24 22% 20%;
+    /* ── Warm Cream Base ── */
+    --background: 36 40% 97%;
+    --foreground: 22 28% 16%;
+
+    /* ── Rich Card Surfaces ── */
     --card: 0 0% 100%;
-    --card-foreground: 24 22% 20%;
-    --primary: 15 56% 37%;
-    --primary-foreground: 38 33% 97%;
-    --secondary: 24 24% 91%;
-    --secondary-foreground: 24 22% 20%;
-    --muted: 30 18% 92%;
-    --muted-foreground: 25 10% 44%;
-    --accent: 15 56% 37%;
-    --accent-foreground: 38 33% 97%;
-    --destructive: 0 68% 47%;
+    --card-foreground: 22 28% 16%;
+
+    /* ── Deep Coffee Primary ── */
+    --primary: 16 52% 34%;
+    --primary-foreground: 36 40% 97%;
+
+    /* ── Warm Sand Secondary ── */
+    --secondary: 30 25% 92%;
+    --secondary-foreground: 22 28% 16%;
+
+    /* ── Muted Earth Tones ── */
+    --muted: 32 20% 93%;
+    --muted-foreground: 22 12% 42%;
+
+    /* ── Gold Accent ── */
+    --accent: 38 65% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* ── Destructive ── */
+    --destructive: 0 62% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 28 22% 86%;
-    --input: 28 22% 86%;
-    --ring: 15 56% 37%;
-    --radius: 0.75rem;
-    --header-height: 4rem;
+
+    /* ── Borders & Inputs ── */
+    --border: 30 18% 84%;
+    --input: 30 18% 84%;
+    --ring: 16 52% 34%;
+
+    /* ── Sidebar (Drive-inspired light) ── */
+    --sidebar: 36 38% 98%;
+    --sidebar-foreground: 22 28% 16%;
+    --sidebar-accent: 16 60% 95%;
+    --sidebar-active-foreground: 16 52% 28%;
+    --sidebar-border: 30 18% 88%;
+
+    /* ── Popovers / Menus ── */
+    --popover: 0 0% 100%;
+    --popover-foreground: 22 28% 16%;
+
+    /* ── Glass ── */
+    --glass-bg: 0 0% 100% / 0.72;
+    --glass-border: 0 0% 100% / 0.55;
+    --glass-blur: 14px;
+
+    /* ── Spacing Tokens ── */
+    --radius: 0.875rem;
+    --radius-sm: 0.625rem;
+    --radius-lg: 1.125rem;
+    --radius-xl: 1.5rem;
+    --header-height: 3.75rem;
+
+    /* ── Shadows ── */
+    --shadow-xs: 0 1px 2px rgba(89, 42, 18, 0.04);
+    --shadow-sm: 0 1px 3px rgba(89, 42, 18, 0.06), 0 1px 2px rgba(89, 42, 18, 0.04);
+    --shadow-md: 0 4px 6px rgba(89, 42, 18, 0.05), 0 2px 4px rgba(89, 42, 18, 0.04);
+    --shadow-lg: 0 10px 15px rgba(89, 42, 18, 0.06), 0 4px 6px rgba(89, 42, 18, 0.04);
+    --shadow-xl: 0 20px 25px rgba(89, 42, 18, 0.08), 0 8px 10px rgba(89, 42, 18, 0.04);
+    --shadow-2xl: 0 25px 50px rgba(89, 42, 18, 0.12);
+    --shadow-glow: 0 0 40px rgba(147, 69, 42, 0.15);
+    --shadow-glow-lg: 0 0 80px rgba(147, 69, 42, 0.2);
   }
 
   .dark {
-    --background: 25 25% 9%;
-    --foreground: 35 30% 92%;
-    --card: 25 20% 13%;
-    --card-foreground: 35 30% 92%;
-    --primary: 15 56% 70%;
-    --primary-foreground: 25 25% 9%;
-    --secondary: 24 15% 18%;
-    --secondary-foreground: 35 30% 92%;
-    --muted: 24 14% 16%;
-    --muted-foreground: 30 12% 60%;
-    --accent: 15 56% 37%;
-    --accent-foreground: 38 33% 97%;
-    --destructive: 0 62% 56%;
+    --background: 22 24% 6%;
+    --foreground: 34 28% 90%;
+
+    --card: 22 20% 10%;
+    --card-foreground: 34 28% 90%;
+
+    --primary: 16 52% 58%;
+    --primary-foreground: 22 24% 6%;
+
+    --secondary: 22 16% 16%;
+    --secondary-foreground: 34 28% 90%;
+
+    --muted: 22 14% 14%;
+    --muted-foreground: 28 10% 58%;
+
+    --accent: 38 60% 50%;
+    --accent-foreground: 22 24% 6%;
+
+    --destructive: 0 58% 54%;
     --destructive-foreground: 0 0% 100%;
-    --border: 25 15% 20%;
-    --input: 25 15% 20%;
-    --ring: 15 56% 60%;
+
+    --border: 22 14% 18%;
+    --input: 22 14% 18%;
+    --ring: 16 52% 58%;
+
+    --sidebar: 22 24% 9%;
+    --sidebar-foreground: 34 28% 88%;
+    --sidebar-accent: 24 24% 16%;
+    --sidebar-active-foreground: 28 60% 72%;
+    --sidebar-border: 22 16% 18%;
+
+    --popover: 22 20% 10%;
+    --popover-foreground: 34 28% 90%;
+
+    --glass-bg: 22 20% 10% / 0.82;
+    --glass-border: 0 0% 100% / 0.08;
   }
 
   * {
@@ -57,166 +122,235 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s ease, color 0.4s ease;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    background: hsl(var(--primary) / 0.22);
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
   }
 
-  /* Fluid color transitions for common surfaces so theme toggles glide smoothly */
+  /* ── Fluid Transitions ── */
   .theme-surface {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
   }
 }
 
 @layer components {
+  /* ── Card Hover Lift ── */
   .card-hover {
-    @apply transition-all duration-300 ease-smooth hover:-translate-y-1 hover:border-primary/25 hover:shadow-lift;
+    @apply transition-all duration-400 ease-smooth;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    border-color: hsl(var(--primary) / 0.25);
   }
 
-  /* Soft, glowing focus ring for a fluent feel */
+  /* ── Focus Ring ── */
   .fluent-ring {
-    @apply transition-shadow duration-150;
+    @apply transition-shadow duration-200;
   }
   .fluent-ring:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--ring));
+      0 0 0 3px hsl(var(--background)),
+      0 0 0 5px hsl(var(--ring) / 0.5);
   }
 
-  /* Shimmer for skeletons in place of a harsh pulse */
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--muted)) 25%,
-      hsl(var(--muted-foreground) / 0.18) 37%,
-      hsl(var(--muted)) 63%
-    );
-    background-size: 400% 100%;
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-
-  /* Frosted glass surface */
+  /* ── Glass Surface ── */
   .glass {
-    background: hsl(var(--card) / 0.72);
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
   }
 
-  /* Soft animated gradient text */
+  .glass-strong {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* ── Gradient Text ── */
   .text-gradient {
     background: linear-gradient(
-      120deg,
+      135deg,
       hsl(var(--primary)) 0%,
-      hsl(15 56% 45%) 45%,
-      hsl(24 30% 40%) 100%
+      hsl(16 50% 42%) 30%,
+      hsl(38 60% 42%) 70%,
+      hsl(var(--accent)) 100%
     );
-    background-size: 200% 100%;
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: gradient-x 8s ease infinite;
+    animation: gradient-shift 6s ease infinite;
   }
 
-  /* Subtle dotted grid texture for hero / banner backgrounds */
+  /* ── Grid Pattern ── */
   .bg-grid {
-    background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
-    background-size: 22px 22px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    background-image:
+      radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px),
+      radial-gradient(hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-size: 24px 24px, 48px 48px;
+    background-position: 0 0, 12px 12px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 45%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 45%, transparent 100%);
   }
 
+  .bg-grid-subtle {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* ── Dot Pattern ── */
+  .bg-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+  }
+
+  /* ── Gradient Mesh ── */
+  .bg-mesh {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, hsl(var(--primary) / 0.06), transparent 50%),
+      radial-gradient(ellipse 60% 50% at 80% 20%, hsl(var(--accent) / 0.05), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 80%, hsl(28 30% 50% / 0.04), transparent 50%);
+  }
+
+  /* ── Shimmer Skeleton ── */
+  .shimmer {
+    background: linear-gradient(
+      105deg,
+      hsl(var(--muted)) 20%,
+      hsl(var(--muted-foreground) / 0.12) 38%,
+      hsl(var(--muted)) 58%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  /* ── Press Effect ── */
+  .press {
+    @apply transition-transform duration-150 active:scale-[0.97];
+  }
 }
 
+/* ── Keyframes ── */
 @keyframes shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 150% 50%; }
+  100% { background-position: -50% 50%; }
 }
 
-/* Refined, unobtrusive scrollbar */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(0.5deg); }
+  66% { transform: translateY(-4px) rotate(-0.5deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-18px) translateX(8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: hsl(var(--primary) / 0.15); }
+  50% { border-color: hsl(var(--primary) / 0.35); }
+}
+
+/* ── Custom Scrollbar ── */
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.35);
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.55);
+  background: hsl(var(--muted-foreground) / 0.5);
   background-clip: padding-box;
 }
 
-/* React Big Calendar theme overrides */
+/* ── React Big Calendar Overrides ── */
 .rbc-calendar {
   @apply font-sans text-sm;
 }
-
 .rbc-toolbar {
-  @apply mb-4 flex flex-wrap gap-2 items-center;
+  @apply mb-5 flex flex-wrap gap-2 items-center;
 }
-
 .rbc-toolbar button {
-  @apply rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent;
+  @apply rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:-translate-y-px;
 }
-
 .rbc-toolbar button.rbc-active {
-  @apply bg-primary text-primary-foreground border-primary;
+  @apply bg-primary text-primary-foreground border-primary shadow-sm;
 }
-
 .rbc-header {
-  @apply py-1.5 font-semibold text-muted-foreground uppercase text-xs;
+  @apply py-2 font-semibold text-muted-foreground uppercase text-[11px] tracking-wider;
 }
-
 .rbc-month-view,
 .rbc-time-view,
 .rbc-agenda-view {
-  @apply rounded-xl border border-border bg-card overflow-hidden;
+  @apply rounded-xl border border-border bg-card overflow-hidden shadow-sm;
 }
-
 .rbc-month-row {
   @apply border-t border-border;
 }
-
 .rbc-day-bg + .rbc-day-bg,
 .rbc-month-row + .rbc-month-row {
   @apply border-l border-border;
 }
-
 .rbc-date-cell {
-  @apply pr-2 pt-1 text-right text-sm;
+  @apply pr-2 pt-1.5 text-right text-sm;
 }
-
 .rbc-today {
-  @apply bg-primary/10;
+  background-color: hsl(var(--primary) / 0.08);
 }
-
 .rbc-event {
-  @apply rounded-md border-none text-[12px] leading-tight px-1.5 py-0.5 text-white shadow-sm;
+  @apply rounded-md border-none text-[12px] leading-tight px-1.5 py-0.5 text-white shadow-sm transition-transform duration-150 hover:scale-[1.02];
 }
-
 .rbc-show-more {
-  @apply text-primary font-medium;
+  @apply text-primary font-semibold;
 }
-
 .rbc-off-range-bg {
-  @apply bg-muted/40;
+  @apply bg-muted/30;
 }
-
-/* Mobile-friendly calendar toolbar */
 @media (max-width: 640px) {
   .rbc-toolbar {
     @apply flex-col items-stretch;
@@ -229,8 +363,11 @@
   }
 }
 
+/* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

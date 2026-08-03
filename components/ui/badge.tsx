@@ -3,18 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
+  'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-all duration-200',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground',
+        default: 'border-transparent bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        outline: 'text-foreground',
-        success: 'border-transparent bg-sage-100 text-sage-700 dark:bg-sage-900 dark:text-sage-200',
-        warning: 'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-        destructive: 'border-transparent bg-warmred-100 text-warmred-700 dark:bg-warmred-900 dark:text-warmred-200',
-        coffee: 'border-transparent bg-coffee-100 text-coffee-700 dark:bg-coffee-900 dark:text-coffee-200',
-        taupe: 'border-transparent bg-taupe-100 text-taupe-700 dark:bg-taupe-900 dark:text-taupe-200'
+        outline: 'border-border text-foreground',
+        success: 'border-transparent bg-sage-100 text-sage-700 dark:bg-sage-900/60 dark:text-sage-300',
+        warning: 'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300',
+        destructive: 'border-transparent bg-warmred-100 text-warmred-700 dark:bg-warmred-900/60 dark:text-warmred-300',
+        coffee: 'border-transparent bg-coffee-100 text-coffee-700 dark:bg-coffee-900/60 dark:text-coffee-300',
+        taupe: 'border-transparent bg-taupe-100 text-taupe-700 dark:bg-taupe-900/60 dark:text-taupe-300',
+        gold: 'border-transparent bg-gold-100 text-gold-700 dark:bg-gold-900/60 dark:text-gold-300'
       }
     },
     defaultVariants: {
