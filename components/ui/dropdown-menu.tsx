@@ -257,17 +257,35 @@ export function DropdownContent({
   }, [portal, visible, rootRef]);
 
   const portalStyle: React.CSSProperties | undefined = portal && triggerRect
-    ? side === 'bottom'
-      ? {
-          position: 'fixed',
-          top: triggerRect.bottom + sideOffset,
-          left: align === 'start' ? triggerRect.left : align === 'center' ? triggerRect.left + triggerRect.width / 2 : triggerRect.right,
+    ? (() => {
+        const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+        const menuMaxWidth = Math.min(352, viewportWidth - 32); // 22rem = 352px, minus padding
+        
+        let left: number;
+        if (align === 'start') {
+          left = triggerRect.left;
+        } else if (align === 'center') {
+          left = triggerRect.left + triggerRect.width / 2 - menuMaxWidth / 2;
+        } else {
+          // align = 'end': position right edge of menu at trigger's right edge
+          left = triggerRect.right - menuMaxWidth;
         }
-      : {
-          position: 'fixed',
-          bottom: (typeof window !== 'undefined' ? window.innerHeight : 0) - triggerRect.top + sideOffset,
-          left: align === 'start' ? triggerRect.left : align === 'center' ? triggerRect.left + triggerRect.width / 2 : triggerRect.right,
-        }
+        
+        // Clamp to viewport bounds
+        left = Math.max(8, Math.min(left, viewportWidth - menuMaxWidth - 8));
+        
+        return side === 'bottom'
+          ? {
+              position: 'fixed' as const,
+              top: triggerRect.bottom + sideOffset,
+              left,
+            }
+          : {
+              position: 'fixed' as const,
+              bottom: (typeof window !== 'undefined' ? window.innerHeight : 0) - triggerRect.top + sideOffset,
+              left,
+            };
+      })()
     : undefined;
   const offsetStyle: React.CSSProperties =
     portal ? portalStyle ?? { visibility: 'hidden' } : side === 'bottom' ? { marginTop: sideOffset } : { marginBottom: sideOffset };
