@@ -22,7 +22,29 @@ export const metadata: Metadata = {
     default: 'প্রভাতফেরী',
     template: 'প্রভাতফেরী- %s'
   },
-  description: 'প্রভাতফেরী ক্লাব ড্যাশবোর্ড — ইভেন্ট, অর্থ, কোর্স ও কমিউনিটি।',
+  description: 'ঢাকা বিশ্ববিদ্যালয় প্রভাতফেরী সাংস্কৃতিক সংসদ — ইভেন্ট, অর্থ, কোর্স ও কমিউনিটি।',
+  openGraph: {
+    title: 'প্রভাতফেরী',
+    description: 'ঢাকা বিশ্ববিদ্যালয় প্রভাতফেরী সাংস্কৃতিক সংসদ',
+    url: 'https://home.provatferi2009.workers.dev',
+    siteName: 'প্রভাতফেরী',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'প্রভাতফেরী',
+      },
+    ],
+    locale: 'bn_BD',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'প্রভাতফেরী',
+    description: 'ঢাকা বিশ্ববিদ্যালয় প্রভাতফেরী সাংস্কৃতিক সংসদ',
+    images: ['/logo.png'],
+  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
