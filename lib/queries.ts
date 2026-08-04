@@ -23,6 +23,8 @@ import type {
   Notice,
   Profile,
   RecordsLog,
+  RoleExtraPermission,
+  RolePermission,
   Sponsor,
   UserNotificationSettings
 } from './types';
@@ -656,6 +658,96 @@ export function useClearNotifications() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] })
+  });
+}
+
+// ---------- Role Permissions (migration 00029) ----------
+
+/**
+ * Fetch all role permissions from the database.
+ */
+export function useRolePermissions() {
+  return useQuery({
+    queryKey: ['role-permissions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('role_permissions')
+        .select('*')
+        .order('role_id');
+      if (error) throw error;
+      return asRows<RolePermission>(data);
+    }
+  });
+}
+
+/**
+ * Fetch all extra permissions from the database.
+ */
+export function useRoleExtraPermissions() {
+  return useQuery({
+    queryKey: ['role-extra-permissions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('role_extra_permissions')
+        .select('*')
+        .order('role_id');
+      if (error) throw error;
+      return asRows<RoleExtraPermission>(data);
+    }
+  });
+}
+
+/**
+ * Update a role's module permission.
+ */
+export function useUpdateRolePermission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      roleId,
+      moduleId,
+      canRead,
+      canWrite
+    }: {
+      roleId: string;
+      moduleId: string;
+      canRead: boolean;
+      canWrite: boolean;
+    }) => {
+      const { error } = await supabase
+        .from('role_permissions')
+        .upsert(
+          { role_id: roleId, module_id: moduleId, can_read: canRead, can_write: canWrite },
+          { onConflict: 'role_id,module_id' }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-permissions'] })
+  });
+}
+
+/**
+ * Update a role's extra permissions.
+ */
+export function useUpdateRoleExtraPermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      roleId,
+      permissions
+    }: {
+      roleId: string;
+      permissions: Partial<Omit<RoleExtraPermission, 'id' | 'role_id' | 'created_at' | 'updated_at'>>;
+    }) => {
+      const { error } = await supabase
+        .from('role_extra_permissions')
+        .upsert(
+          { role_id: roleId, ...permissions },
+          { onConflict: 'role_id' }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['role-extra-permissions'] })
   });
 }
 

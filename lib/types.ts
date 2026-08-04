@@ -297,3 +297,27 @@ export interface UserNotificationSettings {
   mute_event_rsvp: boolean;
   updated_at: string;
 }
+
+// ── Role Permissions (migration 00029) ─────────────────────────────────────
+
+export interface RolePermission {
+  id: string;
+  role_id: RoleId;
+  module_id: ModuleId;
+  can_read: boolean;
+  can_write: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoleExtraPermission {
+  id: string;
+  role_id: RoleId;
+  pin_notices: boolean;
+  edit_expense: boolean;
+  edit_budget: boolean;
+  manage_sponsors: boolean;
+  manage_attendance: boolean;
+  created_at: string;
+  updated_at: string;
+}
