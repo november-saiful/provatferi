@@ -30,8 +30,11 @@ export function BalanceWidget({ variant = 'sidebar', className }: BalanceWidgetP
   const allocated = Number(balance?.allocated ?? 0);
   // Total spent = sum of actual expense records (not budget.spent_amount which may be stale)
   const spent = Number(balance?.spent ?? 0);
+  // Approved donations
+  const donations = Number(balance?.donations ?? 0);
 
-  const totalCapacity = Math.max(allocated, BUDGET_FLOOR);
+  // Total capacity = allocated budget + approved donations
+  const totalCapacity = Math.max(allocated + donations, BUDGET_FLOOR);
   const used = spent;
   const remaining = Math.max(totalCapacity - used, 0);
   const pct = totalCapacity > 0 ? Math.min(100, Math.round((used / totalCapacity) * 100)) : 0;
@@ -80,13 +83,18 @@ export function BalanceWidget({ variant = 'sidebar', className }: BalanceWidgetP
           />
         </div>
 
-        <div className="mt-2.5 flex items-center justify-between text-[11px]">
+        <div className="mt-2.5 grid grid-cols-2 gap-1 text-[11px]">
           <span className="text-muted-foreground tabular-nums">
             অবশিষ্ট · {formatMoney(remaining)}
           </span>
-          <span className="text-muted-foreground tabular-nums">
+          <span className="text-muted-foreground tabular-nums text-right">
             বরাদ্দ · {formatMoney(allocated)}
           </span>
+          {donations > 0 && (
+            <span className="col-span-2 text-sage-600 dark:text-sage-400 tabular-nums text-center">
+              অনুদান · {formatMoney(donations)}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -124,17 +132,24 @@ export function BalanceWidget({ variant = 'sidebar', className }: BalanceWidgetP
         />
       </div>
 
-      <div className="mt-2.5 flex items-center justify-between text-[10.5px]">
-        <span className="text-muted-foreground tabular-nums">
-          অবশিষ্ট · {formatMoney(remaining)}
-        </span>
-        <Link
-          href="/dashboard/bgm"
-          className="inline-flex items-center gap-0.5 font-semibold text-primary hover:underline"
-        >
-          বাজেট দেখুন
-          <ChevronRight className="h-3 w-3" />
-        </Link>
+      <div className="mt-2.5 space-y-1 text-[10.5px]">
+        <div className="flex items-center justify-between">
+          <span className="text-muted-foreground tabular-nums">
+            অবশিষ্ট · {formatMoney(remaining)}
+          </span>
+          <Link
+            href="/dashboard/bgm"
+            className="inline-flex items-center gap-0.5 font-semibold text-primary hover:underline"
+          >
+            বাজেট দেখুন
+            <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+        {donations > 0 && (
+          <div className="text-center text-sage-600 dark:text-sage-400">
+            <span className="tabular-nums">অনুদান · {formatMoney(donations)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

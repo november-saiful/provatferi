@@ -259,6 +259,7 @@ export interface AppConfig {
 export interface ClubBalance {
   allocated: number | string;
   spent: number | string;
+  donations: number | string;
 }
 
 // ── In-app notifications (spec §7) ───────────────────────────────────────

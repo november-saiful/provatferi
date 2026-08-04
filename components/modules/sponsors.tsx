@@ -43,6 +43,17 @@ export function Sponsors() {
     }
   };
 
+  const deleteSponsor = async (id: string) => {
+    if (!confirm('আপনি কি নিশ্চিত এই স্পনসর আবেদন মুছে ফেলতে চান?')) return;
+    const { error } = await supabase.from('sponsors').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('স্পনসর আবেদন মুছে ফেলা হয়েছে');
+      qc.invalidateQueries({ queryKey: ['sponsors'] });
+    }
+  };
+
   return (
     <Stagger className="space-y-6">
       {!canManage && (
@@ -145,17 +156,27 @@ export function Sponsors() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(s.created_at)}</TableCell>
                       <TableCell className="text-right">
-                        <Select
-                          value={s.status}
-                          onChange={(e) => updateStatus(s.id, e.target.value)}
-                          className="h-8 w-32 text-xs"
-                        >
-                          {SPONSOR_STATUSES.map((st) => (
-                            <option key={st} value={st}>
-                              {SPONSOR_STATUS_LABELS[st] ?? st}
-                            </option>
-                          ))}
-                        </Select>
+                        <div className="flex items-center justify-end gap-2">
+                          <Select
+                            value={s.status}
+                            onChange={(e) => updateStatus(s.id, e.target.value)}
+                            className="h-8 w-32 text-xs"
+                          >
+                            {SPONSOR_STATUSES.map((st) => (
+                              <option key={st} value={st}>
+                                {SPONSOR_STATUS_LABELS[st] ?? st}
+                              </option>
+                            ))}
+                          </Select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => deleteSponsor(s.id)}
+                          >
+                            মুছুন
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

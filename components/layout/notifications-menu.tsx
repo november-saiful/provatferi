@@ -159,7 +159,8 @@ export function NotificationsMenu() {
       <DropdownContent
         size="auto"
         align="end"
-        className="w-[min(22rem,calc(100vw-1.25rem))] p-0"
+        portal
+        className="w-[min(22rem,calc(100vw-1.5rem))] p-0"
         sideOffset={10}
       >
         {/* Header */}
