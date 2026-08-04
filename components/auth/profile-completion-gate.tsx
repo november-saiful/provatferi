@@ -76,7 +76,7 @@ export function ProfileCompletionGate({ children }: ProfileCompletionGateProps) 
     const e: Record<string, string> = {};
     if (!fullName.trim() || fullName.trim().length < 2) e.fullName = 'সম্পূর্ণ নাম লিখুন';
     if (!/^01[0-9]{9}$/.test(phone.trim())) e.phone = '০১ দিয়ে শুরু হওয়া ১১ সংখ্যার মোবাইল নম্বর দিন';
-    if (!/^\\d{4}-\\d{2,4}$/.test(academicSession.trim())) e.academicSession = 'শিক্ষাবর্ষ যেমন: 2020-21';
+    if (!/^\d{4}-\d{2,4}$/.test(academicSession.trim())) e.academicSession = 'শিক্ষাবর্ষ যেমন: 2020-21';
     if (!department.trim()) e.department = 'বিভাগ লিখুন';
     setErrors(e);
     return Object.keys(e).length === 0;
