@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/role-guard';
+import { Seo } from '@/components/seo';
 
 export default function DashboardAdminPage() {
   const router = useRouter();
@@ -11,5 +12,5 @@ export default function DashboardAdminPage() {
     router.replace('/dashboard/admin/users');
   }, [router]);
 
-  return <RoleGuard allowedRoles={['pr', 'vp']}>রিডিরেক্ট হচ্ছে…</RoleGuard>;
+  return <RoleGuard allowedRoles={['pr', 'vp', 'admin', 'root']}><Seo title="অ্যাডমিন" />রিডিরেক্ট হচ্ছে…</RoleGuard>;
 }

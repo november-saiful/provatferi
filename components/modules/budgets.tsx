@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
@@ -73,8 +73,15 @@ export function Budgets() {
             const remaining = allocated - spent;
             const barColor =
               pct > 95 ? 'bg-warmred-500' : pct >= 75 ? 'bg-amber-500' : 'bg-sage-500';
+            const isCritical = pct > 95;
+            const isWarning = pct >= 80 && pct <= 95;
             return (
-              <StaggerItem key={b.id} className="rounded-xl2 border border-border bg-card p-5 shadow-soft">
+              <StaggerItem key={b.id} className={cn(
+                'rounded-xl2 border bg-card p-5 shadow-soft transition-colors',
+                isCritical ? 'border-warmred-300 dark:border-warmred-700 bg-warmred-50/30 dark:bg-warmred-950/20' :
+                isWarning ? 'border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20' :
+                'border-border'
+              )}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold">{b.project_name}</h3>
@@ -103,7 +110,22 @@ export function Budgets() {
                 </div>
 
                 <Progress value={pct} className="mt-3" barClassName={barColor} />
-                <p className="mt-1 text-right text-xs text-muted-foreground">{toBengaliDigits(pct.toFixed(1))}% ব্যয় হয়েছে</p>
+                <div className="mt-1 flex items-center justify-between">
+                  {isCritical ? (
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-warmred-600 dark:text-warmred-400">
+                      <Flame className="h-3 w-3" />
+                      বাজেট অতিক্রান্ত!
+                    </span>
+                  ) : isWarning ? (
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                      <AlertTriangle className="h-3 w-3" />
+                      সতর্কতা: ৮০%+ ব্যয় হয়েছে
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+                  <p className="text-xs text-muted-foreground">{toBengaliDigits(pct.toFixed(1))}% ব্যয় হয়েছে</p>
+                </div>
 
                 {b.description && <p className="mt-2 text-sm text-muted-foreground">{b.description}</p>}
 

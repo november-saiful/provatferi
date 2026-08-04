@@ -5,28 +5,23 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
-  ExternalLink,
   Handshake,
   Bell,
-  CalendarDays,
   Calendar,
   BarChart3,
   Sparkles,
   Heart,
-  MapPin,
   Star
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
 import { useEvents, useNotices, useDonorBoard, useRealtimeInvalidate } from '@/lib/queries';
-import { storageThumb } from '@/lib/supabase/client';
 import { RECRUITMENT_URL } from '@/lib/constants';
-import { formatDate, truncate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Reveal, RevealStagger, RevealItem, EASE } from '@/components/ui/motion';
+import { AlbumSlider } from '@/components/modules/album-slider';
+import { NoticeWall } from '@/components/modules/notice-wall';
+import { EventOverview } from '@/components/modules/event-overview';
 
 const heroSection = {
   initial: { opacity: 0, y: 30 },
@@ -37,15 +32,13 @@ const heroSection = {
 export default function LandingPage() {
   const router = useRouter();
   const { data: events, isLoading: loadingEvents } = useEvents('all');
-  const { data: notices } = useNotices();
+  const { data: notices, isLoading: loadingNotices, isError: noticesError } = useNotices();
   const { data: donors } = useDonorBoard();
   useRealtimeInvalidate('events', [['events']]);
   useRealtimeInvalidate('notices', [['notices']]);
   useRealtimeInvalidate('donations', [['donor-board'], ['donations']]);
   const recruitmentUrl = RECRUITMENT_URL;
 
-  const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 3);
-  const pinned = (notices ?? []).filter((n) => n.is_pinned).slice(0, 3);
   const recentDonors = (donors ?? []).slice(0, 6);
 
   return (
@@ -70,7 +63,7 @@ export default function LandingPage() {
             aria-hidden
           />
 
-          <div className="relative mx-auto max-w-6xl px-4 py-20 md:py-28 lg:py-32">
+          <div className="relative mx-auto max-w-6xl px-4 py-12 sm:py-16 md:py-20 lg:py-24">
             <motion.div {...heroSection} className="flex justify-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
                 <Sparkles className="h-4 w-4 text-gold-400" />
@@ -78,7 +71,7 @@ export default function LandingPage() {
               </span>
             </motion.div>
             <motion.h1
-              className="mt-8 text-center text-5xl font-extrabold leading-[1.08] tracking-tight text-balance md:text-7xl lg:text-8xl"
+              className="mt-8 text-center text-4xl font-extrabold leading-[1.1] tracking-tight text-balance sm:text-5xl md:text-7xl lg:text-8xl"
               {...heroSection}
               transition={{ duration: 0.7, delay: 0.06, ease: EASE }}
             >
@@ -94,7 +87,15 @@ export default function LandingPage() {
               সংগীত, কোর্স ও কমিউনিটির আবাস। আমাদের ইভেন্টগুলো দেখুন, কোর্স অনুসরণ করুন এবং ক্লাবের সাথে যুক্ত থাকুন।
             </motion.p>
             <motion.div
-              className="mt-10 flex flex-wrap justify-center gap-4"
+              className="mt-10 flex justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.18, ease: EASE }}
+            >
+              <AlbumSlider />
+            </motion.div>
+            <motion.div
+              className="mt-8 flex flex-wrap justify-center gap-4"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.18, ease: EASE }}
@@ -126,14 +127,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Upcoming Events ── */}
+        {/* ── Events Overview ── */}
         <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
           <Reveal className="mb-8 flex items-end justify-between">
             <div>
               <div className="mb-3 h-1 w-12 rounded-full bg-gradient-to-r from-primary to-accent" />
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">আসন্ন ইভেন্ট</h2>
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">ইভেন্ট</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                ক্যালেন্ডারে চিহ্নিত করার মতো প্রোগ্রাম ও সমাবেশ।
+                আসন্ন প্রোগ্রাম, ওয়ার্কশপ ও সমাবেশের ওভারভিউ।
               </p>
             </div>
             <Link
@@ -145,56 +146,7 @@ export default function LandingPage() {
             </Link>
           </Reveal>
 
-          {loadingEvents && (
-            <div className="grid gap-5 sm:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-64 w-full rounded-2xl" />
-              ))}
-            </div>
-          )}
-          {!loadingEvents && upcoming.length === 0 && (
-            <p className="text-muted-foreground">এখন কোনো আসন্ন ইভেন্ট নেই — শীঘ্রই আবার দেখুন।</p>
-          )}
-          <RevealStagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.map((e) => (
-              <RevealItem key={e.id}>
-                <Card className="group card-hover h-full overflow-hidden">
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-                    {e.cover_image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={storageThumb(e.cover_image, 640)}
-                        alt={e.title}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 via-taupe-200 to-coffee-300 text-2xl font-bold text-coffee-700">
-                        {truncate(e.title, 2)}
-                      </div>
-                    )}
-                    <div className="absolute right-3 top-3">
-                      <Badge variant="coffee" className="backdrop-blur-sm capitalize shadow-sm">
-                        {e.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardContent className="p-5">
-                    <h3 className="font-semibold leading-snug">{e.title}</h3>
-                    <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <CalendarDays className="h-3.5 w-3.5" /> {formatDate(e.event_date)}
-                    </p>
-                    {e.location && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" /> {e.location}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </RevealItem>
-            ))}
-          </RevealStagger>
+          <EventOverview events={events} isLoading={loadingEvents} />
         </section>
 
         {/* ── Quick Links ── */}
@@ -222,29 +174,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Pinned Notices ── */}
-        {pinned.length > 0 && (
-          <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
-            <Reveal className="mb-8">
-              <div className="mb-3 h-1 w-12 rounded-full bg-gradient-to-r from-amber-400 to-gold-400" />
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">বিশেষ নোটিশ</h2>
-            </Reveal>
-            <RevealStagger className="grid gap-5 md:grid-cols-3">
-              {pinned.map((n) => (
-                <RevealItem key={n.id}>
-                  <Card className="card-hover h-full border-l-[3px] border-l-amber-400">
-                    <CardContent className="p-5">
-                      <h3 className="font-semibold">{n.title}</h3>
-                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground leading-relaxed">
-                        {n.content}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </RevealItem>
-              ))}
-            </RevealStagger>
-          </section>
-        )}
+        {/* ── The Wall ── */}
+        <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
+          <Reveal>
+            <NoticeWall
+              notices={(notices ?? []).filter((notice) => notice.is_pinned)}
+              isLoading={loadingNotices}
+              isError={noticesError}
+              limit={5}
+            />
+          </Reveal>
+        </section>
 
         {/* ── Recent Donors ── */}
         {recentDonors.length > 0 && (

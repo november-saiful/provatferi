@@ -54,7 +54,7 @@ export function SearchBar({ value, onChange, placeholder, className, onFilter }:
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder ?? 'Provatferi-তে খুঁজুন'}
+        placeholder={placeholder ?? 'প্রভাতফেরী-তে খুঁজুন'}
         aria-label="অনুসন্ধান"
         className={cn(
           'h-10 w-full rounded-full border border-border bg-secondary/70 pl-11 pr-24 text-sm text-foreground placeholder:text-muted-foreground/80',

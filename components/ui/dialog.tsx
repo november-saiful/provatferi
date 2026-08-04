@@ -45,7 +45,7 @@ export function Dialog({ open, onClose, title, description, children, className 
             role="dialog"
             aria-modal="true"
             className={cn(
-              'relative z-10 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card p-0 shadow-2xl',
+              'site-card-surface relative z-10 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-card p-0 shadow-2xl',
               className
             )}
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
@@ -53,7 +53,7 @@ export function Dialog({ open, onClose, title, description, children, className 
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={{ type: 'spring', stiffness: 360, damping: 30, mass: 0.8 }}
           >
-            <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
+            <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 sm:py-5">
               <div>
                 {title && <h2 className="text-lg font-semibold leading-tight">{title}</h2>}
                 {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
@@ -66,7 +66,7 @@ export function Dialog({ open, onClose, title, description, children, className 
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="p-6">{children}</div>
+            <div className="p-5 sm:p-6">{children}</div>
           </motion.div>
         </div>
       )}

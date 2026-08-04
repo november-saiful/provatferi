@@ -101,20 +101,35 @@ Add repository secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` for `.github/workf
 
 ## Roles & access
 
-14 roles (`pr` … `alm`) + `visitor`. See `lib/permissions.ts` for the UI ACL (mirrors the planning-document matrix) and the SQL migrations for the authoritative Row Level Security policies.
+15 roles (`root`, `pr` … `alm`) + `visitor`. See `lib/permissions.ts` for the UI ACL (mirrors the planning-document matrix) and the SQL migrations for the authoritative Row Level Security policies.
+
+### Root role
+
+The `root` role is the supreme administrator — it can only be assigned via Supabase SQL / service role, **not** through the app UI. Key properties:
+
+- Has access to **everything** (all modules, read + write)
+- Can assign the `admin` role (alongside the President)
+- Can delete **any** user, including `admin` and `pr` (President)
+- **Cannot** be deleted, banned, or have its role changed from the UI
+- **Cannot** be assigned via the admin panel — only via Supabase SQL:
+  ```sql
+  UPDATE profiles SET role_id = 'root' WHERE id = '<user-uuid>';
+  ```
 
 Highlights:
 
 | Capability | Roles |
 |---|---|
-| Everything / super-admin (the app's admin roles) | `pr`, `vp` |
-| Edit expenses (audited) | `pr`, `vp`, `rds` |
+| Everything / supreme admin (the app's admin roles) | `root`, `pr`, `vp`, `admin` |
+| Assign the `admin` role | `pr`, `root` (single-admin safeguard) |
+| Delete any user (including president) | `root` only |
+| Edit expenses (audited) | `root`, `pr`, `vp`, `admin`, `rds` |
 | Add expenses | + `tr`, `ofs`, `ors` |
 | View expenses | + `gs` (not `jgs`) |
-| Budgets (view/edit) | `pr`, `vp`, `cs`, `acs`, `rds` |
-| Attendance management | `pr`, `vp`, `gs`, `jgs`, `cc` |
-| Pin notices | `pr`, `vp` |
-| Upload gallery | `pr`, `vp`, `gs`, `jgs`, `pps`, `prs`, `ofs`, `ors` |
+| Budgets (view/edit) | `root`, `pr`, `vp`, `admin`, `cs`, `acs`, `rds` |
+| Attendance management | `root`, `pr`, `vp`, `admin`, `gs`, `jgs`, `cc` |
+| Pin notices | `root`, `pr`, `vp`, `admin` |
+| Upload gallery | `root`, `pr`, `vp`, `admin`, `gs`, `jgs`, `pps`, `prs`, `ofs`, `ors` |
 | View audit log | all signed-in except `alm` |
 | Donation amounts | any signed-in user |
 
@@ -127,7 +142,7 @@ Highlights:
 
 ## Design notes & deliberate deviations
 
-- **Donation amounts:** RLS is row-level only, so a single table cannot hide the `amount` column from the public. We expose names/messages through a public `donor_board` view and keep full rows (with amounts) behind the signed-in `donations` select policy. This is a safe, spec-compliant interpretation of the "public wall, members see amounts" requirement.
+- **Donation amounts:** RLS is row-level only, so a single table cannot hide the `amount` column from the public. We expose names/messages through a SECURITY DEFINER `get_donor_board()` RPC and keep full rows (with amounts) behind the signed-in `donations` select policy. This is a safe, spec-compliant interpretation of the "public wall, members see amounts" requirement.
 - **Detail pages** (`event item`, `notice item`) use query strings (`?id=…`) instead of dynamic path segments so the static export (`output: 'export'`) works without `generateStaticParams`.
 - **Role assignment** (admin panel) updates `profiles.role_id` and auto-assigns a `display_id` following the `{role}-NN` convention (e.g. `tr-01`); it cannot change your own role. Role changes are not yet written to `records_log` (the enum covers operational tables) — documented as a future enhancement.
 - **Comments** are stored plain text; notices support a basic markdown toolbar (bold, italic, headings, lists, code, links) rendered safely by `renderMarkdown` in `lib/utils.ts`.

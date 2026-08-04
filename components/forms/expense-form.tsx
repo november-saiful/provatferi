@@ -2,12 +2,13 @@
 
 import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
+import { useBudgets } from '@/lib/queries';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ const schema = z.object({
   title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
   amount: z.coerce.number().min(0.01, 'পরিমাণ লিখুন'),
   category: z.string().optional(),
+  budget_id: z.string().optional(),
   description: z.string().optional(),
   expense_date: z.string().min(1, 'তারিখ প্রয়োজন')
 });
@@ -39,15 +41,19 @@ export function ExpenseForm({
 }) {
   const [receipt, setReceipt] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
+  const { data: budgets } = useBudgets(open);
 
   const {
     register,
     handleSubmit,
     reset,
+    control,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { title: '', amount: 0, category: '', description: '', expense_date: new Date().toISOString().slice(0, 10) }
+    defaultValues: { title: '', amount: 0, category: '', budget_id: '', description: '', expense_date: new Date().toISOString().slice(0, 10) }
   });
 
   React.useEffect(() => {
@@ -56,12 +62,29 @@ export function ExpenseForm({
         title: expense?.title ?? '',
         amount: expense?.amount ?? 0,
         category: expense?.category ?? '',
+        budget_id: expense?.budget_id ?? '',
         description: expense?.description ?? '',
         expense_date: expense?.expense_date ?? new Date().toISOString().slice(0, 10)
       });
       setReceipt(null);
     }
   }, [open, expense, reset]);
+
+  // Auto-suggest a budget when the category changes: find the first active
+  // budget whose project_name contains the category (case-insensitive).
+  const categoryValue = useWatch({ name: 'category', control });
+  React.useEffect(() => {
+    if (!budgets || !categoryValue) return;
+    // Don't override if user already picked a budget manually
+    const currentBudget = getValues('budget_id');
+    if (currentBudget) return;
+    const match = budgets
+      .filter((b) => b.status === 'active')
+      .find((b) => b.project_name.toLowerCase().includes(String(categoryValue).toLowerCase()));
+    if (match) {
+      setValue('budget_id', match.id, { shouldValidate: true });
+    }
+  }, [categoryValue, budgets]);
 
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -79,6 +102,7 @@ export function ExpenseForm({
         title: values.title,
         amount: values.amount,
         category: values.category || null,
+        budget_id: values.budget_id || null,
         description: values.description || null,
         receipt_url: receiptUrl,
         expense_date: values.expense_date,
@@ -126,6 +150,18 @@ export function ExpenseForm({
             </Select>
           </div>
         </div>
+        {budgets && budgets.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="x-budget">বাজেট (ঐচ্ছিক)</Label>
+            <Select id="x-budget" {...register('budget_id')}>
+              <option value="">কোনো বাজেট নয়</option>
+              {budgets.filter((b) => b.status === 'active').map((b) => (
+                <option key={b.id} value={b.id}>{b.project_name}</option>
+              ))}
+            </Select>
+            <p className="text-[11px] text-muted-foreground">বাজেট নির্বাচন করলে বাজেটের ব্যয় স্বয়ংক্রিয়ভাবে আপডেট হবে।</p>
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="x-date">ব্যয়ের তারিখ</Label>
           <Input id="x-date" type="date" {...register('expense_date')} />

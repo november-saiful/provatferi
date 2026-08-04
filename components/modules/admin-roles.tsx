@@ -33,7 +33,7 @@ export function AdminRoles() {
   }
 
   const allRoles = (roles ?? [])
-    .filter((r) => r.id !== 'visitor')
+    .filter((r) => r.id !== 'visitor' && r.id !== 'root')
     .sort((a, b) => a.display_order - b.display_order);
 
   return (

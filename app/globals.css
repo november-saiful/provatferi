@@ -308,6 +308,373 @@
   background-clip: padding-box;
 }
 
+/* ── 3D Album Slider (landing hero) ── */
+.album-slider {
+  /* Card width shrinks as the album count grows so the stream stays evenly
+     packed; --wd is defined here and re-tuned for phones below. */
+  --wd: min(170px, max(105px, calc(840px / var(--num, 8))));
+  --dur: 8s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+}
+
+.album-slider .album-gallery {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: clamp(210px, 28vw, 320px);
+  position: relative;
+  perspective: 40em;
+}
+
+.album-slider .album-gallery .card {
+  width: calc(var(--wd) / 1.2);
+  position: absolute;
+  left: 100%;
+  transform-style: preserve-3d;
+  animation:
+    album-slide var(--dur) linear infinite,
+    album-scale var(--dur) ease-in-out infinite;
+  animation-delay: calc(var(--dur) * ((var(--timer, 1) - 1) / var(--num, 8) - 1));
+  transition: transform 0.25s ease-in-out;
+}
+
+.album-slider .album-gallery .card a {
+  display: block;
+}
+
+/* 3:4 height:width (i.e. 4:3 landscape) cards; `object-fit: cover` zooms and
+   crops any photo that doesn't match this frame so every slide looks uniform. */
+.album-slider .album-gallery .card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  -webkit-box-reflect: below 0px linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.35));
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* Cards stay grayscale while streaming, but hover/focus colorizes them so
+   they clearly read as clickable links to the gallery. `!important` beats the
+   running album-scale animation. */
+.album-slider .album-gallery .card a:hover img {
+  filter: grayscale(0) !important;
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.55), 0 18px 44px rgba(0, 0, 0, 0.45);
+  transform: scale(1.04);
+}
+
+.album-slider .album-gallery .card a:focus-visible img {
+  outline: 3px solid hsl(var(--accent) / 0.7);
+  outline-offset: 3px;
+}
+
+@keyframes album-slide {
+  from { left: 100%; }
+  to { left: calc(-1 * var(--wd)); }
+}
+
+/* Center-highlight window widened: 40%–60% → 20%–80% of each loop, so the
+   centered photo stays enlarged/colorful roughly three times longer than the
+   original design, while only the near-center card ever reaches full scale. */
+/* z-index ref: 0 (layer 0 — base content) / 10 (layer 10 — in-card accent) */
+@keyframes album-scale {
+  0%,
+  20%,
+  80%,
+  100% {
+    transform: scale(1);
+    z-index: 0;
+    filter: grayscale(1);
+  }
+  50% {
+    transform: scale(1.8);
+    z-index: 10;
+    filter: grayscale(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .album-slider {
+    --wd: min(120px, max(90px, calc(520px / var(--num, 8))));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-slider .album-gallery {
+    height: auto;
+    justify-content: center;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .album-slider .album-gallery .card {
+    position: static;
+    flex: 0 0 auto;
+    animation: none;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ── Gallery Page (Google Photos-inspired) ── */
+@layer components {
+  .gallery-feed {
+    /* gap between masonry cells */
+    --gallery-gap: 4px;
+    --gallery-radius: 2px;
+  }
+
+  /* Masonry: CSS columns — natural photo height drives column break */
+  .gallery-masonry {
+    columns: 3;
+    column-gap: var(--gallery-gap);
+  }
+  @media (min-width: 560px) {
+    .gallery-masonry { columns: 4; }
+  }
+  @media (min-width: 860px) {
+    .gallery-masonry { columns: 5; }
+  }
+  @media (min-width: 1200px) {
+    .gallery-masonry { columns: 6; }
+  }
+  @media (min-width: 1600px) {
+    .gallery-masonry { columns: 7; }
+  }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: var(--gallery-gap);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--gallery-radius);
+    background: hsl(var(--muted));
+  }
+
+  /* Day sections spacing */
+  .gallery-day + .gallery-day {
+    margin-top: 10px;
+  }
+
+  /* Albums grid view */
+  .gallery-albums-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+  @media (min-width: 560px) {
+    .gallery-albums-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 860px) {
+    .gallery-albums-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1200px) {
+    .gallery-albums-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  .gallery-album-card {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .gallery-album-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .gallery-album-cover {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  /* ── Sort / Action Button (beside search) ── */
+  .gallery-action-btn {
+    pointer-events: auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 0;
+    background: hsl(var(--glass-bg));
+    color: hsl(var(--muted-foreground));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .gallery-action-btn:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    transform: scale(1.05);
+  }
+
+  .gallery-action-btn-active {
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
+  }
+
+  .gallery-action-btn-active:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .gallery-action-btn:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+
+  /* Sort tooltip — z-60 (layer 60 — tooltips) */
+  .gallery-sort-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid hsl(var(--border));
+    pointer-events: none;
+    z-index: 60;
+  }
+  .gallery-sort-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: hsl(var(--card));
+  }
+
+  /* ── Floating Bottom Navigation ── z-50 (layer 50 — floating panels) */
+  .gallery-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    pointer-events: none;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .gallery-tab-bar {
+    pointer-events: auto;
+    display: flex;
+    gap: 2px;
+    padding: 6px;
+    border-radius: 30px;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+  }
+
+  .gallery-tab {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 18px;
+    border-radius: 26px;
+    border: 0;
+    background: none;
+    color: hsl(var(--muted-foreground));
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .gallery-tab.active {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
+  @media (hover: hover) {
+    .gallery-tab:not(.active):hover {
+      background: rgba(128, 128, 128, 0.12);
+    }
+  }
+
+  .gallery-search-btn {
+    pointer-events: auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 0;
+    background: hsl(var(--glass-bg));
+    color: hsl(var(--muted-foreground));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .gallery-search-btn:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    transform: scale(1.05);
+  }
+
+  /* Gallery responsive mobile tweaks */
+  @media (max-width: 640px) {
+    .gallery-tab {
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .gallery-tab svg {
+      width: 18px;
+      height: 18px;
+    }
+    .gallery-action-btn,
+    .gallery-search-btn {
+      width: 48px;
+      height: 48px;
+    }
+    .gallery-action-btn svg,
+    .gallery-search-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
 /* ── React Big Calendar Overrides ── */
 .rbc-calendar {
   @apply font-sans text-sm;
@@ -359,7 +726,160 @@
     @apply order-first text-center;
   }
   .rbc-toolbar .rbc-btn-group {
-    @apply justify-center;
+    @apply w-full;
+  }
+  .rbc-toolbar .rbc-btn-group button {
+    @apply flex-1 px-2 py-1.5 text-[13px];
+  }
+  .rbc-calendar {
+    font-size: 13px;
+  }
+  .rbc-event {
+    @apply text-[11px] px-1 py-0.5;
+  }
+  .rbc-time-view .rbc-time-header-content {
+    @apply min-w-0;
+  }
+  /* Keep all-day events visible but compact on phones */
+  .rbc-allday-cell {
+    max-height: 2.5rem;
+    overflow-y: auto;
+  }
+}
+
+/* ── Expressive dotted paper surface ──
+   This is the name of the notice-wall card background: a tactile,
+   noticeboard-inspired paper texture with a quiet dot grid and warm wash.
+   Shared Card primitives and card-like bg-card containers inherit it. */
+.site-card-surface,
+:where(div, section, article, aside, li)[class~="bg-card"],
+:where(div, section, article, aside, li)[class*="bg-card/"] {
+  background-color: hsl(var(--card));
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.065) 1.1px, transparent 1.35px),
+    linear-gradient(135deg, hsl(36 40% 94% / 0.3), transparent 55%);
+  background-size: 24px 24px, 100% 100%;
+}
+
+.dark .site-card-surface,
+.dark :where(div, section, article, aside, li)[class~="bg-card"],
+.dark :where(div, section, article, aside, li)[class*="bg-card/"] {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.045) 1.1px, transparent 1.35px),
+    linear-gradient(135deg, hsl(28 24% 18% / 0.45), transparent 55%);
+}
+
+/* ── Expressive Noticeboard ── */
+.notice-wall-board {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.09) 1.2px, transparent 1.2px),
+    linear-gradient(135deg, hsl(var(--coffee-100, 36 40% 94%) / 0.35), transparent 55%);
+  background-size: 24px 24px, 100% 100%;
+}
+
+.notice-paper {
+  isolation: isolate;
+  transform-origin: 50% 10%;
+}
+
+/* z-index ref: -1 (decorative pseudo-element) */
+.notice-paper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 40%);
+  pointer-events: none;
+}
+
+.paper-pin {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  display: flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%) rotate(28deg);
+  border-radius: 9999px;
+  background: hsl(var(--warmred-500, 0 62% 48%));
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.28), inset 2px 2px 3px rgba(255,255,255,0.25);
+}
+
+.notice-board-live-dot {
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background: #55b96a;
+  box-shadow: 0 0 0 0 rgba(85,185,106,0.45);
+  animation: notice-live-pulse 2s infinite;
+}
+
+@keyframes notice-live-pulse {
+  70% { box-shadow: 0 0 0 0.45rem rgba(85,185,106,0); }
+  100% { box-shadow: 0 0 0 0 rgba(85,185,106,0); }
+}
+
+.notice-ticker p {
+  animation: notice-ticker-in 0.45s ease-out both;
+}
+
+@keyframes notice-ticker-in {
+  from { opacity: 0; transform: translateX(0.5rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.notice-ticker-viewport {
+  position: relative;
+}
+
+.notice-ticker-track {
+  gap: 4rem;
+  animation: notice-ticker-scroll 24s linear infinite;
+  white-space: nowrap;
+}
+
+.notice-ticker-track span {
+  display: inline-block;
+}
+
+@keyframes notice-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.notice-ticker:hover .notice-ticker-track {
+  animation-play-state: paused;
+}
+
+.notice-detail-paper {
+  background-image: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.3) 100%);
+}
+
+.notice-detail-content h1,
+.notice-detail-content h2,
+.notice-detail-content h3 {
+  margin-top: 1.75rem;
+  font-family: var(--font-noto-serif-bengali), serif;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.notice-detail-content h1 { font-size: 1.7rem; }
+.notice-detail-content h2 { font-size: 1.45rem; }
+.notice-detail-content h3 { font-size: 1.2rem; }
+.notice-detail-content a { font-weight: 600; }
+.notice-detail-content code { font-size: 0.86em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-paper,
+  .notice-ticker-track,
+  .notice-board-live-dot {
+    animation: none;
   }
 }
 

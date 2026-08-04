@@ -4,23 +4,27 @@ import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase/client';
 import { useAuthStore } from './auth-store';
+import { COMMITTEE_ROLES, ROLE_ORDER } from './permissions';
 import type {
   AppNotification,
   AttendanceRecord,
   Budget,
   CalendarEvent,
-  CommitteeContact,
+  ClubBalance,
+  CommitteeMember,
   CourseSchedule,
   Donation,
   DonorBoardEntry,
   EventComment,
   EventItem,
+  EventRsvp,
   Expense,
   GalleryItem,
   Notice,
   Profile,
   RecordsLog,
-  Sponsor
+  Sponsor,
+  UserNotificationSettings
 } from './types';
 
 const PROFILE_SELECT = 'id, full_name, avatar_url';
@@ -114,6 +118,81 @@ export function useDeleteComment() {
   });
 }
 
+// ---------- Event RSVPs (00022_event_rsvps.sql) ----------
+
+/** Full RSVP list for an event with attendee profiles (guest lists). */
+export function useEventRsvps(eventId?: string) {
+  return useQuery({
+    queryKey: ['event-rsvps', eventId],
+    enabled: !!eventId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('event_rsvps')
+        .select(`*, profiles(${PROFILE_SELECT})`)
+        .eq('event_id', eventId!)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return asRows<EventRsvp>(data);
+    }
+  });
+}
+
+/** Lightweight going/interested counts for a single event. */
+export function useEventRsvpCounts(eventId?: string) {
+  return useQuery({
+    queryKey: ['event-rsvp-counts', eventId],
+    enabled: !!eventId,
+    queryFn: async () => {
+      const [going, interested] = await Promise.all([
+        supabase
+          .from('event_rsvps')
+          .select('id', { count: 'exact', head: true })
+          .eq('event_id', eventId!)
+          .eq('status', 'going'),
+        supabase
+          .from('event_rsvps')
+          .select('id', { count: 'exact', head: true })
+          .eq('event_id', eventId!)
+          .eq('status', 'interested')
+      ]);
+      if (going.error) throw going.error;
+      if (interested.error) throw interested.error;
+      return { going: going.count ?? 0, interested: interested.count ?? 0 };
+    }
+  });
+}
+
+/** Insert/update (upsert) or delete the signed-in user's RSVP for an event. */
+export function useSetEventRsvp() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ eventId, status }: { eventId: string; status: 'interested' | 'going' | null }) => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Sign in required');
+      if (status === null) {
+        const { error } = await supabase
+          .from('event_rsvps')
+          .delete()
+          .eq('event_id', eventId)
+          .eq('user_id', user.id);
+        if (error) throw error;
+        return;
+      }
+      const { error } = await supabase
+        .from('event_rsvps')
+        .upsert({ event_id: eventId, user_id: user.id, status }, { onConflict: 'event_id,user_id' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['event-rsvp-counts'] });
+      qc.invalidateQueries({ queryKey: ['event-rsvps'] });
+      qc.invalidateQueries({ queryKey: ['my-rsvps'] });
+    }
+  });
+}
+
 // ---------- Gallery ----------
 export function useGallery() {
   return useQuery({
@@ -121,7 +200,7 @@ export function useGallery() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('gallery_items')
-        .select(`*, events(id, title)`)
+        .select(`*, events(id, title, event_date, status)`)
         .eq('is_public', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -184,10 +263,9 @@ export function useDonorBoard() {
   return useQuery({
     queryKey: ['donor-board'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('donor_board')
-        .select('id, donor_name, message, created_at')
-        .order('created_at', { ascending: false });
+      // SECURITY DEFINER RPC (migration 00027) — replaces the donor_board view
+      // so the linter's security-definer-view finding is resolved.
+      const { data, error } = await supabase.rpc('get_donor_board');
       if (error) throw error;
       return asRows<DonorBoardEntry>(data);
     }
@@ -257,6 +335,34 @@ export function useBudgets(enabled = false) {
   });
 }
 
+// ---------- Universal balance (00025) ----------
+
+/**
+ * Universal club balance — the same aggregated totals for every signed-in
+ * user (migration 00027 `get_club_balance` RPC — replaced the club_balance
+ * view). Invalidate with `useRealtimeInvalidate('expenses'/'budgets',
+ * [['club-balance']])` so the widgets refresh live.
+ */
+export function useClubBalance(enabled = true) {
+  // Refresh the universal total live whenever finance data changes. Centralized
+  // here (not in each consumer) so widgets like the sidebar + dashboard balance
+  // card don't open duplicate realtime channels.
+  useRealtimeInvalidate('expenses', [['club-balance']]);
+  useRealtimeInvalidate('budgets', [['club-balance']]);
+
+  return useQuery({
+    queryKey: ['club-balance'],
+    enabled,
+    queryFn: async () => {
+      // SECURITY DEFINER RPC (migration 00027) — replaces the club_balance view
+      // so the linter's security-definer-view finding is resolved.
+      const { data, error } = await supabase.rpc('get_club_balance').maybeSingle();
+      if (error) throw error;
+      return asRow<ClubBalance>(data);
+    }
+  });
+}
+
 // ---------- Records ----------
 export function useRecords(enabled = false) {
   return useQuery({
@@ -322,17 +428,30 @@ export function useAllAttendance(enabled = true) {
 }
 
 // ---------- Committee / config ----------
-export function useCommitteeContacts() {
+
+/**
+ * All active committee members — every profile whose role is neither visitor
+ * nor alumni (see committee-members-reference.md). Derived directly from
+ * `profiles.role_id`, so the roster always mirrors the real roles.
+ */
+export function useCommitteeMembers() {
   return useQuery({
-    queryKey: ['committee-contacts'],
+    queryKey: ['committee-members'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('committee_contacts')
-        .select(`*, profiles(${PROFILE_SELECT}), roles(id, name)`)
-        .eq('is_public', true)
-        .order('display_order', { ascending: true });
+        .from('profiles')
+        .select(`id, full_name, avatar_url, email, phone, role_id, is_active, roles(id, name, display_order)`)
+        .in('role_id', COMMITTEE_ROLES)
+        .eq('is_active', true);
       if (error) throw error;
-      return asRows<CommitteeContact>(data);
+      const rows = asRows<CommitteeMember>(data);
+      // Order by role hierarchy (ROLE_ORDER), then by name within a role.
+      const rank = new Map(ROLE_ORDER.map((r, i) => [r, i]));
+      return rows.sort(
+        (a, b) =>
+          (rank.get(a.role_id) ?? 99) - (rank.get(b.role_id) ?? 99) ||
+          (a.full_name ?? '').localeCompare(b.full_name ?? '')
+      );
     }
   });
 }
@@ -379,6 +498,8 @@ export function useRoles() {
   });
 }
 
+import { subscribeTable, unsubscribeTable } from './realtime-subscriptions';
+
 /**
  * Subscribes to Supabase Realtime changes on a table and invalidates the given
  * React Query keys, so lists/charts refresh without a manual reload.
@@ -390,20 +511,18 @@ export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<stri
   const keysKey = JSON.stringify(queryKeys);
 
   React.useEffect(() => {
-    const channel = supabase
-      .channel(`realtime-${table}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table },
-        () => {
-          for (const key of queryKeys) {
-            qc.invalidateQueries({ queryKey: key });
-          }
-        }
-      )
-      .subscribe();
+    const onChanges = (keys: string[]) => {
+      for (const k of keys) {
+        qc.invalidateQueries({ queryKey: JSON.parse(k) as Array<string | number> });
+      }
+    };
+    for (const key of queryKeys) {
+      subscribeTable(table, key, onChanges);
+    }
     return () => {
-      supabase.removeChannel(channel);
+      for (const key of queryKeys) {
+        unsubscribeTable(table, key);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, keysKey, qc]);
@@ -415,11 +534,19 @@ export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<stri
  * Fetches the signed-in user's recent notifications and subscribes to Realtime
  * so the bell badge updates the moment a new notification is inserted (the
  * insert happens server-side via DB triggers — see 00017_inapp_notifications.sql).
+ *
+ * `onInsert` is called with each newly-inserted notification (used by the bell
+ * menu to show a live toast/preview). The callback is stored in a ref, so a
+ * changing identity does not resubscribe the channel.
  */
-export function useNotifications(enabled = false) {
+export function useNotifications(enabled = false, onInsert?: (n: AppNotification) => void) {
   const { user } = useAuthStore();
   const userId = user?.id;
   const qc = useQueryClient();
+  const onInsertRef = React.useRef(onInsert);
+  React.useEffect(() => {
+    onInsertRef.current = onInsert;
+  }, [onInsert]);
 
   const query = useQuery({
     queryKey: ['notifications', userId],
@@ -448,8 +575,12 @@ export function useNotifications(enabled = false) {
           table: 'notifications',
           filter: `user_id=eq.${userId}`
         },
-        () => {
-          qc.invalidateQueries({ queryKey: ['notifications', userId] });
+        (payload) => {
+          if (payload.eventType === 'INSERT' && payload.new) {
+            onInsertRef.current?.(payload.new as unknown as AppNotification);
+          }
+          // Invalidate the list and the exact unread-count query together.
+          qc.invalidateQueries({ queryKey: ['notifications'] });
         }
       )
       .subscribe();
@@ -460,6 +591,31 @@ export function useNotifications(enabled = false) {
   }, [enabled, userId, qc]);
 
   return query;
+}
+
+/**
+ * Exact unread count for the bell badge. Uses a `head: true` count query (no
+ * row payload) so it is not capped by the 30-row list query — the badge always
+ * reflects the true number of unread notifications. Realtime invalidations from
+ * `useNotifications` (and the mark-read/clear mutations) keep it fresh.
+ */
+export function useUnreadNotificationCount(enabled = false) {
+  const { user } = useAuthStore();
+  const userId = user?.id;
+
+  return useQuery({
+    queryKey: ['notifications', userId, 'unread-count'],
+    enabled: enabled && !!userId,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId!)
+        .eq('is_read', false);
+      if (error) throw error;
+      return count ?? 0;
+    }
+  });
 }
 
 export function useMarkNotificationRead() {
@@ -500,5 +656,60 @@ export function useClearNotifications() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] })
+  });
+}
+
+// ---------- Notification preferences (spec §7 + migration 00019) ----------
+
+export const DEFAULT_NOTIFICATION_SETTINGS = {
+  mute_record_change: false,
+  mute_role_change: false,
+  mute_sponsor_inquiry: false,
+  mute_donation: false,
+  mute_event_comment: false,
+  mute_event_rsvp: false
+};
+
+/**
+ * Fetches the signed-in user's notification preferences. If no row exists yet
+ * the user is treated as having all categories enabled (the DB default).
+ */
+export function useNotificationSettings(enabled = false) {
+  const { user } = useAuthStore();
+  const userId = user?.id;
+
+  return useQuery({
+    queryKey: ['notification-settings', userId],
+    enabled: enabled && !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_notification_settings')
+        .select('*')
+        .eq('user_id', userId!)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) {
+        return { user_id: userId!, ...DEFAULT_NOTIFICATION_SETTINGS, updated_at: '' } as UserNotificationSettings;
+      }
+      return data as UserNotificationSettings;
+    }
+  });
+}
+
+/**
+ * Upserts the user's preference row (creates it on first toggle).
+ */
+export function useUpdateNotificationSettings() {
+  const qc = useQueryClient();
+  const { user } = useAuthStore();
+  return useMutation({
+    mutationFn: async (patch: Partial<Pick<UserNotificationSettings, 'mute_record_change' | 'mute_role_change' | 'mute_sponsor_inquiry' | 'mute_donation' | 'mute_event_comment' | 'mute_event_rsvp'>>) => {
+      if (!user) throw new Error('Sign in required');
+      const { error } = await supabase
+        .from('user_notification_settings')
+        .upsert({ user_id: user.id, ...patch }, { onConflict: 'user_id' });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notification-settings'] })
   });
 }

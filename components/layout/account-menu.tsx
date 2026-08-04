@@ -246,7 +246,7 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
           <>
             <div className="px-1 pt-1 pb-2">
               <DropdownAccountCard
-                name={profile?.full_name ?? 'Provatferi সদস্য'}
+                name={profile?.full_name ?? 'প্রভাতফেরী সদস্য'}
                 email={user.email}
                 role={role ? ROLE_NAMES[role] : undefined}
                 avatar={

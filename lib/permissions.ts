@@ -5,6 +5,7 @@
 import type { ModuleId, RoleId } from './types';
 
 export const ROLE_NAMES: Record<RoleId, string> = {
+  root: 'রুট',
   pr: 'সভাপতি',
   vp: 'সহ-সভাপতি',
   admin: 'অ্যাডমিন',
@@ -24,6 +25,7 @@ export const ROLE_NAMES: Record<RoleId, string> = {
 };
 
 export const ROLE_ORDER: RoleId[] = [
+  'root',
   'pr',
   'vp',
   'admin',
@@ -45,37 +47,37 @@ type RoleSet = RoleId[];
 
 // Per-module read access (from planning ACL matrix)
 export const MODULE_READ: Record<ModuleId, RoleSet> = {
-  evf: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  glr: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  cln: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  ntb: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  dnt: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  spn: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  xpm: ['pr', 'vp', 'admin', 'gs', 'tr', 'ofs', 'ors', 'rds'],
-  bgm: ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
-  rcd: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc'],
-  cia: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  coi: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
-  admin: ['pr', 'vp', 'admin']
+  evf: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  glr: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  cln: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  ntb: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  dnt: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  spn: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  xpm: ['root', 'pr', 'vp', 'admin', 'gs', 'tr', 'ofs', 'ors', 'rds'],
+  bgm: ['root', 'pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
+  rcd: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc'],
+  cia: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  coi: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm', 'visitor'],
+  admin: ['root', 'pr', 'vp', 'admin']
 };
 
 // Per-module write access
 export const MODULE_WRITE: Record<ModuleId, RoleSet> = {
-  evf: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
-  glr: ['pr', 'vp', 'admin', 'gs', 'jgs', 'pps', 'prs', 'ofs', 'ors'],
-  cln: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
-  ntb: ['pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
-  dnt: ['pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm'],
-  spn: ['pr', 'vp', 'admin', 'gs', 'tr'],
-  xpm: ['pr', 'vp', 'admin', 'tr', 'ofs', 'ors', 'rds'],
-  bgm: ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
-  rcd: ['pr', 'vp', 'admin', 'rds'],
-  cia: ['pr', 'vp', 'admin', 'gs', 'jgs', 'cc'],
+  evf: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  glr: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'pps', 'prs', 'ofs', 'ors'],
+  cln: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  ntb: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'ofs', 'ors'],
+  dnt: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr', 'ofs', 'ors', 'cs', 'acs', 'pps', 'prs', 'rds', 'cc', 'alm'],
+  spn: ['root', 'pr', 'vp', 'admin', 'gs', 'tr'],
+  xpm: ['root', 'pr', 'vp', 'admin', 'tr', 'ofs', 'ors', 'rds'],
+  bgm: ['root', 'pr', 'vp', 'admin', 'cs', 'acs', 'rds'],
+  rcd: ['root', 'pr', 'vp', 'admin', 'rds'],
+  cia: ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'cc'],
   coi: [],
-  admin: ['pr', 'vp', 'admin']
+  admin: ['root', 'pr', 'vp', 'admin']
 };
 
-export const SUPER_ADMINS: RoleSet = ['pr', 'vp', 'admin'];
+export const SUPER_ADMINS: RoleSet = ['root', 'pr', 'vp', 'admin'];
 
 export function canRead(role: RoleId | null | undefined, module: ModuleId): boolean {
   if (!role) return false;
@@ -92,21 +94,37 @@ export function isAdmin(role: RoleId | null | undefined): boolean {
 }
 
 export function canEditExpense(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'admin', 'rds'].includes(role);
+  return !!role && ['root', 'pr', 'vp', 'admin', 'rds'].includes(role);
 }
 
 export function canEditBudget(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'admin', 'cs', 'acs', 'rds'].includes(role);
+  return !!role && ['root', 'pr', 'vp', 'admin', 'cs', 'acs', 'rds'].includes(role);
 }
 
 export function canPinNotices(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'admin'].includes(role);
+  return !!role && ['root', 'pr', 'vp', 'admin'].includes(role);
 }
 
 export function canManageSponsors(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'admin', 'gs', 'tr'].includes(role);
+  return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'tr'].includes(role);
 }
 
 export function canManageAttendance(role: RoleId | null | undefined): boolean {
-  return !!role && ['pr', 'vp', 'admin', 'gs', 'jgs', 'cc'].includes(role);
+  return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'cc'].includes(role);
+}
+
+/**
+ * Committee members: every role except alumni and visitors.
+ * Root is included as the organization itself — not a person but the club entity.
+ * Source of truth — see committee-members-reference.md.
+ */
+export const COMMITTEE_ROLES: RoleSet = ROLE_ORDER.filter((r) => r !== 'alm' && r !== 'visitor');
+
+export function isCommitteeMember(role: RoleId | null | undefined): boolean {
+  return !!role && COMMITTEE_ROLES.includes(role);
+}
+
+/** Root is the organization itself, not a person. */
+export function isOrganizationRole(role: RoleId | null | undefined): boolean {
+  return role === 'root';
 }

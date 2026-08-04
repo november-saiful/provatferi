@@ -6,7 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useProfiles, useRoles } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
-import { ROLE_NAMES } from '@/lib/permissions';
+import { ROLE_NAMES, isOrganizationRole } from '@/lib/permissions';
 import { invokeUserAdmin } from '@/lib/service';
 import { formatDate, cn, toBengaliDigits } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,8 +74,19 @@ export function AdminUsers() {
       toast.error('আপনি নিজের ভূমিকা পরিবর্তন করতে পারবেন না');
       return;
     }
-    if (roleId === 'admin' && myProfile?.role_id !== 'pr') {
-      toast.error('শুধুমাত্র সভাপতি অ্যাডমিন নিয়োগ দিতে পারবেন');
+    // Root role can only be assigned via Supabase SQL
+    if (roleId === 'root') {
+      toast.error('রুট ভূমিকা শুধুমাত্র Supabase SQL দিয়ে নিয়োগ করা যায়');
+      return;
+    }
+    // Root cannot be changed to another role from the UI
+    const targetProfile = profiles?.find((p) => p.id === userId);
+    if (targetProfile?.role_id === 'root') {
+      toast.error('রুট ব্যবহারকারীর ভূমিকা পরিবর্তন করা যাবে না');
+      return;
+    }
+    if (roleId === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root') {
+      toast.error('শুধুমাত্র সভাপতি বা রুট অ্যাডমিন নিয়োগ দিতে পারবেন');
       return;
     }
     if (roleId === 'admin') {
@@ -232,7 +243,7 @@ export function AdminUsers() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{p.email}</TableCell>
                       <TableCell>
-                        <Badge variant="coffee">{ROLE_NAMES[p.role_id] ?? p.role_id}</Badge>
+                        <Badge variant={isOrganizationRole(p.role_id) ? 'org' : 'coffee'}>{ROLE_NAMES[p.role_id] ?? p.role_id}</Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant={p.is_active ? 'success' : 'destructive'}>
@@ -252,20 +263,20 @@ export function AdminUsers() {
                                 key={r.id}
                                 value={r.id}
                                 disabled={
-                                  r.id === 'admin' && myProfile?.role_id !== 'pr' && p.role_id !== 'admin'
+                                  r.id === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root' && p.role_id !== 'admin'
                                 }
                               >
                                 {r.name}
-                                {r.id === 'admin' && myProfile?.role_id !== 'pr' ? ' (শুধু সভাপতি)' : ''}
+                                {r.id === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root' ? ' (শুধু সভাপতি/রুট)' : ''}
                               </option>
                             ))}
                           </Select>
                           <Button
                             variant={p.is_active ? 'destructive' : 'outline'}
                             size="sm"
-                            disabled={p.id === user?.id}
+                            disabled={p.id === user?.id || p.role_id === 'root'}
                             onClick={() => setBanTarget(p)}
-                            title={p.is_active ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
+                            title={p.role_id === 'root' ? 'রুট ব্যবহারকারীকে ব্যান করা যাবে না' : p.is_active ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
                           >
                             {p.is_active ? <Ban className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             <span className="hidden lg:inline">{p.is_active ? 'ব্যান' : 'সক্রিয়'}</span>
@@ -274,9 +285,9 @@ export function AdminUsers() {
                             variant="ghost"
                             size="sm"
                             className="text-warmred-500 hover:bg-warmred-50 hover:text-warmred-600 dark:hover:bg-warmred-900/30"
-                            disabled={p.id === user?.id}
+                            disabled={p.id === user?.id || p.role_id === 'root'}
                             onClick={() => setRemoveTarget(p)}
-                            title="ব্যবহারকারী মুছে ফেলুন"
+                            title={p.role_id === 'root' ? 'রুট ব্যবহারকারীকে মুছে ফেলা যাবে না' : 'ব্যবহারকারী মুছে ফেলুন'}
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="hidden lg:inline">মুছুন</span>

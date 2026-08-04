@@ -7,6 +7,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { canManageAttendance } from '@/lib/permissions';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Seo } from '@/components/seo';
 import { PageHeader } from '@/components/ui/page-header';
 
 export default function DashboardAttendancePage() {
@@ -14,6 +15,7 @@ export default function DashboardAttendancePage() {
 
   return (
     <div className="space-y-5">
+      <Seo title="কোর্স উপস্থিতি" />
       <PageHeader
         size="md"
         title="কোর্স উপস্থিতি"

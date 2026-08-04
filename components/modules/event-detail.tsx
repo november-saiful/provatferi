@@ -1,20 +1,26 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ArrowLeft, CalendarDays, Images, Info, MapPin, MessageSquare, Pencil, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth-store';
-import { useEvent, useEventComments, useGallery, useDeleteComment, useRealtimeInvalidate } from '@/lib/queries';
+import {
+  useEvent,
+  useEventComments,
+  useEventRsvps,
+  useGallery,
+  useDeleteComment,
+  useRealtimeInvalidate
+} from '@/lib/queries';
 import { canWrite } from '@/lib/permissions';
-import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
-import { formatDate, formatDateTime, relativeTime, initials, cn, toBengaliDigits } from '@/lib/utils';
+import { formatDateTime, relativeTime, renderMarkdown, toBengaliDigits } from '@/lib/utils';
 import type { EventComment } from '@/lib/types';
-import { Badge } from '@/components/ui/badge';
+import { RsvpButtons, RsvpCount, StatusPill, useRsvp } from '@/components/modules/event-shared';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Avatar } from '@/components/ui/avatar';
@@ -24,8 +30,73 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
 
+function RsvpGuests({ eventId }: { eventId: string }) {
+  const { data: rsvps, isLoading } = useEventRsvps(eventId);
+  if (isLoading) {
+    return (
+      <div className="flex gap-2">
+        <Skeleton className="h-8 w-24 rounded-full" />
+        <Skeleton className="h-8 w-24 rounded-full" />
+      </div>
+    );
+  }
+  const going = (rsvps ?? []).filter((r) => r.status === 'going');
+  const interested = (rsvps ?? []).filter((r) => r.status === 'interested');
+  if (going.length === 0 && interested.length === 0) {
+    return <p className="text-sm text-muted-foreground">এখনো কেউ অংশগ্রহণ নিশ্চিত করেনি — প্রথম হতে পারেন!</p>;
+  }
+  return (
+    <div className="space-y-3">
+      {going.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground">যাচ্ছেন ({toBengaliDigits(going.length)})</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {going.map((r) => (
+              <span
+                key={r.id}
+                className="flex items-center gap-1.5 rounded-full bg-sage-100/70 px-2.5 py-1 text-xs font-medium dark:bg-sage-900/40"
+              >
+                <Avatar name={r.profiles?.full_name} src={r.profiles?.avatar_url} className="h-5 w-5 text-[8px]" />
+                <span className="max-w-[6rem] truncate">{r.profiles?.full_name ?? 'সদস্য'}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {interested.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground">আগ্রহী ({toBengaliDigits(interested.length)})</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {interested.map((r) => (
+              <span
+                key={r.id}
+                className="flex items-center gap-1.5 rounded-full bg-gold-100/70 px-2.5 py-1 text-xs font-medium dark:bg-gold-900/40"
+              >
+                <Avatar name={r.profiles?.full_name} src={r.profiles?.avatar_url} className="h-5 w-5 text-[8px]" />
+                <span className="max-w-[6rem] truncate">{r.profiles?.full_name ?? 'সদস্য'}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionTitle({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <h2 className="mb-4 flex items-center gap-2 text-base font-bold tracking-tight">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-coffee-100 text-coffee-600 dark:bg-coffee-900/50 dark:text-coffee-300">
+        <Icon className="h-4 w-4" aria-hidden />
+      </span>
+      {children}
+    </h2>
+  );
+}
+
 export function EventDetail({ eventId }: { eventId?: string | null }) {
   const router = useRouter();
+  const pathname = usePathname();
   const qc = useQueryClient();
   const { role, user } = useAuthStore();
   const { data: event, isLoading } = useEvent(eventId ?? undefined);
@@ -37,10 +108,14 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   const [editing, setEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
+  const { rsvp, handleRsvp } = useRsvp(event?.id ? [event.id] : []);
+
   const canManage = canWrite(role, 'evf');
-  const canEditEvent = canManage;
+  // Return to the correct list depending on which shell hosted this page.
+  const basePath = pathname?.startsWith('/dashboard') ? '/dashboard/evf' : '/events';
 
   const eventGallery = gallery?.filter((g) => g.event_id === eventId) ?? [];
+  const hostName = event?.profiles?.full_name ?? 'প্রভাতফেরী';
 
   const handleDelete = async () => {
     if (!event) return;
@@ -51,7 +126,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
       toast.error(error.message);
     } else {
       toast.success('ইভেন্ট মুছে ফেলা হয়েছে');
-      router.push('/dashboard/evf');
+      router.push(basePath);
     }
   };
 
@@ -65,8 +140,15 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-40 w-full" />
+        <Skeleton className="aspect-[16/9] w-full rounded-2xl sm:aspect-[21/9]" />
+        <Skeleton className="h-8 w-2/3 rounded-xl" />
+        <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-4">
+            <Skeleton className="h-44 w-full rounded-2xl" />
+            <Skeleton className="h-56 w-full rounded-2xl" />
+          </div>
+          <Skeleton className="h-80 w-full rounded-2xl" />
+        </div>
       </div>
     );
   }
@@ -76,124 +158,258 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
       <EmptyState
         title="ইভেন্ট পাওয়া যায়নি"
         description="ইভেন্টটি সরিয়ে ফেলা হতে পারে।"
-        action={<Button onClick={() => router.push('/dashboard/evf')}>ইভেন্টে ফিরুন</Button>}
+        action={<Button onClick={() => router.push(basePath)}>ইভেন্টে ফিরুন</Button>}
       />
     );
   }
 
   return (
-    <Stagger className="space-y-6">
-      <StaggerItem className="flex flex-wrap items-center justify-between gap-2">
-        <Button variant="ghost" onClick={() => router.push('/dashboard/evf')}>
-          <ArrowLeft /> ইভেন্টে ফিরুন
-        </Button>
-        <div className="flex flex-wrap gap-2">
-          {canEditEvent && (
-            <>
-              <Button variant="outline" onClick={() => setEditing(true)}>সম্পাদনা</Button>
-              <Button variant="destructive" onClick={() => setConfirmDelete(true)}>
-                <Trash2 /> মুছুন
-              </Button>
-            </>
+    <Stagger className="space-y-5" gap={10}>
+      {/* ── Cover hero ── */}
+      <StaggerItem>
+        <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-muted shadow-sm sm:aspect-[21/9]">
+          {event.cover_image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={storageUrl(event.cover_image)}
+              alt={event.title}
+              className="h-full w-full object-cover"
+              decoding="async"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-800 via-coffee-700 to-taupe-700 px-6 text-center text-2xl font-bold text-white sm:text-3xl">
+              {event.title}
+            </div>
+          )}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-black/25" aria-hidden />
+
+          {/* Back — glass */}
+          <button
+            type="button"
+            onClick={() => router.push(basePath)}
+            className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-2 text-xs font-semibold text-white backdrop-blur-sm transition-all duration-200 hover:bg-black/60 hover:-translate-x-0.5"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">ইভেন্টে ফিরুন</span>
+          </button>
+
+          {/* Status pill */}
+          <span className="absolute bottom-3 left-3 z-10">
+            <StatusPill status={event.status} className="px-3 py-1.5 text-[11px]" />
+          </span>
+
+          {/* Admin actions — glass */}
+          {canManage && (
+            <div className="absolute right-3 top-3 z-10 flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                aria-label="ইভেন্ট সম্পাদনা করুন"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-200 hover:bg-black/60 hover:scale-105"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                aria-label="ইভেন্ট মুছুন"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all duration-200 hover:bg-warmred-600/90 hover:scale-105"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </StaggerItem>
 
+      {/* ── Title + host + mobile RSVP ── */}
       <StaggerItem>
-        <Card className="overflow-hidden">
-          <div className="relative aspect-video w-full bg-muted sm:aspect-[21/9]">
-            {event.cover_image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={storageUrl(event.cover_image)} alt={event.title} className="h-full w-full object-cover" decoding="async" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-200 to-taupe-300 text-3xl font-bold text-coffee-700">
-                {event.title}
-              </div>
-            )}
-            <div className="absolute right-3 top-3">
-              <Badge variant={event.status === 'ongoing' ? 'success' : event.status === 'upcoming' ? 'coffee' : 'taupe'}>
-                {EVENT_STATUS_LABELS[event.status] ?? event.status}
-              </Badge>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{event.title}</h1>
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              <span>পাবলিক ইভেন্ট</span>
+              <span aria-hidden>·</span>
+              <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-5 w-5 text-[8px]" />
+              <span>
+                আয়োজনে <span className="font-semibold text-foreground">{hostName}</span>
+              </span>
             </div>
           </div>
-          <CardContent className="p-5 md:p-6">
-            <h1 className="text-2xl font-bold md:text-3xl">{event.title}</h1>
-            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-              <span>📅 {formatDateTime(event.event_date)}</span>
-              {event.location && <span>📍 {event.location}</span>}
-              {event.profiles?.full_name && <span>পোস্ট করেছেন {event.profiles.full_name}</span>}
-            </div>
-            {event.description && (
-              <p className="mt-4 whitespace-pre-line text-foreground/90">{event.description}</p>
-            )}
-          </CardContent>
-        </Card>
+          <div className="flex gap-2 lg:hidden">
+            <RsvpButtons eventId={event.id} rsvp={rsvp} onToggle={handleRsvp} compact />
+          </div>
+        </div>
       </StaggerItem>
 
-      {eventGallery.length > 0 && (
-        <StaggerItem>
-          <Card>
-            <CardHeader>
-              <CardTitle>গ্যালারি</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {eventGallery.map((g) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={g.id}
-                    src={storageThumb(g.image_url, 400)}
-                    alt={g.title ?? 'gallery image'}
-                    className="aspect-square w-full rounded-lg object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ))}
+      {/* ── Two-column: content + sticky info card ── */}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-5">
+          {/* বিবরণ — plain text, no card */}
+          <StaggerItem>
+            <section>
+              <SectionTitle icon={Info}>বিবরণ</SectionTitle>
+              {event.description ? (
+                <div
+                  className="max-w-2xl text-justify text-sm leading-7 text-foreground/90 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(event.description) }}
+                />
+              ) : (
+                <p className="max-w-2xl text-justify text-sm leading-7 text-foreground/90">
+                  এই ইভেন্ট সম্পর্কে এখনো কোনো বিবরণ যোগ করা হয়নি।
+                </p>
+              )}
+            </section>
+          </StaggerItem>
+
+          {/* অতিথিরা */}
+          <StaggerItem>
+            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+              <SectionTitle icon={Users}>অতিথিরা</SectionTitle>
+              <RsvpGuests eventId={event.id} />
+            </section>
+          </StaggerItem>
+
+          {/* গ্যালারি */}
+          {eventGallery.length > 0 && (
+            <StaggerItem>
+              <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+                <SectionTitle icon={Images}>গ্যালারি</SectionTitle>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {eventGallery.map((g) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={g.id}
+                      src={storageThumb(g.image_url, 400)}
+                      alt={g.title ?? 'gallery image'}
+                      className="aspect-square w-full rounded-xl object-cover transition-transform duration-300 hover:scale-[1.02]"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ))}
+                </div>
+              </section>
+            </StaggerItem>
+          )}
+
+          {/* আলোচনা — Facebook-style discussion feed */}
+          <StaggerItem>
+            <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+              <SectionTitle icon={MessageSquare}>
+                আলোচনা ({toBengaliDigits(comments?.length ?? 0)})
+              </SectionTitle>
+              <div className="mb-5">
+                <CommentBox eventId={event.id} />
               </div>
-            </CardContent>
-          </Card>
-        </StaggerItem>
-      )}
-
-      <StaggerItem>
-        <Card>
-          <CardHeader>
-            <CardTitle>মন্তব্য ({toBengaliDigits(comments?.length ?? 0)})</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <CommentBox eventId={event.id} />
-            {comments && comments.length === 0 && (
-              <p className="text-sm text-muted-foreground">এখনো কোনো মন্তব্য নেই। প্রথম মতামত দিন।</p>
-            )}
-            <ul className="space-y-4">
-              {comments?.map((c) => {
-                const canDelete = user?.id === c.user_id || canWrite(role, 'evf');
-                return (
-                  <li key={c.id} className="flex gap-3 rounded-lg border border-border bg-muted/30 p-3">
-                    <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-8 w-8 text-xs" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{c.profiles?.full_name ?? 'সদস্য'}</span>
-                        <span className="text-xs text-muted-foreground">{relativeTime(c.created_at)}</span>
-                        {canDelete && (
-                          <button
-                            className="ml-auto text-muted-foreground hover:text-warmred-500"
-                            onClick={() => handleDeleteComment(c)}
-                            aria-label="মন্তব্য মুছুন"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
+              {comments && comments.length === 0 && (
+                <p className="py-3 text-center text-sm text-muted-foreground">
+                  এখনো কোনো মন্তব্য নেই। প্রথম মতামত দিন।
+                </p>
+              )}
+              <ul className="space-y-4">
+                {comments?.map((c) => {
+                  const canDelete = user?.id === c.user_id || canWrite(role, 'evf');
+                  return (
+                    <li key={c.id} className="flex gap-3">
+                      <Avatar name={c.profiles?.full_name} src={c.profiles?.avatar_url} className="h-9 w-9 shrink-0 text-xs" />
+                      <div className="min-w-0 flex-1">
+                        <div className="rounded-2xl rounded-tl-md bg-muted/70 px-3.5 py-2.5">
+                          <p className="text-xs font-semibold text-foreground">
+                            {c.profiles?.full_name ?? 'সদস্য'}
+                          </p>
+                          <div
+                            className="mt-0.5 text-sm leading-relaxed text-foreground/90 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ol]:my-2"
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(c.content) }}
+                          />
+                        </div>
+                        <div className="mt-1 flex items-center gap-3 px-1.5 text-[11px] text-muted-foreground">
+                          <span>{relativeTime(c.created_at)}</span>
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteComment(c)}
+                              className="font-semibold transition-colors hover:text-warmred-500"
+                            >
+                              মুছুন
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <p className="mt-1 whitespace-pre-line text-sm">{c.content}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      </StaggerItem>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          </StaggerItem>
+        </div>
+
+        {/* ── Sticky info card ── */}
+        <StaggerItem className="lg:sticky lg:top-20">
+          <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+            {/* তারিখ ও সময় */}
+            <div className="flex gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coffee-100 text-coffee-600 dark:bg-coffee-900/50 dark:text-coffee-300">
+                <CalendarDays className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">তারিখ ও সময়</p>
+                <p className="mt-0.5 text-sm font-semibold leading-snug">{formatDateTime(event.event_date)}</p>
+              </div>
+            </div>
+
+            <div className="my-4 h-px bg-border" aria-hidden />
+
+            {/* স্থান */}
+            <div className="flex gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-600 dark:bg-sage-900/50 dark:text-sage-300">
+                <MapPin className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">স্থান</p>
+                <p className="mt-0.5 text-sm font-semibold leading-snug">
+                  {event.location || 'অনলাইন / স্থান ঘোষিত হবে'}
+                </p>
+              </div>
+            </div>
+
+            <div className="my-4 h-px bg-border" aria-hidden />
+
+            {/* Add to Calendar */}
+            {event.event_date && (
+              <>
+                <AddToCalendar
+                  data={{
+                    title: event.title,
+                    description: event.description,
+                    location: event.location,
+                    startDate: event.event_date,
+                  }}
+                  variant="outline"
+                />
+                <div className="my-4 h-px bg-border" aria-hidden />
+              </>
+            )}
+
+            {/* RSVP */}
+            <p className="mb-2.5 text-sm font-bold">আপনি কি অংশ নেবেন?</p>
+            <RsvpButtons eventId={event.id} rsvp={rsvp} onToggle={handleRsvp} />
+            <div className="mt-2.5 flex justify-center">
+              <RsvpCount eventId={event.id} />
+            </div>
+
+            <div className="my-4 h-px bg-border" aria-hidden />
+
+            {/* আয়োজক */}
+            <div className="flex items-center gap-3">
+              <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-11 w-11 text-sm" ring />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{hostName}</p>
+                <p className="text-xs text-muted-foreground">ইভেন্টের আয়োজক</p>
+              </div>
+            </div>
+          </aside>
+        </StaggerItem>
+      </div>
 
       <EventForm
         open={editing}

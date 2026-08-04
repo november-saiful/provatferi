@@ -70,12 +70,14 @@ export function Sponsors() {
                 disabled={!sponsors || sponsors.length === 0}
                 onClick={() =>
                   downloadCsv('sponsors.csv', [
-                    ['Company', 'Representative', 'Email', 'Phone', 'Proposed event', 'Status', 'Date'],
+                    ['Company', 'Representative', 'Email', 'Phone', 'Payment method', 'Transaction ID', 'Proposed event', 'Status', 'Date'],
                     ...(sponsors ?? []).map((s) => [
                       s.company_name,
                       s.representative_name ?? '',
-                      s.contact_email,
+                      s.contact_email ?? '',
                       s.contact_phone ?? '',
+                      s.payment_method ?? '',
+                      s.transaction_id ?? '',
                       s.proposed_event ?? 'General',
                       s.status,
                       new Date(s.created_at).toISOString()
@@ -102,6 +104,7 @@ export function Sponsors() {
                     <TableHead>প্রতিষ্ঠান</TableHead>
                     <TableHead>প্রতিনিধি</TableHead>
                     <TableHead>যোগাযোগ</TableHead>
+                    <TableHead>পেমেন্ট</TableHead>
                     <TableHead>প্রস্তাবিত ইভেন্ট</TableHead>
                     <TableHead>অবস্থা</TableHead>
                     <TableHead>তারিখ</TableHead>
@@ -114,9 +117,25 @@ export function Sponsors() {
                       <TableCell className="font-medium">{s.company_name}</TableCell>
                       <TableCell>{s.representative_name ?? '—'}</TableCell>
                       <TableCell>
-                        <a href={`mailto:${s.contact_email}`} className="text-primary hover:underline">
-                          {s.contact_email}
-                        </a>
+                        {s.contact_email ? (
+                          <a href={`mailto:${s.contact_email}`} className="text-primary hover:underline">
+                            {s.contact_email}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                        {s.contact_phone && (
+                          <span className="block text-xs text-muted-foreground">{s.contact_phone}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {s.payment_method && s.transaction_id ? (
+                          <span className="font-mono">
+                            {s.payment_method === 'bkash' ? 'বিকাশ' : 'নগদ'} · {s.transaction_id}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>{s.proposed_event ?? 'সাধারণ'}</TableCell>
                       <TableCell>

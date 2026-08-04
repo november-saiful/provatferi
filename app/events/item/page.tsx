@@ -10,7 +10,7 @@ export default function EventItemPage() {
   return (
     <PublicShell>
       <Seo title="ইভেন্টের বিবরণ" />
-      <div className="mx-auto max-w-4xl px-4 py-10">
+      <div className="mx-auto max-w-5xl px-4 py-10">
         <EventDetail eventId={id} />
       </div>
     </PublicShell>

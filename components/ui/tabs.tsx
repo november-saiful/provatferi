@@ -29,7 +29,7 @@ export function Tabs({ value, onValueChange, items, className }: TabsProps) {
             {active && (
               <motion.span
                 layoutId="tabs-active"
-                className="absolute inset-0 rounded-lg bg-card shadow-sm"
+                className="site-card-surface absolute inset-0 rounded-lg bg-card shadow-sm"
                 transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.8 }}
               />
             )}

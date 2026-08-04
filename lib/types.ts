@@ -1,6 +1,7 @@
 // Row types mirroring the Supabase schema. Keep in sync with /supabase/migrations.
 
 export type RoleId =
+  | 'root'
   | 'pr'
   | 'vp'
   | 'admin'
@@ -60,7 +61,7 @@ export interface EventItem {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'id' | 'full_name'> | null;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
   comments?: EventComment[];
 }
 
@@ -73,6 +74,18 @@ export interface EventComment {
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
+export type RsvpStatus = 'interested' | 'going';
+
+export interface EventRsvp {
+  id: string;
+  event_id: string;
+  user_id: string;
+  status: RsvpStatus;
+  created_at: string;
+  updated_at: string;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+}
+
 export interface GalleryItem {
   id: string;
   title: string | null;
@@ -82,7 +95,7 @@ export interface GalleryItem {
   uploaded_by: string | null;
   is_public: boolean;
   created_at: string;
-  events?: Pick<EventItem, 'id' | 'title'> | null;
+  events?: Pick<EventItem, 'id' | 'title' | 'event_date' | 'status'> | null;
 }
 
 export type CalendarCategory = 'general' | 'meeting' | 'event' | 'emergency' | 'custom';
@@ -110,7 +123,7 @@ export interface Notice {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'id' | 'full_name'> | null;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export interface Expense {
@@ -121,10 +134,11 @@ export interface Expense {
   description: string | null;
   receipt_url: string | null;
   expense_date: string;
+  budget_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'id' | 'full_name'> | null;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export interface Budget {
@@ -139,7 +153,7 @@ export interface Budget {
   created_by: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, 'id' | 'full_name'> | null;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export type RecordAction = 'create' | 'update' | 'delete';
@@ -155,8 +169,8 @@ export interface RecordsLog {
   modified_by: string | null;
   original_creator: string | null;
   created_at: string;
-  modifier?: Pick<Profile, 'id' | 'full_name'> | null;
-  creator?: Pick<Profile, 'id' | 'full_name'> | null;
+  modifier?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+  creator?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export type CourseType = 'violin' | 'guitar' | 'ukulele-western' | 'ukulele-dotara' | 'vocal' | 'flute';
@@ -168,7 +182,7 @@ export interface CourseSchedule {
   total_classes: number;
   start_date: string | null;
   status: string;
-  instructor?: Pick<Profile, 'id' | 'full_name'> | null;
+  instructor?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export interface AttendanceRecord {
@@ -191,6 +205,8 @@ export interface Donation {
   message: string | null;
   is_anonymous: boolean;
   show_on_board: boolean;
+  payment_method: 'bkash' | 'nagad' | null;
+  transaction_id: string | null;
   created_at: string;
 }
 
@@ -205,27 +221,44 @@ export interface Sponsor {
   id: string;
   company_name: string;
   representative_name: string | null;
-  contact_email: string;
+  contact_email: string | null;
   contact_phone: string | null;
   brand_details: string | null;
   proposed_event: string | null;
   status: string;
+  payment_method: 'bkash' | 'nagad' | null;
+  transaction_id: string | null;
   created_at: string;
 }
 
-export interface CommitteeContact {
+/**
+ * A committee member — every profile whose role is neither visitor nor alumni
+ * (see committee-members-reference.md). Fetched from `profiles` joined with
+ * `roles`, so the roster always mirrors the real roles.
+ */
+export interface CommitteeMember {
   id: string;
-  role_id: string | null;
-  profile_id: string | null;
-  display_order: number | null;
-  is_public: boolean;
-  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
-  roles?: { id: string; name: string } | null;
+  role_id: RoleId;
+  full_name: string | null;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  is_active: boolean;
+  roles?: { id: string; name: string; display_order: number } | null;
 }
 
 export interface AppConfig {
   key: string;
   value: string;
+}
+
+/**
+ * Universal club balance (migration 00025). Computed server-side so every
+ * user sees identical totals regardless of their role's row-level access.
+ */
+export interface ClubBalance {
+  allocated: number | string;
+  spent: number | string;
 }
 
 // ── In-app notifications (spec §7) ───────────────────────────────────────
@@ -236,7 +269,8 @@ export type AppNotificationType =
   | 'sponsor_inquiry'
   | 'donation'
   | 'role_changed'
-  | 'event_comment';
+  | 'event_comment'
+  | 'event_rsvp';
 
 export interface AppNotification {
   id: string;
@@ -247,4 +281,19 @@ export interface AppNotification {
   data: { href?: string; [key: string]: unknown } | null;
   is_read: boolean;
   created_at: string;
+}
+
+/**
+ * Per-user notification preferences (migration 00019). A `mute_*` flag of
+ * true stops the DB triggers from inserting that notification type.
+ */
+export interface UserNotificationSettings {
+  user_id: string;
+  mute_record_change: boolean;
+  mute_role_change: boolean;
+  mute_sponsor_inquiry: boolean;
+  mute_donation: boolean;
+  mute_event_comment: boolean;
+  mute_event_rsvp: boolean;
+  updated_at: string;
 }

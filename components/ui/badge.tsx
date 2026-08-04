@@ -15,7 +15,8 @@ const badgeVariants = cva(
         destructive: 'border-transparent bg-warmred-100 text-warmred-700 dark:bg-warmred-900/60 dark:text-warmred-300',
         coffee: 'border-transparent bg-coffee-100 text-coffee-700 dark:bg-coffee-900/60 dark:text-coffee-300',
         taupe: 'border-transparent bg-taupe-100 text-taupe-700 dark:bg-taupe-900/60 dark:text-taupe-300',
-        gold: 'border-transparent bg-gold-100 text-gold-700 dark:bg-gold-900/60 dark:text-gold-300'
+        gold: 'border-transparent bg-gold-100 text-gold-700 dark:bg-gold-900/60 dark:text-gold-300',
+        org: 'border-dashed border-gold-400/60 bg-gradient-to-r from-gold-50 to-amber-50 text-gold-800 dark:from-gold-900/30 dark:to-amber-900/30 dark:text-gold-300 ring-1 ring-gold-300/30'
       }
     },
     defaultVariants: {

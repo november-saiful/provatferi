@@ -2,7 +2,7 @@
 //
 // Deleting an auth user requires the service role, so it cannot run from the
 // browser with the anon key. This function validates that the caller is an
-// admin (pr / vp / admin) using their JWT before mutating anything.
+// admin (root / pr / vp / admin) using their JWT before mutating anything.
 //
 // Authorization header = the caller's anon-key bearer token (sent automatically
 // by supabase.functions.invoke).
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     .eq('id', caller.id)
     .maybeSingle();
 
-  if (!callerProfile || !['pr', 'vp', 'admin'].includes(callerProfile.role_id)) {
+  if (!callerProfile || !['pr', 'vp', 'admin', 'root'].includes(callerProfile.role_id)) {
     return new Response(JSON.stringify({ error: 'Insufficient permissions' }), { status: 403 });
   }
 
@@ -68,7 +68,13 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
   }
 
-  if (target.role_id === 'pr') {
+  // Root user cannot be modified by anyone
+  if (target.role_id === 'root') {
+    return new Response(JSON.stringify({ error: 'রুট ব্যবহারকারীকে পরিবর্তন বা মুছে ফেলা যাবে না।' }), { status: 403 });
+  }
+
+  // Only root can delete president; non-root admins cannot
+  if (target.role_id === 'pr' && callerProfile.role_id !== 'root') {
     return new Response(JSON.stringify({ error: 'সভাপতির অ্যাকাউন্ট পরিবর্তন করা যাবে না' }), { status: 403 });
   }
 

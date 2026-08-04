@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/auth-store';
 import { useAddComment } from '@/lib/queries';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { cn } from '@/lib/utils';
 
 interface CommentBoxProps {
@@ -31,11 +31,13 @@ export function CommentBox({ eventId, className }: CommentBoxProps) {
 
   return (
     <div className={cn('space-y-2', className)}>
-      <Textarea
+      <MarkdownEditor
+        id="event-comment"
         value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="আপনার মতামত শেয়ার করুন…"
+        onChange={setContent}
         rows={3}
+        placeholder="আপনার মতামত শেয়ার করুন…"
+        hint="সাধারণ মার্কডাউন সমর্থিত — **বোল্ড**, *ইটালিক*, `কোড`, [লিংক](https://) ও - তালিকা।"
       />
       <Button onClick={submit} disabled={!content.trim() || addComment.isPending}>
         {addComment.isPending ? 'পোস্ট হচ্ছে…' : 'মন্তব্য পোস্ট করুন'}

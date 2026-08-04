@@ -1,5 +1,6 @@
 // Verify the in-app notification system end-to-end against a live Supabase
-// project (requires migrations 00016 + 00017 applied).
+// project (requires migrations 00016 + 00017 + 00018 applied, plus 00019 for
+// preferences, 00022 for event_rsvps, and 00023 for the event_rsvp trigger).
 //
 // Flows covered (spec §7.1):
 //   A. Record edited   → tr1's expense edited by rds → creator gets record_edited
@@ -8,6 +9,7 @@
 //   D. Donation        → anon submits donation       → tr/pr/vp get donation
 //   E. Role changed    → pr changes a user's role    → affected user gets role_changed
 //   F. Event comment   → ofs creates event, alm comments → ofs gets event_comment
+//   I. Event RSVP      → alm RSVPs to ofs's event     → ofs gets event_rsvp (migration 00023)
 // Realtime (spec §7.2):
 //   G. notification INSERT delivered over realtime without polling
 //   H. notices INSERT delivered over realtime without polling
@@ -65,7 +67,8 @@ const anon = createClient(SUPABASE_URL, ANON_KEY, {
 const testStart = new Date().toISOString();
 let passed = 0;
 let failed = 0;
-const createdIds = { notifications: [], sponsors: [], donations: [], expenses: [], events: [], comments: [], notices: [] };
+const createdIds = { notifications: [], sponsors: [], donations: [], expenses: [], events: [], comments: [], rsvps: [], notices: [] };
+const testUserIds = [];
 
 function ok(label) {
   passed++;
@@ -126,27 +129,37 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// Subscribe to a realtime channel; resolves when an INSERT event matches `filter`.
+// Subscribe to a realtime channel and resolve once the subscription is active,
+// then again when an INSERT event matching `filter` arrives. Callers must await
+// `ready` BEFORE firing the trigger insert, then await `event` afterwards.
 function waitForRealtime(client, channelName, table, filter, timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
+  let resolveReady, rejectReady;
+  let resolveEvent, rejectEvent;
+  const ready = new Promise((res, rej) => { resolveReady = res; rejectReady = rej; });
+  const event = new Promise((res, rej) => { resolveEvent = res; rejectEvent = rej; });
+  const timer = setTimeout(() => {
+    client.removeChannel(channel);
+    rejectReady(new Error(`subscribe timeout on ${table}`));
+    rejectEvent(new Error(`realtime timeout on ${table}`));
+  }, timeoutMs);
+  const channel = client.channel(channelName);
+  channel
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table, filter }, (payload) => {
+      clearTimeout(timer);
       client.removeChannel(channel);
-      reject(new Error(`realtime timeout on ${table}`));
-    }, timeoutMs);
-    const channel = client.channel(channelName);
-    channel
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table, filter }, (payload) => {
+      resolveEvent(payload);
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        resolveReady(true);
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         clearTimeout(timer);
-        client.removeChannel(channel);
-        resolve(payload);
-      })
-      .subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          clearTimeout(timer);
-          reject(new Error(`subscribe failed: ${status}`));
-        }
-      });
-  });
+        const err = new Error(`subscribe failed: ${status}`);
+        rejectReady(err);
+        rejectEvent(err);
+      }
+    });
+  return { ready, event };
 }
 
 async function main() {
@@ -162,13 +175,14 @@ async function main() {
   const ofs = await ensureUser('nt-ofs@provatferi.test', 'ofs', 'Notify OFS');
   const alumni = await ensureUser('nt-alm@provatferi.test', 'alm', 'Notify Alumni');
   const target = await ensureUser('nt-target@provatferi.test', 'alm', 'Notify Target');
+  testUserIds.push(creator.id, editor.id, president.id, gs.id, vp.id, ofs.id, alumni.id, target.id);
 
   // ── A + B: record edited / deleted → original creator ─────────────────────
   console.log('\nA/B — record edited + deleted → creator…');
   const creatorClient = await signIn('nt-creator@provatferi.test');
   const { data: expense, error: expErr } = await creatorClient
     .from('expenses')
-    .insert({ title: `[verify] expense ${Date.now()}`, amount: 1234, category: 'বিবিধ', expense_date: '2026-08-01' })
+    .insert({ title: `[verify] expense ${Date.now()}`, amount: 1234, category: 'বিবিধ', expense_date: '2026-08-01', created_by: creator.id })
     .select('id')
     .single();
   if (expErr) {
@@ -198,15 +212,16 @@ async function main() {
 
   // ── C: sponsor inquiry → pr/vp/gs/tr ──────────────────────────────────────
   console.log('\nC — sponsor inquiry → pr/vp/gs/tr…');
-  const { data: sponsor, error: spErr } = await anon
+  const sponsorName = `Verify Corp ${Date.now()}`;
+  const { error: spErr } = await anon
     .from('sponsors')
-    .insert({ company_name: `Verify Corp ${Date.now()}`, contact_email: 'verify@test.dev' })
-    .select('id')
-    .single();
+    .insert({ company_name: sponsorName, contact_email: 'verify@test.dev' });
   if (spErr) {
     fail('submit sponsor as anon', spErr.message);
   } else {
-    createdIds.sponsors.push(sponsor.id);
+    // anon cannot SELECT sponsors (no public read policy) — fetch id via admin
+    const { data: spRow } = await admin.from('sponsors').select('id').eq('company_name', sponsorName).maybeSingle();
+    if (spRow?.id) createdIds.sponsors.push(spRow.id);
     for (const [user, label] of [
       [president, 'pr'],
       [vp, 'vp'],
@@ -220,15 +235,21 @@ async function main() {
 
   // ── D: donation → tr/pr/vp ────────────────────────────────────────────────
   console.log('\nD — donation → tr/pr/vp…');
-  const { data: donation, error: dnErr } = await anon
+  const donorName = `Verify Donor ${Date.now()}`;
+  const { error: dnErr } = await anon
     .from('donations')
-    .insert({ donor_name: `Verify Donor ${Date.now()}`, amount: 500, show_on_board: false })
-    .select('id')
-    .single();
+    .insert({ donor_name: donorName, amount: 500, show_on_board: false });
   if (dnErr) {
     fail('submit donation as anon', dnErr.message);
   } else {
-    createdIds.donations.push(donation.id);
+    // anon cannot SELECT donations (signed-in-only read) — fetch id via admin
+    const { data: dnRow } = await admin
+      .from('donations')
+      .select('id')
+      .eq('donor_name', donorName)
+      .order('created_at', { ascending: false })
+      .maybeSingle();
+    if (dnRow?.id) createdIds.donations.push(dnRow.id);
     for (const [user, label] of [
       [creator, 'tr'],
       [president, 'pr'],
@@ -257,7 +278,7 @@ async function main() {
   const ofsClient = await signIn('nt-ofs@provatferi.test');
   const { data: event, error: evErr } = await ofsClient
     .from('events')
-    .insert({ title: `[verify] event ${Date.now()}`, status: 'upcoming', event_date: new Date().toISOString() })
+    .insert({ title: `[verify] event ${Date.now()}`, status: 'upcoming', event_date: new Date().toISOString(), created_by: ofs.id })
     .select('id')
     .single();
   if (evErr) {
@@ -279,19 +300,38 @@ async function main() {
     }
   }
 
+  // ── I: RSVP on your event → event creator (migration 00023) ──────────────
+  console.log('\nI — RSVP on your event → event creator…');
+  if (createdIds.events.length) {
+    const alumniClient = await signIn('nt-alm@provatferi.test');
+    const { data: rsvp, error: rsvpErr } = await alumniClient
+      .from('event_rsvps')
+      .insert({ event_id: createdIds.events[0], user_id: alumni.id, status: 'going' })
+      .select('id')
+      .single();
+    if (rsvpErr) {
+      fail('RSVP as alm', rsvpErr.message);
+    } else {
+      createdIds.rsvps.push(rsvp.id);
+      const notes = await getNotifications(ofs.id, 'event_rsvp');
+      notes.length > 0 ? ok('event_rsvp → event creator') : fail('event_rsvp → event creator', 'no notification');
+    }
+  } else {
+    fail('RSVP on your event', 'no test event available');
+  }
+
   // ── G: realtime delivery of a notification (no refresh) ───────────────────
   console.log('\nG — realtime: notification INSERT delivered without polling…');
   try {
-    const rt = await waitForRealtime(creatorClient, `verify-nt-${Date.now()}`, 'notifications', `user_id=eq.${creator.id}`);
+    const { ready, event } = waitForRealtime(creatorClient, `verify-nt-${Date.now()}`, 'notifications', `user_id=eq.${creator.id}`);
+    await ready;
     // Fire a second sponsor submission from the anon client (creator is tr → recipient).
-    const { data: sp2, error: sp2Err } = await anon
-      .from('sponsors')
-      .insert({ company_name: `Realtime Corp ${Date.now()}`, contact_email: 'rt@test.dev' })
-      .select('id')
-      .single();
+    const rtName = `Realtime Corp ${Date.now()}`;
+    const { error: sp2Err } = await anon.from('sponsors').insert({ company_name: rtName, contact_email: 'rt@test.dev' });
     if (sp2Err) throw new Error(`sponsor insert: ${sp2Err.message}`);
-    createdIds.sponsors.push(sp2.id);
-    await rt;
+    const { data: sp2Row } = await admin.from('sponsors').select('id').eq('company_name', rtName).maybeSingle();
+    if (sp2Row?.id) createdIds.sponsors.push(sp2Row.id);
+    await event;
     ok('realtime notification INSERT received (no refresh required)');
   } catch (err) {
     fail('realtime notification INSERT received', err.message);
@@ -300,7 +340,8 @@ async function main() {
   // ── H: realtime for a public table (notices, spec §7.2) ───────────────────
   console.log('\nH — realtime: new notice appears without refresh…');
   try {
-    const rt = await waitForRealtime(ofsClient, `verify-ntb-${Date.now()}`, 'notices', '');
+    const { ready, event } = waitForRealtime(ofsClient, `verify-ntb-${Date.now()}`, 'notices', undefined);
+    await ready;
     const { data: notice, error: nbErr } = await ofsClient
       .from('notices')
       .insert({ title: `[verify] notice ${Date.now()}`, content: 'realtime check', is_public: true })
@@ -308,26 +349,35 @@ async function main() {
       .single();
     if (nbErr) throw new Error(`notice insert: ${nbErr.message}`);
     createdIds.notices.push(notice.id);
-    await rt;
+    await event;
     ok('realtime notices INSERT received (no refresh required)');
   } catch (err) {
     fail('realtime notices INSERT received', err.message);
   }
 
-  // ── Cleanup: test content rows + their notifications ──────────────────────
+  // ── Cleanup: test content rows first, then their notifications ─────────────
+  // (content deletes via admin fire the audit→notify chain, so notifications
+  // must be cleaned last to catch any strays; the notification delete is also
+  // scoped to the dedicated test users so real users' notifications are safe.)
   console.log('\nCleanup…');
-  const { data: testNotes } = await admin
-    .from('notifications')
-    .select('id')
-    .gte('created_at', testStart);
-  const noteIds = (testNotes ?? []).map((n) => n.id);
-  if (noteIds.length) await admin.from('notifications').delete().in('id', noteIds);
   if (createdIds.comments.length) await admin.from('event_comments').delete().in('id', createdIds.comments);
+  if (createdIds.rsvps.length) await admin.from('event_rsvps').delete().in('id', createdIds.rsvps);
   if (createdIds.events.length) await admin.from('events').delete().in('id', createdIds.events);
   if (createdIds.sponsors.length) await admin.from('sponsors').delete().in('id', createdIds.sponsors);
   if (createdIds.donations.length) await admin.from('donations').delete().in('id', createdIds.donations);
   if (createdIds.expenses.length) await admin.from('expenses').delete().in('id', createdIds.expenses);
   if (createdIds.notices.length) await admin.from('notices').delete().in('id', createdIds.notices);
+  // Trade-off: the type clause also removes any REAL notification of these
+  // types landing for a real user inside the (seconds-long) test window — an
+  // acceptable risk for this on-demand diagnostic script.
+  const TEST_TYPES = ['record_edited', 'record_deleted', 'sponsor_inquiry', 'donation', 'role_changed', 'event_comment', 'event_rsvp'];
+  const { data: testNotes } = await admin
+    .from('notifications')
+    .select('id')
+    .gte('created_at', testStart)
+    .or(`user_id.in.(${testUserIds.join(',')}),type.in.(${TEST_TYPES.join(',')})`);
+  const noteIds = (testNotes ?? []).map((n) => n.id);
+  if (noteIds.length) await admin.from('notifications').delete().in('id', noteIds);
   console.log(`  removed ${noteIds.length} test notifications + ${createdIds.expenses.length + createdIds.sponsors.length + createdIds.donations.length + createdIds.events.length + createdIds.comments.length + createdIds.notices.length} test content rows`);
 
   console.log(`\n=== RESULT: ${passed} passed, ${failed} failed ===\n`);

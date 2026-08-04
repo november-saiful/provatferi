@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { SITE_NAME } from '@/lib/constants';
 
 export function Seo({ title }: { title: string }) {
   React.useEffect(() => {
-    document.title = title === SITE_NAME ? SITE_NAME : `${title} · ${SITE_NAME}`;
+    // The homepage passes the full site title (already starts with "প্রভাতফেরী");
+    // every other page gets the "প্রভাতফেরীঃ " prefix, e.g. "প্রভাতফেরীঃ নোটিশ".
+    document.title = title.startsWith('প্রভাতফেরী') ? title : `প্রভাতফেরীঃ ${title}`;
   }, [title]);
   return null;
 }

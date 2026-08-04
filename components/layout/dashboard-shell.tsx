@@ -20,8 +20,6 @@ import {
   LogIn,
   UserCog,
   Phone,
-  HelpCircle,
-  Settings,
   Sparkles,
   type LucideIcon
 } from 'lucide-react';
@@ -278,21 +276,23 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
   const { profile, role: userRole, user } = useAuthStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-3 md:gap-3 md:px-4">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-background px-3 md:gap-3 md:px-4">
       {/* Nav menu (hamburger dropdown — works on all screen sizes) */}
       <NavMenu groups={groups} role={role} authed={authed} pathname={pathname} />
 
-      {/* Center logo (clickable — goes to homepage) */}
-      <div className="flex flex-1 items-center justify-center">
-        <Link
-          href={authed ? '/dashboard' : '/'}
-          aria-label={SITE_NAME}
-          className="transition-opacity hover:opacity-80"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Provatferi" className="h-14 w-14 p-1 object-contain" />
-        </Link>
-      </div>
+      {/* Spacer keeps right actions pushed to the edge */}
+      <div className="flex-1" aria-hidden />
+
+      {/* Center logo (clickable — goes to homepage) — absolutely centered so
+          it stays dead-centre regardless of left/right content widths */}
+      <Link
+        href="/"
+        aria-label={SITE_NAME}
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="প্রভাতফেরী" className="h-14 w-14 p-1 object-contain" />
+      </Link>
 
       {/* Right actions */}
       <div className="flex items-center gap-1 md:gap-1.5">
@@ -304,20 +304,6 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
             </p>
           </div>
         )}
-        <Link
-          href="/contact"
-          aria-label="সহায়তা"
-          className="hidden h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </Link>
-        <Link
-          href={authed ? '/dashboard/admin' : '/contact'}
-          aria-label="সেটিংস"
-          className="hidden h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:flex"
-        >
-          <Settings className="h-4 w-4" />
-        </Link>
         {authed && <NotificationsMenu />}
         <AccountMenu size="md" dashboardHref={authed ? '/dashboard' : '/'} />
       </div>

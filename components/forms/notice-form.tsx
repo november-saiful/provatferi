@@ -12,13 +12,9 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Bold, Italic, List, Link2, Heading2, Code } from 'lucide-react';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import type { Notice } from '@/lib/types';
-
-const TOOLBAR_BTN =
-  'inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40';
 
 const schema = z.object({
   title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
@@ -45,7 +41,7 @@ export function NoticeForm({
   const {
     register,
     setValue,
-    getValues,
+    watch,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting }
@@ -53,40 +49,6 @@ export function NoticeForm({
     resolver: zodResolver(schema),
     defaultValues: { title: '', content: '' }
   });
-
-  const contentRef = React.useRef<HTMLTextAreaElement | null>(null);
-
-  const wrapSelection = (before: string, after = before, placeholder = 'text') => {
-    const el = contentRef.current;
-    const value = getValues('content') ?? '';
-    if (!el) {
-      setValue('content', value ? `${before}${placeholder}${after}` : before + placeholder + after, { shouldValidate: true });
-      return;
-    }
-    const start = el.selectionStart ?? value.length;
-    const end = el.selectionEnd ?? value.length;
-    const selected = value.slice(start, end) || placeholder;
-    const next = `${value.slice(0, start)}${before}${selected}${after}${value.slice(end)}`;
-    setValue('content', next, { shouldValidate: true });
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(start + before.length, start + before.length + selected.length);
-    });
-  };
-
-  const prependLine = (prefix: string) => {
-    const el = contentRef.current;
-    const value = getValues('content') ?? '';
-    if (!el) return;
-    const start = el.selectionStart ?? 0;
-    const lineStart = value.lastIndexOf('\n', start - 1) + 1;
-    const next = `${value.slice(0, lineStart)}${prefix}${value.slice(lineStart)}`;
-    setValue('content', next, { shouldValidate: true });
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(lineStart + prefix.length, lineStart + prefix.length);
-    });
-  };
 
   React.useEffect(() => {
     if (open) {
@@ -140,38 +102,15 @@ export function NoticeForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="n-content">বিষয়বস্তু</Label>
-          <div className="flex flex-wrap items-center gap-1">
-            <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('**')} title="Bold" aria-label="Bold">
-              <Bold className="h-4 w-4" />
-            </button>
-            <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('*')} title="Italic" aria-label="Italic">
-              <Italic className="h-4 w-4" />
-            </button>
-            <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('## ', '', 'Heading')} title="Heading" aria-label="Heading">
-              <Heading2 className="h-4 w-4" />
-            </button>
-            <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('`', '`', 'code')} title="Code" aria-label="Code">
-              <Code className="h-4 w-4" />
-            </button>
-            <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('[', '](https://)', 'link text')} title="Link" aria-label="Link">
-              <Link2 className="h-4 w-4" />
-            </button>
-            <button type="button" className={TOOLBAR_BTN} onClick={() => prependLine('- ')} title="Bullet list" aria-label="Bullet list">
-              <List className="h-4 w-4" />
-            </button>
-          </div>
-          <Textarea
+          <MarkdownEditor
             id="n-content"
+            value={watch('content') ?? ''}
+            onChange={(v) => setValue('content', v, { shouldValidate: true })}
             rows={8}
-            {...register('content')}
-            ref={(e) => {
-              register('content').ref(e);
-              contentRef.current = e;
-            }}
             placeholder="নোটিশটি লিখুন। **বোল্ড**, *ইটালিক*, ## শিরোনাম, - তালিকা, `কোড` এবং [লিংক](https://) সমর্থিত।"
+            hint="সাধারণ মার্কডাউন — বোল্ড, ইটালিক, শিরোনাম, তালিকা, কোড ও লিংক নোটিশ পেজে রেন্ডার হয়।"
           />
           {errors.content && <p className="text-xs text-warmred-500">{errors.content.message}</p>}
-          <p className="text-xs text-muted-foreground">সাধারণ মার্কডাউন — বোল্ড, ইটালিক, শিরোনাম, তালিকা, কোড ও লিংক নোটিশ পেজে রেন্ডার হয়।</p>
         </div>
         {canPin && (
           <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3 py-2.5">

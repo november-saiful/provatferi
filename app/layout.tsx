@@ -19,8 +19,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Provatferi',
-    template: '%s · Provatferi'
+    default: 'প্রভাতফেরী',
+    template: 'প্রভাতফেরীঃ %s'
   },
   description: 'প্রভাতফেরী ক্লাব ড্যাশবোর্ড — ইভেন্ট, অর্থ, কোর্স ও কমিউনিটি।',
   icons: {

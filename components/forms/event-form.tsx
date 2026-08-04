@@ -11,7 +11,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Select } from '@/components/ui/select';
 
 const schema = z.object({
@@ -40,6 +40,8 @@ export function EventForm({
 
   const {
     register,
+    setValue,
+    watch,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting }
@@ -116,7 +118,14 @@ export function EventForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">বিবরণ</Label>
-          <Textarea id="description" rows={4} {...register('description')} placeholder="এই ইভেন্টটি কী নিয়ে?" />
+          <MarkdownEditor
+            id="description"
+            value={watch('description') ?? ''}
+            onChange={(v) => setValue('description', v, { shouldValidate: true })}
+            rows={4}
+            placeholder="এই ইভেন্টটি কী নিয়ে? **বোল্ড**, *ইটালিক*, ## শিরোনাম, - তালিকা, `কোড` ও [লিংক](https://) সমর্থিত।"
+            hint="সাধারণ মার্কডাউন — বোল্ড, ইটালিক, শিরোনাম, তালিকা, কোড ও লিংক ইভেন্ট পেজে রেন্ডার হয়।"
+          />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-2">

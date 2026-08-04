@@ -1,5 +1,33 @@
 import type { Config } from 'tailwindcss';
 
+/* ──────────────────────────────────────────────────────────────────────
+ * Z-Index Scale
+ * ──────────────────────────────────────────────────────────────────────
+ *
+ * Every z-index in the app must map to exactly ONE of the layers below.
+ * When adding a new positioned element, pick the layer that matches its
+ * role — never invent a new value.  If two layers feel equally correct,
+ * pick the LOWER one and bump the higher layer only if it truly needs to
+ * float above the other.
+ *
+ *   z-0   (layer 0)   Base content — cards, grid cells, album cards at rest
+ *   z-10  (layer 10)  In-card interactive accents — save buttons, tab
+ *                      indicators, table theads, event overlays, album
+ *                      center card, notice wall hover/focus
+ *   z-20  (layer 20)  Sticky sub-navigation — filter bars, section headers
+ *                      that scroll with main content but below app chrome
+ *   z-40  (layer 40)  App chrome — the top header bar, sidebar if any
+ *   z-50  (layer 50)  Floating panels — dropdown menus, dialog overlays,
+ *                      gallery fullscreen, floating bottom nav
+ *   z-60  (layer 60)  Tooltips — gallery sort tooltip, contextual tips
+ *   z-100 (layer 100) Escape-proof overlays — calendar tooltip that must
+ *                      never be clipped by any ancestor overflow
+ *   z-[-1]            Decorative pseudo-elements (::after, ::before)
+ *
+ * Gap between layers is intentional (10, 20, 40 …) so new layers can be
+ * inserted if needed without a full renumber.
+ * ────────────────────────────────────────────────────────────────────── */
+
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   darkMode: ['class'],

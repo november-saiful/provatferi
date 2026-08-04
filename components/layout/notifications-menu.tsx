@@ -13,12 +13,15 @@ import {
   Heart,
   UserCog,
   MessageSquare,
+  CalendarCheck,
+  Settings2,
   type LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/auth-store';
 import {
   useNotifications,
+  useUnreadNotificationCount,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
   useClearNotifications
@@ -38,7 +41,8 @@ const TYPE_ICON: Record<AppNotificationType, { icon: LucideIcon; tone: string }>
   sponsor_inquiry: { icon: Handshake, tone: 'bg-gold-100 text-gold-700 dark:bg-gold-900/50 dark:text-gold-300' },
   donation: { icon: Heart, tone: 'bg-warmred-100 text-warmred-700 dark:bg-warmred-900/50 dark:text-warmred-300' },
   role_changed: { icon: UserCog, tone: 'bg-coffee-100 text-coffee-700 dark:bg-coffee-900/50 dark:text-coffee-300' },
-  event_comment: { icon: MessageSquare, tone: 'bg-taupe-100 text-taupe-700 dark:bg-taupe-900/50 dark:text-taupe-300' }
+  event_comment: { icon: MessageSquare, tone: 'bg-taupe-100 text-taupe-700 dark:bg-taupe-900/50 dark:text-taupe-300' },
+  event_rsvp: { icon: CalendarCheck, tone: 'bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300' }
 };
 
 /**
@@ -50,16 +54,48 @@ const TYPE_ICON: Record<AppNotificationType, { icon: LucideIcon; tone: string }>
 export function NotificationsMenu() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { data: notifications = [] } = useNotifications(!!user);
-  const markRead = useMarkNotificationRead();
-  const markAllRead = useMarkAllNotificationsRead();
-  const clearAll = useClearNotifications();
-
   const [open, setOpen] = React.useState(false);
   const [confirmingClear, setConfirmingClear] = React.useState(false);
   const [busyId, setBusyId] = React.useState<string | null>(null);
 
-  const unread = notifications.filter((n) => !n.is_read).length;
+  // Track the panel state in a ref so the realtime toast callback (kept stable)
+  // can suppress previews while the user is already looking at the list.
+  const openRef = React.useRef(open);
+  React.useEffect(() => {
+    openRef.current = open;
+  }, [open]);
+
+  const handleNewNotification = React.useCallback(
+    (n: AppNotification) => {
+      if (openRef.current) return; // already visible in the open panel
+      const href = n.data?.href;
+      // Fixed id dedupes rapid arrivals (e.g. bulk record deletes); the longer
+      // duration gives time to read the Bengali body.
+      toast(n.title, {
+        id: 'notification-preview',
+        duration: 6000,
+        description: n.body,
+        action: href
+          ? {
+              label: 'দেখুন',
+              onClick: () => {
+                setOpen(false);
+                router.push(href);
+              }
+            }
+          : undefined
+      });
+    },
+    [router]
+  );
+
+  const { data: notifications = [] } = useNotifications(!!user, handleNewNotification);
+  const { data: unreadCount = 0 } = useUnreadNotificationCount(!!user);
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
+  const clearAll = useClearNotifications();
+
+  const unread = unreadCount;
 
   // Reset the clear-confirmation state whenever the panel opens/closes.
   React.useEffect(() => {
@@ -114,13 +150,18 @@ export function NotificationsMenu() {
               className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warmred-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-background"
               aria-label={`${toBengaliDigits(unread)}টি অপঠিত নোটিফিকেশন`}
             >
-              {toBengaliDigits(Math.min(unread, 99))}
+              {toBengaliDigits(unread)}
             </span>
           )}
         </button>
       </DropdownTrigger>
 
-      <DropdownContent size="auto" align="end" className="w-[22rem] p-0" sideOffset={10}>
+      <DropdownContent
+        size="auto"
+        align="end"
+        className="w-[min(22rem,calc(100vw-1.25rem))] p-0"
+        sideOffset={10}
+      >
         {/* Header */}
         <div className="flex items-center justify-between gap-2 px-4 pt-3.5 pb-2">
           <div className="flex items-center gap-2">
@@ -165,6 +206,21 @@ export function NotificationsMenu() {
         </div>
         <DropdownSeparator className="my-0" />
 
+        {/* Settings shortcut */}
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setOpen(false);
+            router.push('/dashboard/profile');
+          }}
+          className="flex w-full items-center gap-2 px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+        >
+          <Settings2 className="h-3.5 w-3.5" />
+          নোটিফিকেশন পছন্দ
+        </button>
+        <DropdownSeparator className="my-0" />
+
         {/* List */}
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
@@ -173,7 +229,7 @@ export function NotificationsMenu() {
             </span>
             <p className="text-sm font-medium text-foreground">কোনো নোটিফিকেশন নেই</p>
             <p className="max-w-[16rem] text-xs text-muted-foreground">
-              রেকর্ড পরিবর্তন, নতুন মন্তব্য ও স্পনসর আপডেট এখানে দেখা যাবে।
+              রেকর্ড পরিবর্তন, নতুন মন্তব্য, ইভেন্ট অংশগ্রহণ ও স্পনসর আপডেট এখানে দেখা যাবে।
             </p>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +9,8 @@ interface DropdownContextValue {
   open: boolean;
   setOpen: (next: boolean | ((prev: boolean) => boolean)) => void;
   toggle: () => void;
+  rootRef: React.RefObject<HTMLDivElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
 }
 
 const DropdownContext = React.createContext<DropdownContextValue | null>(null);
@@ -37,6 +40,8 @@ export function Dropdown({
   side = 'bottom',
   sideOffset = 8
 }: DropdownProps) {
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const open = openProp ?? internalOpen;
   const onChangeRef = React.useRef(onOpenChange);
@@ -56,22 +61,31 @@ export function Dropdown({
   const toggle = React.useCallback(() => setOpen((p) => !p), [setOpen]);
 
   return (
-    <DropdownContext.Provider value={{ open, setOpen, toggle }}>
-      <DropdownLayout>{children}</DropdownLayout>
+    <DropdownContext.Provider value={{ open, setOpen, toggle, rootRef, contentRef }}>
+      <DropdownLayout rootRef={rootRef} contentRef={contentRef}>{children}</DropdownLayout>
     </DropdownContext.Provider>
   );
 }
 
-function DropdownLayout({ children }: { children: React.ReactNode }) {
+function DropdownLayout({
+  children,
+  rootRef,
+  contentRef,
+}: {
+  children: React.ReactNode;
+  rootRef: React.RefObject<HTMLDivElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
+}) {
   const { open, setOpen } = useDropdownContext();
-  const rootRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (!open) return;
     // pointerdown (not mousedown) to avoid closing during text-selection drags.
     const onPointerDown = (e: PointerEvent) => {
-      if (!rootRef.current) return;
-      if (!rootRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const insideTrigger = rootRef.current?.contains(target);
+      const insideContent = contentRef.current?.contains(target);
+      if (!insideTrigger && !insideContent) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -168,6 +182,8 @@ interface DropdownContentProps {
   side?: 'bottom' | 'top';
   sideOffset?: number;
   forceMount?: boolean;
+  /** Render outside overflow-hidden ancestors so menus cannot be clipped. */
+  portal?: boolean;
   /** Enable staggered entrance animations for child items. */
   staggered?: boolean;
 }
@@ -214,37 +230,71 @@ export function DropdownContent({
   side = 'bottom',
   sideOffset = 10,
   forceMount,
+  portal = false,
   staggered = false
 }: DropdownContentProps) {
-  const { open } = useDropdownContext();
+  const { open, rootRef, contentRef } = useDropdownContext();
   const visible = forceMount || open;
+  const [triggerRect, setTriggerRect] = React.useState<DOMRect | null>(null);
 
   const alignClass = alignClassMap[align];
   const sideClass = sideClassMap[side];
+  const alignmentX = align === 'center' ? '-50%' : align === 'end' ? '-100%' : '0%';
 
+  React.useLayoutEffect(() => {
+    if (!portal || !visible) return;
+    const update = () => {
+      const rect = rootRef.current?.getBoundingClientRect();
+      if (rect) setTriggerRect(rect);
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [portal, visible, rootRef]);
+
+  const portalStyle: React.CSSProperties | undefined = portal && triggerRect
+    ? side === 'bottom'
+      ? {
+          position: 'fixed',
+          top: triggerRect.bottom + sideOffset,
+          left: align === 'start' ? triggerRect.left : align === 'center' ? triggerRect.left + triggerRect.width / 2 : triggerRect.right,
+        }
+      : {
+          position: 'fixed',
+          bottom: (typeof window !== 'undefined' ? window.innerHeight : 0) - triggerRect.top + sideOffset,
+          left: align === 'start' ? triggerRect.left : align === 'center' ? triggerRect.left + triggerRect.width / 2 : triggerRect.right,
+        }
+    : undefined;
   const offsetStyle: React.CSSProperties =
-    side === 'bottom' ? { marginTop: sideOffset } : { marginBottom: sideOffset };
+    portal ? portalStyle ?? { visibility: 'hidden' } : side === 'bottom' ? { marginTop: sideOffset } : { marginBottom: sideOffset };
 
-  return (
+  const menu = (
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={contentRef}
           role="menu"
           aria-orientation="vertical"
           variants={staggered ? containerVariants : undefined}
-          initial={staggered ? 'hidden' : { opacity: 0, y: side === 'top' ? 6 : -6, scale: 0.97 }}
-          animate={staggered ? 'show' : { opacity: 1, y: 0, scale: 1 }}
-          exit={staggered ? 'exit' : { opacity: 0, y: side === 'top' ? 6 : -6, scale: 0.97 }}
+          initial={staggered ? 'hidden' : { opacity: 0, y: side === 'top' ? 6 : -6, scale: 0.97, x: portal ? alignmentX : 0 }}
+          animate={staggered ? 'show' : { opacity: 1, y: 0, scale: 1, x: portal ? alignmentX : 0 }}
+          exit={staggered ? 'exit' : { opacity: 0, y: side === 'top' ? 6 : -6, scale: 0.97, x: portal ? alignmentX : 0 }}
           transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           onPointerDown={(e) => e.stopPropagation()}
           style={offsetStyle}
           className={cn(
-            'absolute z-50 overflow-hidden rounded-xl border border-border text-popover-foreground shadow-xl',
-            'bg-white dark:bg-[#1a1814] backdrop-blur-none',
+            'site-card-surface z-50 overflow-hidden rounded-xl border border-border text-popover-foreground shadow-xl',
+            'backdrop-blur-none',
+            'max-w-[calc(100vw-1rem)]',
             'p-1.5',
             sizeMap[size],
-            sideClass,
-            alignClass,
+            portal ? 'fixed max-h-[calc(100dvh-1rem)] overflow-y-auto' : 'absolute',
+            !portal && sideClass,
+            !portal && alignClass,
             className
           )}
         >
@@ -253,6 +303,8 @@ export function DropdownContent({
       )}
     </AnimatePresence>
   );
+
+  return portal && typeof document !== 'undefined' ? createPortal(menu, document.body) : menu;
 }
 
 interface DropdownItemProps
@@ -391,7 +443,7 @@ interface DropdownAccountCardProps {
 
 export function DropdownAccountCard({ name, email, avatar, role }: DropdownAccountCardProps) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
+    <div className="site-card-surface flex items-center gap-3 rounded-xl p-3">
       <div className="shrink-0">{avatar}</div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-foreground">{name}</p>

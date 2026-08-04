@@ -137,10 +137,12 @@ export function Donations() {
                 size="sm"
                 onClick={() =>
                   downloadCsv('donations.csv', [
-                    ['Donor', 'Amount', 'Date'],
+                    ['Donor', 'Amount', 'Payment method', 'Transaction ID', 'Date'],
                     ...donations.map((d) => [
                       d.is_anonymous ? 'Anonymous' : d.donor_name,
                       d.amount,
+                      d.payment_method ?? '',
+                      d.transaction_id ?? '',
                       new Date(d.created_at).toISOString()
                     ])
                   ])
@@ -158,6 +160,7 @@ export function Donations() {
                 <TableRow>
                   <TableHead>দাতা</TableHead>
                   <TableHead>পরিমাণ</TableHead>
+                  <TableHead>পেমেন্ট</TableHead>
                   <TableHead>তারিখ</TableHead>
                 </TableRow>
               </TableHeader>
@@ -176,6 +179,15 @@ export function Donations() {
                       </span>
                     </TableCell>
                     <TableCell className="font-mono font-medium">{formatMoney(d.amount)}</TableCell>
+                    <TableCell className="text-xs">
+                      {d.payment_method && d.transaction_id ? (
+                        <span className="font-mono">
+                          {d.payment_method === 'bkash' ? 'বিকাশ' : 'নগদ'} · {d.transaction_id}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{relativeTime(d.created_at)}</TableCell>
                   </TableRow>
                 ))}

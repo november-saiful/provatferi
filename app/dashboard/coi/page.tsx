@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Seo } from '@/components/seo';
 import { PageHeader } from '@/components/ui/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -25,6 +26,7 @@ const CourseInsights = dynamic(
 export default function DashboardInsightsPage() {
   return (
     <div className="space-y-5">
+      <Seo title="কোর্স বিশ্লেষণ" />
       <PageHeader size="md" title="কোর্স বিশ্লেষণ" description="উপস্থিতি ও সমাপ্তির ভিজ্যুয়াল বিশ্লেষণ।" />
       <CourseInsights />
     </div>

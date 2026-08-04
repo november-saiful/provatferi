@@ -124,7 +124,8 @@ export function renderMarkdown(src: string): string {
       .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
       .replace(
         /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
-        '<a href="$2" target="_blank" rel="noreferrer" class="text-primary underline">$1</a>'
+        (_, label, url) =>
+          `<a href="${url.replace(/["']/g, '')}" target="_blank" rel="noreferrer" class="text-primary underline">${label}</a>`
       );
 
   const lines = esc.split(/\r?\n/);

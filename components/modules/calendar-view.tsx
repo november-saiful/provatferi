@@ -174,7 +174,7 @@ export function CalendarView() {
         </StaggerItem>
       )}
 
-      <StaggerItem className="rounded-xl2 border border-border bg-card p-3">
+      <StaggerItem className="min-w-0 rounded-xl2 border border-border bg-card p-2 sm:p-3">
         <DndProvider backend={HTML5Backend}>
           <DragAndDropCalendar
             localizer={localizer}

@@ -11,12 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { PaymentSection } from '@/components/forms/payment-section';
 import { useQueryClient } from '@tanstack/react-query';
+import type { PaymentMethodId } from '@/lib/constants';
 
 const schema = z.object({
   donor_name: z.string().min(1, 'আপনার নাম লিখুন').optional(),
   donor_email: z.string().email('সঠিক ইমেইল দিন').optional().or(z.literal('')),
   amount: z.coerce.number().min(1, 'অনুদানের পরিমাণ লিখুন'),
+  payment_method: z.enum(['bkash', 'nagad'], { required_error: 'পেমেন্ট মাধ্যম বেছে নিন' }),
+  transaction_id: z.string().min(6, 'সঠিক ট্রানজেকশন আইডি দিন'),
   message: z.string().optional()
 });
 
@@ -25,15 +29,23 @@ type FormValues = z.infer<typeof schema>;
 export function DonationForm() {
   const qc = useQueryClient();
   const [anonymous, setAnonymous] = React.useState(false);
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethodId | ''>('');
+  const [transactionId, setTransactionId] = React.useState('');
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { donor_name: '', donor_email: '', amount: undefined, message: '' }
+    defaultValues: { donor_name: '', donor_email: '', amount: undefined, payment_method: undefined, transaction_id: '', message: '' }
   });
+
+  const handleMethodChange = (m: PaymentMethodId) => {
+    setPaymentMethod(m);
+    setValue('payment_method', m, { shouldValidate: true });
+  };
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -43,11 +55,15 @@ export function DonationForm() {
         amount: values.amount,
         message: values.message || null,
         is_anonymous: anonymous,
-        show_on_board: !anonymous
+        show_on_board: !anonymous,
+        payment_method: values.payment_method,
+        transaction_id: values.transaction_id
       });
       if (error) throw error;
       toast.success('আপনার অনুদানের জন্য ধন্যবাদ!');
-      reset({ donor_name: '', donor_email: '', amount: undefined, message: '' });
+      setPaymentMethod('');
+      setTransactionId('');
+      reset({ donor_name: '', donor_email: '', amount: undefined, payment_method: undefined, transaction_id: '', message: '' });
       qc.invalidateQueries({ queryKey: ['donor-board'] });
       qc.invalidateQueries({ queryKey: ['donations'] });
     } catch (err) {
@@ -78,6 +94,18 @@ export function DonationForm() {
         <Input id="d-amount" type="number" min="1" step="1" {...register('amount')} placeholder="500" />
         {errors.amount && <p className="text-xs text-warmred-500">{errors.amount.message}</p>}
       </div>
+      <PaymentSection
+        method={paymentMethod}
+        onMethodChange={handleMethodChange}
+        transactionId={transactionId}
+        onTransactionIdChange={(v) => {
+          setTransactionId(v);
+          // shouldTouch only — the min(6) error must not appear while typing.
+          setValue('transaction_id', v, { shouldTouch: true });
+        }}
+        methodError={errors.payment_method?.message}
+        transactionIdError={errors.transaction_id?.message}
+      />
       <div className="space-y-2">
         <Label htmlFor="d-message">বার্তা (ঐচ্ছিক)</Label>
         <Textarea id="d-message" rows={3} {...register('message')} placeholder="সমর্থনের একটি ছোট নোট…" />
@@ -86,7 +114,7 @@ export function DonationForm() {
         {isSubmitting ? 'জমা হচ্ছে…' : 'অনুদান করুন'}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        এটি আপনার অঙ্গীকার রেকর্ড করে। পেমেন্ট প্রক্রিয়াকরণ পরে যোগ করা হবে।
+        Send Money সম্পন্ন করে উপরের ট্রানজেকশন আইডি দিন — আপনার অনুদান নিশ্চিত হবে।
       </p>
     </form>
   );

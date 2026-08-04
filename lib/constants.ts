@@ -106,5 +106,17 @@ export const ACTION_LABELS: Record<string, string> = {
   delete: 'মুছুন'
 };
 
-export const SITE_NAME = 'Provatferi';
+export const SITE_NAME = 'প্রভাতফেরী';
 export const RECRUITMENT_URL = 'https://recruitment.provatferi2009.workers.dev/';
+
+// Send-money wallet numbers shown on the donation/sponsor forms
+// (see 00020_payment_fields.sql).
+export const PAYMENT_METHODS: Record<
+  'bkash' | 'nagad',
+  { label: string; number: string }
+> = {
+  bkash: { label: 'বিকাশ (bKash)', number: '01407604000' },
+  nagad: { label: 'নগদ (Nagad)', number: '01839858853' }
+};
+
+export type PaymentMethodId = keyof typeof PAYMENT_METHODS;
