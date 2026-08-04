@@ -17,6 +17,7 @@ import {
   ChevronRight,
   type LucideIcon
 } from 'lucide-react';
+import { GoogleButton } from '@/components/auth/google-button';
 import { useAuthStore } from '@/lib/auth-store';
 import { ROLE_NAMES } from '@/lib/permissions';
 import { SITE_NAME } from '@/lib/constants';
@@ -325,9 +326,9 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
         ) : (
           <>
             <DropdownLabel>স্বাগতম</DropdownLabel>
-            <DropdownItem icon={<Sparkles className="h-4 w-4 text-gold-500" />} href="/login">
-              Google দিয়ে সাইন ইন
-            </DropdownItem>
+            <div className="px-1 pb-2">
+              <GoogleButton label="Google দিয়ে সাইন ইন" />
+            </div>
             <DropdownSeparator />
             <DropdownLabel>থিম</DropdownLabel>
             <ThemePicker current={currentTheme} onSet={handleSetTheme} />

@@ -67,7 +67,7 @@ export default function LandingPage() {
             <motion.div {...heroSection} className="flex justify-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
                 <Sparkles className="h-4 w-4 text-gold-400" />
-                <span className="text-white/90">সংগীত ও সংস্কৃতির উৎসব</span>
+                <span className="text-white/90"> শিকড়ের সন্ধানে দিনবদলের  আহ্বানে</span>
               </span>
             </motion.div>
             <motion.h1
@@ -84,7 +84,7 @@ export default function LandingPage() {
               {...heroSection}
               transition={{ duration: 0.7, delay: 0.12, ease: EASE }}
             >
-              সংগীত, কোর্স ও কমিউনিটির আবাস। আমাদের ইভেন্টগুলো দেখুন, কোর্স অনুসরণ করুন এবং ক্লাবের সাথে যুক্ত থাকুন।
+              বাঙালি সঙ্গীত, জীবনধারা ও সংস্কৃতির অঙ্গীকার <br/> আমাদের কোর্স ও ইভেন্টগুলো জানতে সংযুক্ত থাকুন
             </motion.p>
             <motion.div
               className="mt-10 flex justify-center"
