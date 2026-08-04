@@ -328,8 +328,8 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
             <DropdownItem icon={<User className="h-4 w-4" />} href="/login">
               সাইন ইন করুন
             </DropdownItem>
-            <DropdownItem icon={<Sparkles className="h-4 w-4" />} href="/register">
-              অ্যাকাউন্ট তৈরি করুন
+            <DropdownItem icon={<Sparkles className="h-4 w-4" />} href="/login">
+              সাইন ইন করুন
             </DropdownItem>
             <DropdownSeparator />
             <DropdownLabel>থিম</DropdownLabel>
