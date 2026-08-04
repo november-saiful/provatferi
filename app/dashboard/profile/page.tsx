@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/ui/empty-state';
+
 import { PageHeader } from '@/components/ui/page-header';
 import { Seo } from '@/components/seo';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
@@ -65,66 +65,40 @@ function Field({ id, label, icon: Icon, error, children, className }: FieldProps
 export default function ProfilePage() {
   const router = useRouter();
   const qc = useQueryClient();
-  const { user, refreshProfile } = useAuthStore();
+  const { user, profile, refreshProfile, loading: authLoading } = useAuthStore();
   const canManageAvatar = true; // All users can manage their profile picture
-  const [profile, setProfile] = React.useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [authChecked, setAuthChecked] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  // Storage paths of old avatars to delete AFTER the DB update succeeds, so a
-  // remove/replace without saving never leaves avatar_url pointing at a gone file.
   const [pendingDeletePaths, setPendingDeletePaths] = React.useState<string[]>([]);
 
-  // Form state
-  const [fullName, setFullName] = React.useState('');
-  const [phone, setPhone] = React.useState('');
-  const [academicSession, setAcademicSession] = React.useState('');
-  const [department, setDepartment] = React.useState('');
-  const [hallName, setHallName] = React.useState('');
-  const [regId, setRegId] = React.useState('');
-  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(null);
+  // Form state — initialized from auth store (already loaded by AuthProvider)
+  const [fullName, setFullName] = React.useState(profile?.full_name ?? '');
+  const [phone, setPhone] = React.useState(profile?.phone ?? '');
+  const [academicSession, setAcademicSession] = React.useState(profile?.academic_session ?? '');
+  const [department, setDepartment] = React.useState(profile?.department ?? '');
+  const [hallName, setHallName] = React.useState(profile?.hall_name ?? '');
+  const [regId, setRegId] = React.useState(profile?.reg_id ?? '');
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatar_url ?? null);
+
+  // Sync form state when auth store profile changes (e.g. after save)
+  React.useEffect(() => {
+    if (!profile) return;
+    setFullName(profile.full_name ?? '');
+    setPhone(profile.phone ?? '');
+    setAcademicSession(profile.academic_session ?? '');
+    setDepartment(profile.department ?? '');
+    setHallName(profile.hall_name ?? '');
+    setRegId(profile.reg_id ?? '');
+    setAvatarUrl(profile.avatar_url ?? null);
+  }, [profile?.id]); // only re-sync when profile ID changes (fresh login)
 
   React.useEffect(() => {
-    setAuthChecked(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (!authChecked) return;
-    if (!user) {
+    if (!authLoading && !user) {
       router.push('/login');
-      return;
     }
-
-    const fetchProfile = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        toast.error('প্রোফাইল লোড করা যায়নি');
-        return;
-      }
-
-      if (data) {
-        setProfile(data as Profile);
-        setFullName(data.full_name ?? '');
-        setPhone(data.phone ?? '');
-        setAcademicSession(data.academic_session ?? '');
-        setDepartment(data.department ?? '');
-        setHallName(data.hall_name ?? '');
-        setRegId(data.reg_id ?? '');
-        setAvatarUrl(data.avatar_url);
-      }
-      setIsLoading(false);
-    };
-
-    fetchProfile();
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -271,17 +245,13 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || !profile) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-96 w-full" />
       </div>
     );
-  }
-
-  if (!profile) {
-    return <EmptyState title="প্রোফাইল পাওয়া যায়নি" description="আবার চেষ্টা করুন।" />;
   }
 
   return (
