@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     siteName: 'প্রভাতফেরী',
     images: [
       {
-        url: '/logo.png',
-        width: 512,
-        height: 512,
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
         alt: 'প্রভাতফেরী',
       },
     ],
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'প্রভাতফেরী',
     description: 'ঢাকা বিশ্ববিদ্যালয় প্রভাতফেরী সাংস্কৃতিক সংসদ',
-    images: ['/logo.png'],
+    images: ['/og-image.png'],
   },
   icons: {
     icon: [
