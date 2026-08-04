@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ShieldX } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
+import { ProfileCompletionGate } from '@/components/auth/profile-completion-gate';
 import { useAuthStore } from '@/lib/auth-store';
 import { Button } from '@/components/ui/button';
 
@@ -49,7 +50,9 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGate>
-      <DashboardShell>{children}</DashboardShell>
+      <ProfileCompletionGate>
+        <DashboardShell>{children}</DashboardShell>
+      </ProfileCompletionGate>
     </AuthGate>
   );
 }

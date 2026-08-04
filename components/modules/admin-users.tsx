@@ -69,6 +69,9 @@ export function AdminUsers() {
       });
   }, [profiles, query, roleFilter, sortOrder]);
 
+  const isRoot = myProfile?.role_id === 'root';
+  const isPresident = myProfile?.role_id === 'pr';
+
   const changeRole = async (userId: string, roleId: string) => {
     if (userId === user?.id) {
       toast.error('আপনি নিজের ভূমিকা পরিবর্তন করতে পারবেন না');
@@ -79,13 +82,14 @@ export function AdminUsers() {
       toast.error('রুট ভূমিকা শুধুমাত্র Supabase SQL দিয়ে নিয়োগ করা যায়');
       return;
     }
-    // Root cannot be changed to another role from the UI
+    // Only root can change root user's role
     const targetProfile = profiles?.find((p) => p.id === userId);
-    if (targetProfile?.role_id === 'root') {
-      toast.error('রুট ব্যবহারকারীর ভূমিকা পরিবর্তন করা যাবে না');
+    if (targetProfile?.role_id === 'root' && !isRoot) {
+      toast.error('শুধুমাত্র রুট ব্যবহারকারীর ভূমিকা পরিবর্তন করতে পারবেন');
       return;
     }
-    if (roleId === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root') {
+    // Only root and president can assign admin role
+    if (roleId === 'admin' && !isRoot && !isPresident) {
       toast.error('শুধুমাত্র সভাপতি বা রুট অ্যাডমিন নিয়োগ দিতে পারবেন');
       return;
     }
@@ -256,27 +260,28 @@ export function AdminUsers() {
                             value={p.role_id}
                             onChange={(e) => changeRole(p.id, e.target.value)}
                             className="h-8 w-40 text-xs"
-                            disabled={p.id === user?.id}
+                            disabled={p.id === user?.id || (p.role_id === 'root' && !isRoot)}
                           >
                             {roles?.map((r) => (
                               <option
                                 key={r.id}
                                 value={r.id}
                                 disabled={
-                                  r.id === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root' && p.role_id !== 'admin'
+                                  (r.id === 'admin' && !isRoot && !isPresident && p.role_id !== 'admin') ||
+                                  (r.id === 'root') // Root role can only be assigned via SQL
                                 }
                               >
                                 {r.name}
-                                {r.id === 'admin' && myProfile?.role_id !== 'pr' && myProfile?.role_id !== 'root' ? ' (শুধু সভাপতি/রুট)' : ''}
+                                {r.id === 'admin' && !isRoot && !isPresident ? ' (শুধু সভাপতি/রুট)' : ''}
                               </option>
                             ))}
                           </Select>
                           <Button
                             variant={p.is_active ? 'destructive' : 'outline'}
                             size="sm"
-                            disabled={p.id === user?.id || p.role_id === 'root'}
+                            disabled={p.id === user?.id || (p.role_id === 'root' && !isRoot) || (p.role_id === 'pr' && !isRoot && !isPresident)}
                             onClick={() => setBanTarget(p)}
-                            title={p.role_id === 'root' ? 'রুট ব্যবহারকারীকে ব্যান করা যাবে না' : p.is_active ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
+                            title={p.role_id === 'root' && !isRoot ? 'শুধুমাত্র রুট ব্যবহারকারীকে ব্যান করা যাবে না' : p.role_id === 'pr' && !isRoot && !isPresident ? 'শুধুমাত্র রুট সভাপতিকে ব্যান করতে পারবেন' : p.is_active ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
                           >
                             {p.is_active ? <Ban className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             <span className="hidden lg:inline">{p.is_active ? 'ব্যান' : 'সক্রিয়'}</span>
@@ -285,9 +290,9 @@ export function AdminUsers() {
                             variant="ghost"
                             size="sm"
                             className="text-warmred-500 hover:bg-warmred-50 hover:text-warmred-600 dark:hover:bg-warmred-900/30"
-                            disabled={p.id === user?.id || p.role_id === 'root'}
+                            disabled={p.id === user?.id || (p.role_id === 'root' && !isRoot) || (p.role_id === 'pr' && !isRoot && !isPresident)}
                             onClick={() => setRemoveTarget(p)}
-                            title={p.role_id === 'root' ? 'রুট ব্যবহারকারীকে মুছে ফেলা যাবে না' : 'ব্যবহারকারী মুছে ফেলুন'}
+                            title={p.role_id === 'root' && !isRoot ? 'শুধুমাত্র রুট ব্যবহারকারীকে মুছে ফেলা যাবে না' : p.role_id === 'pr' && !isRoot && !isPresident ? 'শুধুমাত্র রুট সভাপতিকে মুছে ফেলতে পারবেন' : 'ব্যবহারকারী মুছে ফেলুন'}
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="hidden lg:inline">মুছুন</span>

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
-import { useCommitteeMembers, useAppConfig } from '@/lib/queries';
+import { useCommitteeMembers } from '@/lib/queries';
 import { ROLE_NAMES, isOrganizationRole } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,15 +24,18 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 import type { CommitteeMember } from '@/lib/types';
 
-const FALLBACK_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'contact@provatferi.org';
-const FALLBACK_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '';
+const FALLBACK_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'provatferi2009@gmail.com';
+const FALLBACK_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '+880 1839-858853';
+const MAP_URL = process.env.NEXT_PUBLIC_MAP_URL || 'https://maps.app.goo.gl/XWfzeC1RScAnpvKQ9';
 
 function phoneHref(phone: string) {
   return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }
 
 function usablePhone(phone: string | null | undefined) {
-  return !!phone && phone.replace(/\D/g, '').length >= 7;
+  if (!phone) return false;
+  const digits = phone.replace(/\D/g, '');
+  return digits.length >= 7;
 }
 
 function memberRole(member: CommitteeMember) {
@@ -139,12 +142,11 @@ function MemberCard({ member }: { member: CommitteeMember }) {
 
 export default function ContactPage() {
   const { data: members, isLoading, isError } = useCommitteeMembers();
-  const { data: email } = useAppConfig('contact_email');
-  const { data: phone } = useAppConfig('contact_phone');
   const [query, setQuery] = React.useState('');
 
-  const officeEmail = email || FALLBACK_EMAIL;
-  const officePhone = phone || FALLBACK_PHONE;
+  // Use env variables directly — database app_config may have stale values
+  const officeEmail = FALLBACK_EMAIL;
+  const officePhone = FALLBACK_PHONE;
 
   const visibleMembers = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -260,14 +262,14 @@ export default function ContactPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="card-hover">
+            <Card className="card-hover group cursor-pointer" onClick={() => window.open(MAP_URL, '_blank', 'noreferrer')}>
               <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">ক্লাব হাউস</p>
-                  <p className="mt-1 truncate text-sm font-semibold">মূল ক্যাম্পাস</p>
+                  <p className="mt-1 truncate text-sm font-semibold group-hover:text-primary group-hover:underline">মূল ক্যাম্পাস — ম্যাপে দেখুন</p>
                 </div>
               </CardContent>
             </Card>

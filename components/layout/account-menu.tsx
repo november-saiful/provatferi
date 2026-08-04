@@ -10,7 +10,7 @@ import {
   LogOut,
   Moon,
   Phone,
-  Sparkles,
+  UserPlus,
   Sun,
   User,
   Monitor,
@@ -291,11 +291,11 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
               যোগাযোগ
             </DropdownItem>
             <DropdownItem
-              icon={<Sparkles className="h-4 w-4 text-gold-500" />}
+              icon={<UserPlus className="h-4 w-4 text-gold-500" />}
               href="https://recruitment.provatferi2009.workers.dev/"
               trailing={<ChevronRight className="h-3.5 w-3.5" />}
             >
-              নতুন নিয়োগ দেখুন
+              রিক্রুটমেন্ট
             </DropdownItem>
 
             <DropdownSeparator />

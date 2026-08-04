@@ -9,9 +9,10 @@ import {
   Bell,
   Calendar,
   BarChart3,
-  Sparkles,
+  UserPlus,
   Heart,
-  Star
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
@@ -121,7 +122,7 @@ export default function LandingPage() {
                 rel="noreferrer"
                 className="inline-flex h-12 items-center gap-2 rounded-xl border-2 border-gold-400/30 bg-gold-500/10 px-6 text-base font-semibold text-gold-300 transition-all duration-300 hover:bg-gold-500/20 hover:border-gold-400/50 hover:-translate-y-0.5"
               >
-                <Star className="h-4 w-4" /> নিয়োগ
+                <UserPlus className="h-4 w-4" /> রিক্রুটমেন্ট
               </a>
             </motion.div>
           </div>

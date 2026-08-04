@@ -17,10 +17,9 @@ import {
   Music4,
   BarChart3,
   ExternalLink,
-  LogIn,
   UserCog,
   Phone,
-  Sparkles,
+  UserPlus,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
@@ -97,7 +96,8 @@ const DASHBOARD_NAV: NavGroup[] = [
     id: 'admin',
     label: 'অ্যাডমিন',
     items: [
-      { href: '/dashboard/admin', label: 'নিয়ন্ত্রণ প্যানেল', icon: UserCog, module: 'admin' }
+      { href: '/dashboard/admin', label: 'কন্ট্রোল প্যানেল', icon: UserCog, module: 'admin' },
+      { href: '/dashboard/admin/roles', label: 'রোল সুপারভাইজ', icon: UserCog, module: 'admin' }
     ]
   }
 ];
@@ -231,10 +231,10 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
         <DropdownItem
           staggered
           href={RECRUITMENT_URL}
-          icon={<Sparkles className="h-4 w-4 text-gold-500" />}
+          icon={<UserPlus className="h-4 w-4 text-gold-500" />}
         >
           <span className="flex items-center gap-1.5">
-            নিয়োগ
+            রিক্রুটমেন্ট
             <ExternalLink className="h-3 w-3 opacity-60" />
           </span>
         </DropdownItem>
@@ -249,15 +249,7 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
           </>
         )}
 
-        {/* Sign in for visitors */}
-        {!authed && (
-          <>
-            <DropdownSeparator staggered />
-            <DropdownItem staggered href="/login" icon={<LogIn className="h-4 w-4" />}>
-              সাইন ইন
-            </DropdownItem>
-          </>
-        )}
+
       </DropdownContent>
     </Dropdown>
   );

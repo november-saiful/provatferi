@@ -204,7 +204,7 @@ export default function DashboardHome() {
             <Users className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-base font-bold sm:text-lg">নিয়োগ চলছে</p>
+            <p className="text-base font-bold sm:text-lg">রিক্রুটমেন্ট</p>
             <p className="text-xs text-white/75 sm:text-sm">দলে যোগ দিন — আবেদন গ্রহণ করা হচ্ছে।</p>
           </div>
           <ArrowRight className="h-5 w-5 shrink-0 transition-transform duration-400 group-hover:translate-x-1.5" />
