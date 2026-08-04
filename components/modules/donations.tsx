@@ -1,9 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase/client';
 import { Heart, UserRound } from 'lucide-react';
-import { useDonorBoard, useDonations } from '@/lib/queries';
+import { useDonorBoard, useDonations, useRealtimeInvalidate } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
+import { canManageDonations } from '@/lib/permissions';
 import { formatMoney, formatDate, relativeTime, downloadCsv, toBengaliDigits } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
@@ -11,17 +15,49 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { DonationForm } from '@/components/forms/donation-form';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function Donations() {
-  const { user } = useAuthStore();
+  const qc = useQueryClient();
+  const { user, role } = useAuthStore();
+  const canManage = canManageDonations(role);
   const [tab, setTab] = React.useState('donate');
   const { data: board, isLoading } = useDonorBoard();
   const { data: donations, isLoading: loadingDonations } = useDonations(!!user);
+  useRealtimeInvalidate('donations', [['donations']]);
 
   const signedIn = !!user;
+
+  const toggleShowOnBoard = async (id: string, showOnBoard: boolean) => {
+    const { error } = await supabase
+      .from('donations')
+      .update({ show_on_board: showOnBoard })
+      .eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(showOnBoard ? 'দাতালিতে যোগ করা হয়েছে' : 'দাতালিতে থেকে সরানো হয়েছে');
+      qc.invalidateQueries({ queryKey: ['donations'] });
+      qc.invalidateQueries({ queryKey: ['donor-board'] });
+    }
+  };
+
+  const deleteDonation = async (id: string) => {
+    if (!confirm('আপনি কি নিশ্চিত এই অনুদান মুছে ফেলতে চান?')) return;
+    const { error } = await supabase.from('donations').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('অনুদান মুছে ফেলা হয়েছে');
+      qc.invalidateQueries({ queryKey: ['donations'] });
+      qc.invalidateQueries({ queryKey: ['donor-board'] });
+    }
+  };
+
   const stats = React.useMemo(() => {
     if (!donations || donations.length === 0) return null;
     const total = donations.reduce((s, d) => s + d.amount, 0);
@@ -43,7 +79,8 @@ export function Donations() {
           items={[
             { value: 'donate', label: 'অনুদান দিন' },
             { value: 'wall', label: 'দাতাদের তালিকা' },
-            ...(signedIn ? [{ value: 'records', label: 'পরিমাণ (সদস্য)' }] : [])
+            ...(signedIn ? [{ value: 'records', label: 'পরিমাণ (সদস্য)' }] : []),
+            ...(canManage ? [{ value: 'manage', label: 'ব্যবস্থাপনা' }] : [])
           ]}
         />
       </StaggerItem>
@@ -194,6 +231,113 @@ export function Donations() {
               </TableBody>
             </Table>
             </StaggerItem>
+          )}
+        </div>
+      )}
+
+      {tab === 'manage' && canManage && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">অনুদান ব্যবস্থাপনা</h3>
+            {donations && donations.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  downloadCsv('donations-manage.csv', [
+                    ['Donor', 'Email', 'Amount', 'Message', 'Show on Board', 'Anonymous', 'Payment', 'Date'],
+                    ...donations.map((d) => [
+                      d.donor_name,
+                      d.donor_email ?? '',
+                      d.amount,
+                      d.message ?? '',
+                      d.show_on_board ? 'Yes' : 'No',
+                      d.is_anonymous ? 'Yes' : 'No',
+                      d.payment_method ?? '',
+                      new Date(d.created_at).toISOString()
+                    ])
+                  ])
+                }
+              >
+                <Download /> CSV এক্সপোর্ট
+              </Button>
+            )}
+          </div>
+          {loadingDonations && <Skeleton className="h-40 w-full" />}
+          {!loadingDonations && donations && donations.length === 0 && (
+            <EmptyState title="এখনো কোনো অনুদান নেই" description="অনুদানগুলো এখানে দেখা যাবে।" />
+          )}
+          {!loadingDonations && donations && donations.length > 0 && (
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>দাতা</TableHead>
+                      <TableHead>পরিমাণ</TableHead>
+                      <TableHead>বার্তা</TableHead>
+                      <TableHead>পেমেন্ট</TableHead>
+                      <TableHead>পাবলিক দেওয়াল</TableHead>
+                      <TableHead>তারিখ</TableHead>
+                      <TableHead className="text-right">কার্যক্রম</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {donations.map((d) => (
+                      <TableRow key={d.id}>
+                        <TableCell>
+                          <div>
+                            <span className="font-medium">
+                              {d.is_anonymous ? (
+                                <span className="flex items-center gap-1">
+                                  <UserRound className="h-4 w-4 text-muted-foreground" /> বেনামী
+                                </span>
+                              ) : (
+                                d.donor_name
+                              )}
+                            </span>
+                            {d.donor_email && (
+                              <span className="block text-xs text-muted-foreground">{d.donor_email}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono font-medium">{formatMoney(d.amount)}</TableCell>
+                        <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
+                          {d.message ?? '—'}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {d.payment_method && d.transaction_id ? (
+                            <span className="font-mono">
+                              {d.payment_method === 'bkash' ? 'বিকাশ' : 'নগদ'} · {d.transaction_id}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={d.show_on_board}
+                            onCheckedChange={(checked) => toggleShowOnBoard(d.id, checked)}
+                            className="scale-75"
+                          />
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{formatDate(d.created_at)}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => deleteDonation(d.id)}
+                          >
+                            মুছুন
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

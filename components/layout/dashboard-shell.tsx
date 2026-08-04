@@ -88,7 +88,7 @@ const DASHBOARD_NAV: NavGroup[] = [
     id: 'community',
     label: 'কমিউনিটি',
     items: [
-      { href: '/dashboard/cia', label: 'উপস্থিতি', icon: Music4, module: 'cia' },
+      { href: '/dashboard/cia', label: 'হাজিরা', icon: Music4, module: 'cia' },
       { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, module: 'coi' }
     ]
   },
@@ -105,7 +105,7 @@ const DASHBOARD_NAV: NavGroup[] = [
 const PUBLIC_NAV: NavGroup[] = [
   {
     id: 'browse',
-    label: '',
+    label: 'ব্রাউজ',
     items: [
       { href: '/', label: 'হোম', icon: LayoutDashboard },
       { href: '/events', label: 'ইভেন্ট', icon: CalendarDays },
@@ -120,6 +120,16 @@ const PUBLIC_NAV: NavGroup[] = [
     ]
   }
 ];
+
+/**
+ * Returns the appropriate navigation groups based on auth state.
+ * When logged in: shows dashboard navigation (filtered by permissions).
+ * When logged out: shows public navigation.
+ */
+function useNavGroups(): NavGroup[] {
+  const authed = !!useAuthStore().user;
+  return authed ? DASHBOARD_NAV : PUBLIC_NAV;
+}
 
 function isItemActive(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
@@ -183,27 +193,6 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
         staggered
         className="max-h-[calc(100vh-5rem)] w-72 overflow-y-auto"
       >
-        {/* Quick-create links for signed-in users */}
-        {authed && (
-          <div className="px-1 pb-1">
-            <DropdownLabel staggered>দ্রুত তৈরি</DropdownLabel>
-            <div className="grid grid-cols-2 gap-1">
-              <DropdownItem href="/dashboard/evf?new=1" icon={<CalendarDays className="h-4 w-4" />} className="text-xs">
-                ইভেন্ট
-              </DropdownItem>
-              <DropdownItem href="/dashboard/ntb?new=1" icon={<Bell className="h-4 w-4" />} className="text-xs">
-                নোটিশ
-              </DropdownItem>
-              <DropdownItem href="/dashboard/glr?new=1" icon={<Images className="h-4 w-4" />} className="text-xs">
-                গ্যালারি
-              </DropdownItem>
-              <DropdownItem href="/dashboard/xpm?new=1" icon={<Receipt className="h-4 w-4" />} className="text-xs">
-                ব্যয়
-              </DropdownItem>
-            </div>
-          </div>
-        )}
-
         {filteredGroups.map((group, gIdx) => (
           <React.Fragment key={group.id}>
             {gIdx > 0 && <DropdownSeparator staggered />}
@@ -306,16 +295,16 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
 /* ──────────────── App Shell ──────────────── */
 
 interface AppShellProps {
-  groups: NavGroup[];
   footerLabel: string;
   mainClassName?: string;
   children: React.ReactNode;
 }
 
-function AppShell({ groups, footerLabel, mainClassName, children }: AppShellProps) {
+function AppShell({ footerLabel, mainClassName, children }: AppShellProps) {
   const pathname = usePathname();
   const { role } = useAuthStore();
   const authed = !!useAuthStore().user;
+  const groups = useNavGroups();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -332,10 +321,7 @@ function AppShell({ groups, footerLabel, mainClassName, children }: AppShellProp
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell
-      groups={DASHBOARD_NAV}
-      footerLabel={`${SITE_NAME} ড্যাশবোর্ড · কমিটির জন্য নির্মিত`}
-    >
+    <AppShell footerLabel={`${SITE_NAME} ড্যাশবোর্ড · কমিটির জন্য নির্মিত`}>
       {children}
     </AppShell>
   );
@@ -343,10 +329,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell
-      groups={PUBLIC_NAV}
-      footerLabel={`${SITE_NAME} · সংগীত, সংস্কৃতি ও কমিউনিটি`}
-    >
+    <AppShell footerLabel={`${SITE_NAME} · সংগীত, সংস্কৃতি ও কমিউনিটি`}>
       {children}
     </AppShell>
   );

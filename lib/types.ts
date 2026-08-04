@@ -317,6 +317,7 @@ export interface RoleExtraPermission {
   edit_expense: boolean;
   edit_budget: boolean;
   manage_sponsors: boolean;
+  manage_donations: boolean;
   manage_attendance: boolean;
   created_at: string;
   updated_at: string;

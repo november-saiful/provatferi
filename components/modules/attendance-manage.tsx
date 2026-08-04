@@ -81,7 +81,7 @@ export function AttendanceManage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(existing ? 'উপস্থিতি আপডেট হয়েছে' : 'উপস্থিতি রেকর্ড হয়েছে');
+      toast.success(existing ? 'হাজিরা আপডেট হয়েছে' : 'হাজিরা রেকর্ড হয়েছে');
       // Invalidate every attendance key so the public course view and the
       // course-insights charts refresh immediately (per spec scenario 5).
       qc.invalidateQueries({ queryKey: ['attendance'] });
@@ -152,7 +152,7 @@ export function AttendanceManage() {
         <StaggerItem>
           <Card>
             <CardHeader>
-              <CardTitle>দিন {toBengaliDigits(selectedDay)} — {existing ? 'উপস্থিতি আপডেট' : 'উপস্থিতি রেকর্ড'}</CardTitle>
+              <CardTitle>দিন {toBengaliDigits(selectedDay)} — {existing ? 'হাজিরা আপডেট' : 'হাজিরা রেকর্ড'}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -176,7 +176,7 @@ export function AttendanceManage() {
                   <Switch id="a-present" checked={present} onCheckedChange={setPresent} />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? 'সংরক্ষণ হচ্ছে…' : existing ? 'উপস্থিতি আপডেট' : 'উপস্থিতি রেকর্ড'}
+                  {isSubmitting ? 'সংরক্ষণ হচ্ছে…' : existing ? 'হাজিরা আপডেট' : 'হাজিরা রেকর্ড'}
                 </Button>
               </form>
 

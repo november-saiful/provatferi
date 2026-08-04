@@ -19,7 +19,7 @@ const MODULES: { id: string; label: string }[] = [
   { id: 'xpm', label: 'ব্যয়' },
   { id: 'bgm', label: 'বাজেট' },
   { id: 'rcd', label: 'রেকর্ড' },
-  { id: 'cia', label: 'উপস্থিতি' },
+  { id: 'cia', label: 'হাজিরা' },
   { id: 'coi', label: 'বিশ্লেষণ' },
   { id: 'admin', label: 'অ্যাডমিন' }
 ];

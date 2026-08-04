@@ -40,7 +40,7 @@ const MODULES: { id: ModuleId; label: string; icon: LucideIcon; description: str
   { id: 'xpm', label: 'ব্যয়', icon: Wallet, description: 'ব্যয় রেকর্ড' },
   { id: 'bgm', label: 'বাজেট', icon: Wallet, description: 'বাজেট বরাদ্দ' },
   { id: 'rcd', label: 'রেকর্ড', icon: Edit, description: 'অডিট লগ' },
-  { id: 'cia', label: 'উপস্থিতি', icon: Music, description: 'কোর্স উপস্থিতি' },
+  { id: 'cia', label: 'হাজিরা', icon: Music, description: 'কোর্স হাজিরা' },
   { id: 'coi', label: 'বিশ্লেষণ', icon: BarChart3, description: 'ডেটা বিশ্লেষণ' },
   { id: 'admin', label: 'অ্যাডমিন', icon: Settings, description: 'ব্যবহারকারী ব্যবস্থাপনা' }
 ];
@@ -50,7 +50,8 @@ const EXTRA_PERMISSIONS: { key: string; label: string; description: string }[] =
   { key: 'edit_expense', label: 'ব্যয় সম্পাদনা', description: 'ব্যয় রেকর্ড সম্পাদনা করতে পারবেন' },
   { key: 'edit_budget', label: 'বাজেট সম্পাদনা', description: 'বাজেট সম্পাদনা করতে পারবেন' },
   { key: 'manage_sponsors', label: 'স্পনসর ব্যবস্থাপনা', description: 'স্পনসর যোগ/সম্পাদনা করতে পারবেন' },
-  { key: 'manage_attendance', label: 'উপস্থিতি ব্যবস্থাপনা', description: 'কোর্স উপস্থিতি ব্যবস্থাপনা করতে পারবেন' }
+  { key: 'manage_donations', label: 'অনুদান ব্যবস্থাপনা', description: 'অনুদান অনুমোদন/মুছে ফেলা করতে পারবেন' },
+  { key: 'manage_attendance', label: 'হাজিরা ব্যবস্থাপনা', description: 'কোর্স হাজিরা ব্যবস্থাপনা করতে পারবেন' }
 ];
 
 export function RoleSupervise() {
@@ -95,6 +96,7 @@ export function RoleSupervise() {
         edit_expense: existingExtra?.edit_expense ?? false,
         edit_budget: existingExtra?.edit_budget ?? false,
         manage_sponsors: existingExtra?.manage_sponsors ?? false,
+        manage_donations: existingExtra?.manage_donations ?? false,
         manage_attendance: existingExtra?.manage_attendance ?? false
       });
 
@@ -130,6 +132,7 @@ export function RoleSupervise() {
       case 'edit_expense': return extra.edit_expense;
       case 'edit_budget': return extra.edit_budget;
       case 'manage_sponsors': return extra.manage_sponsors;
+      case 'manage_donations': return extra.manage_donations;
       case 'manage_attendance': return extra.manage_attendance;
       default: return false;
     }

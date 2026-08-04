@@ -55,7 +55,7 @@ const PRIMARY_TARGETS: NewTarget[] = [
   { href: '/dashboard/bgm?new=1', label: 'নতুন বাজেট', icon: Wallet, module: 'bgm', tone: 'sage' },
   { href: '/dashboard/xpm?new=1', label: 'নতুন ব্যয়', icon: Receipt, module: 'xpm', tone: 'warmred' },
   { href: '/dashboard/spn?new=1', label: 'নতুন স্পনসর', icon: Handshake, module: 'spn', tone: 'gold' },
-  { href: '/dashboard/cia?manage=1', label: 'কোর্স উপস্থিতি', icon: ListChecks, module: 'cia', tone: 'coffee' },
+  { href: '/dashboard/cia?manage=1', label: 'কোর্স হাজিরা', icon: ListChecks, module: 'cia', tone: 'coffee' },
   { href: '/dashboard/admin/users', label: 'সদস্য যোগ করুন', icon: Users, module: 'admin', tone: 'taupe' }
 ];
 

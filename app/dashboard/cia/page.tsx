@@ -15,15 +15,15 @@ export default function DashboardAttendancePage() {
 
   return (
     <div className="space-y-5">
-      <Seo title="কোর্স উপস্থিতি" />
+      <Seo title="কোর্স হাজিরা" />
       <PageHeader
         size="md"
-        title="কোর্স উপস্থিতি"
-        description="ছয়টি সংগীত কোর্সের উপস্থিতি ও অগ্রগতি।"
+        title="কোর্স হাজিরা"
+        description="ছয়টি সংগীত কোর্সের হাজিরা ও অগ্রগতি।"
       >
         {canManageAttendance(role) && (
           <Link href="/dashboard/cia/manage" className={cn(buttonVariants(), 'shrink-0')}>
-            <ClipboardEdit className="h-4 w-4" /> উপস্থিতি পূরণ করুন
+            <ClipboardEdit className="h-4 w-4" /> হাজিরা পূরণ করুন
           </Link>
         )}
       </PageHeader>

@@ -10,7 +10,7 @@ export default function CoursesPage() {
     <PublicShell>
       <Seo title="কোর্স" />
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader title="সংগীত কোর্স" description="ভায়োলিন, গিটার, উকুলেলে, কণ্ঠসংগীত ও বাঁশির ক্লাস উপস্থিতি।" />
+        <PageHeader title="সংগীত কোর্স" description="ভায়োলিন, গিটার, উকুলেলে, কণ্ঠসংগীত ও বাঁশির ক্লাস হাজিরা।" />
         <Courses />
       </div>
     </PublicShell>

@@ -29,7 +29,7 @@ export default function InsightsPage() {
     <PublicShell>
       <Seo title="কোর্স বিশ্লেষণ" />
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader title="কোর্স বিশ্লেষণ" description="কোর্স উপস্থিতি ও সমাপ্তির ভিজ্যুয়াল বিশ্লেষণ।" />
+        <PageHeader title="কোর্স বিশ্লেষণ" description="কোর্স হাজিরা ও সমাপ্তির ভিজ্যুয়াল বিশ্লেষণ।" />
         <CourseInsights />
       </div>
     </PublicShell>

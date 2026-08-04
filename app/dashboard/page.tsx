@@ -331,7 +331,7 @@ export default function DashboardHome() {
               { href: '/dashboard/xpm', label: 'ব্যয়', icon: Receipt, color: 'from-orange-400 to-orange-500', need: canRead(role, 'xpm') },
               { href: '/dashboard/bgm', label: 'বাজেট', icon: Wallet, color: 'from-sage-400 to-sage-500', need: canRead(role, 'bgm') },
               { href: '/dashboard/rcd', label: 'রেকর্ড', icon: History, color: 'from-indigo-400 to-indigo-500', need: canRead(role, 'rcd') },
-              { href: '/dashboard/cia', label: 'উপস্থিতি', icon: Music4, color: 'from-teal-400 to-teal-500' },
+              { href: '/dashboard/cia', label: 'হাজিরা', icon: Music4, color: 'from-teal-400 to-teal-500' },
               { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, color: 'from-violet-400 to-violet-500' }
             ] as { href: string; label: string; icon: typeof CalendarDays; color: string; need?: boolean }[]
           )

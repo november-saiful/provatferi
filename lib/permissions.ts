@@ -109,6 +109,10 @@ export function canManageSponsors(role: RoleId | null | undefined): boolean {
   return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'tr'].includes(role);
 }
 
+export function canManageDonations(role: RoleId | null | undefined): boolean {
+  return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'tr'].includes(role);
+}
+
 export function canManageAttendance(role: RoleId | null | undefined): boolean {
   return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'cc'].includes(role);
 }

@@ -157,7 +157,7 @@ export default function LandingPage() {
             {[
               { href: '/calendar', icon: Calendar, title: 'ক্লাব ক্যালেন্ডার', desc: 'সভা, ইভেন্ট ও রিহার্সাল এক জায়গায়।' },
               { href: '/notices', icon: Bell, title: 'নোটিশ বোর্ড', desc: 'অফিসিয়াল ঘোষণা ও আপডেট।' },
-              { href: '/insights', icon: BarChart3, title: 'কোর্স বিশ্লেষণ', desc: 'ছয়টি কোর্সের উপস্থিতির প্রবণতা।' }
+              { href: '/insights', icon: BarChart3, title: 'কোর্স বিশ্লেষণ', desc: 'ছয়টি কোর্সের হাজিরার প্রবণতা।' }
             ].map((c) => (
               <Reveal key={c.href}>
                 <Link

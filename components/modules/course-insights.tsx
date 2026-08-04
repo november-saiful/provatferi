@@ -105,13 +105,13 @@ export function CourseInsights() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">গড় উপস্থিতির হার</p>
+            <p className="text-sm text-muted-foreground">গড় হাজিরার হার</p>
             <p className="mt-1 text-3xl font-bold text-sage-600">{toBengaliDigits(avgRate.toFixed(0))}%</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground">সর্বাধিক উপস্থিতি</p>
+            <p className="text-sm text-muted-foreground">সর্বাধিক হাজিরা</p>
             <p className="mt-1 text-xl font-bold">{withData.length ? best.label : '—'}</p>
             {withData.length > 0 && <p className="text-xs text-muted-foreground">{toBengaliDigits(best.rate.toFixed(0))}%</p>}
           </CardContent>
@@ -148,8 +148,8 @@ export function CourseInsights() {
 
       <Card>
         <CardHeader>
-          <CardTitle>১৬ দিনের উপস্থিতির প্রবণতা</CardTitle>
-          <CardDescription>প্রতি কোর্সে দৈনিক উপস্থিতি (০ = অনুষ্ঠিত হয়নি বা অনুপস্থিত, ১ = উপস্থিত)</CardDescription>
+          <CardTitle>১৬ দিনের হাজিরার প্রবণতা</CardTitle>
+          <CardDescription>প্রতি কোর্সে দৈনিক হাজিরা (০ = অনুষ্ঠিত হয়নি বা অনুপস্থিত, ১ = উপস্থিত)</CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -170,7 +170,7 @@ export function CourseInsights() {
       <Card>
         <CardHeader>
           <CardTitle>কোর্স তুলনা</CardTitle>
-          <CardDescription>ছয়টি কোর্সের উপস্থিতির হার (০–১০০%)</CardDescription>
+          <CardDescription>ছয়টি কোর্সের হাজিরার হার (০–১০০%)</CardDescription>
         </CardHeader>
         <CardContent className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -178,14 +178,14 @@ export function CourseInsights() {
               <PolarGrid />
               <PolarAngleAxis dataKey="label" tick={{ fontSize: 12 }} />
               <Tooltip />
-              <Radar name="উপস্থিতির হার" dataKey="Rate" stroke="#93452A" fill="#93452A" fillOpacity={0.35} />
+              <Radar name="হাজিরার হার" dataKey="Rate" stroke="#93452A" fill="#93452A" fillOpacity={0.35} />
             </RadarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
       {totalHeld === 0 && (
-        <EmptyState title="এখনো কোনো উপস্থিতির তথ্য নেই" description="কোর্স কো-অর্ডিনেটর ক্লাস রেকর্ড করলে এখানে চার্ট দেখা যাবে।" />
+        <EmptyState title="এখনো কোনো হাজিরার তথ্য নেই" description="কোর্স কো-অর্ডিনেটর ক্লাস রেকর্ড করলে এখানে চার্ট দেখা যাবে।" />
       )}
     </Stagger>
   );
