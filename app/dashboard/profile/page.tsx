@@ -18,8 +18,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { PageHeader } from '@/components/ui/page-header';
 import { Seo } from '@/components/seo';
-import { Stagger, StaggerItem } from '@/components/ui/motion';
-import { NotificationPreferences } from '@/components/modules/notification-preferences';
+const NotificationPreferences = React.lazy(() =>
+  import('@/components/modules/notification-preferences').then((m) => ({ default: m.NotificationPreferences }))
+);
 import {
   User,
   Phone,
@@ -255,9 +256,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <Stagger className="space-y-6" gap={10}>
+    <div className="space-y-6">
       <Seo title="আমার প্রোফাইল" />
-      <StaggerItem>
+      <div>
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -272,9 +273,9 @@ export default function ProfilePage() {
             description="আপনার ব্যক্তিগত তথ্য দেখুন ও সম্পাদনা করুন"
           />
         </div>
-      </StaggerItem>
+      </div>
 
-      <StaggerItem>
+      <div>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar Section */}
           <div className="rounded-xl border border-border bg-card p-6">
@@ -450,11 +451,13 @@ export default function ProfilePage() {
             </Button>
           </div>
         </form>
-      </StaggerItem>
+      </div>
 
-      <StaggerItem>
-        <NotificationPreferences />
-      </StaggerItem>
-    </Stagger>
+      <div>
+        <React.Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted" />}>
+          <NotificationPreferences />
+        </React.Suspense>
+      </div>
+    </div>
   );
 }
