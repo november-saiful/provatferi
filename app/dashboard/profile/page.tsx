@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth-store';
-import { ROLE_NAMES, isCommitteeMember } from '@/lib/permissions';
+import { ROLE_NAMES } from '@/lib/permissions';
 import { formatDate, cn } from '@/lib/utils';
 import { cropAvatar } from '@/lib/upload';
 import { Button } from '@/components/ui/button';
@@ -65,8 +65,8 @@ function Field({ id, label, icon: Icon, error, children, className }: FieldProps
 export default function ProfilePage() {
   const router = useRouter();
   const qc = useQueryClient();
-  const { user, refreshProfile, role } = useAuthStore();
-  const canManageAvatar = isCommitteeMember(role);
+  const { user, refreshProfile } = useAuthStore();
+  const canManageAvatar = true; // All users can manage their profile picture
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [authChecked, setAuthChecked] = React.useState(false);
@@ -362,15 +362,9 @@ export default function ProfilePage() {
                     {profile.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
                   </Badge>
                 </div>
-                {canManageAvatar ? (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    জেপিজি/পিএনজি, সর্বোচ্চ ৫MB — আপলোডের পর ছবি কমিটির যোগাযোগ পাতায়ও দেখা যাবে।
-                  </p>
-                ) : (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    প্রোফাইল ছবি শুধুমাত্র কমিটি সদস্যরা যুক্ত করতে পারবেন।
-                  </p>
-                )}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  জেপিজি/পিএনজি, সর্বোচ্চ ৫MB — আপলোডের পর ছবি প্রোফাইলে দেখা যাবে।
+                </p>
               </div>
             </div>
           </div>

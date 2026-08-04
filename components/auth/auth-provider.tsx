@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/lib/auth-store';
-import { isCommitteeMember } from '@/lib/permissions';
+
 import type { Profile } from '@/lib/types';
 
 const COMPLETE_PATH = '/register/complete-profile';
@@ -19,7 +19,7 @@ function needsCompletion(p: Profile): boolean {
  *  - loads the profile into the store,
  *  - kicks users whose account was banned (is_active = false),
  *  - routes OAuth (Google) sign-ups without DU info to the completion form.
- *  - auto-saves Google profile picture for committee members.
+ *  - auto-saves Google profile picture for all users.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setUser = useAuthStore((s) => s.setUser);
@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * If the user signed in via Google and has no avatar yet, persist the
-   * Google profile picture URL — but only for committee members.
+   * Google profile picture URL.
    */
   const handleProfile = React.useCallback(
     async (profile: Profile | null, cancelled?: boolean) => {
@@ -143,59 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [useAuthStore.getState().user?.id]);
 
-  // ── Clear avatar on demotion ────────────────────────────────────────
-  // When a committee member is demoted to visitor/alumni, remove their
-  // avatar so non-committee users never have profile pictures stored.
-  React.useEffect(() => {
-    const profile = useAuthStore.getState().profile;
-    if (!profile) return;
-    if (isCommitteeMember(profile.role_id)) return; // still committee
-    if (!profile.avatar_url) return; // nothing to clear
 
-    // Suppress the Google avatar sync from re-adding it.
-    let cancelled = false;
-
-    (async () => {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ avatar_url: null })
-          .eq('id', profile.id);
-
-        if (cancelled) return;
-
-        // If the avatar was a Supabase storage file (not an external Google
-        // URL), delete it to free storage.
-        const url = profile.avatar_url ?? '';
-        const marker = '/object/public/profiles/';
-        const idx = url.indexOf(marker);
-        if (idx !== -1) {
-          const path = url.slice(idx + marker.length);
-          await supabase.storage.from('profiles').remove([path]);
-        }
-
-        const current = useAuthStore.getState().profile;
-        if (current && !cancelled) {
-          useAuthStore.getState().setProfile({ ...current, avatar_url: null });
-        }
-      } catch (err) {
-        console.warn('Avatar cleanup on demotion failed:', err);
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [profileRoleId]);
 
   // ── Google avatar sync ──────────────────────────────────────────────
-  // Runs independently of handleProfile so a role change (visitor →
-  // committee) still triggers the sync even though handledRef already
-  // fired for this profile.  Idempotent: skips if avatar_url is set or
-  // the user is not a committee member.
+  // Runs independently of handleProfile so a role change still triggers
+  // the sync even though handledRef already fired for this profile.
+  // Idempotent: skips if avatar_url is already set.
   React.useEffect(() => {
     const profile = useAuthStore.getState().profile;
     if (!profile) return;
     if (profile.avatar_url) return;            // already has an avatar
-    if (!isCommitteeMember(profile.role_id)) return; // non-committee
 
     let cancelled = false;
 
