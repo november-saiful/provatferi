@@ -23,7 +23,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
-import { canRead, canWrite, ROLE_NAMES } from '@/lib/permissions';
+import { canRead, canWrite, isCommitteeMember, ROLE_NAMES } from '@/lib/permissions';
 import type { ModuleId, RoleId } from '@/lib/types';
 import { RECRUITMENT_URL, SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -228,8 +228,8 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
           </span>
         </DropdownItem>
 
-        {/* Storage indicator */}
-        {authed && (
+        {/* Storage indicator — only for committee members and alumni */}
+        {authed && (isCommitteeMember(role) || role === 'alm') && (
           <>
             <DropdownSeparator staggered />
             <div className="px-1 pb-1">
