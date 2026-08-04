@@ -325,11 +325,8 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
         ) : (
           <>
             <DropdownLabel>স্বাগতম</DropdownLabel>
-            <DropdownItem icon={<User className="h-4 w-4" />} href="/login">
-              সাইন ইন করুন
-            </DropdownItem>
-            <DropdownItem icon={<Sparkles className="h-4 w-4" />} href="/login">
-              সাইন ইন করুন
+            <DropdownItem icon={<Sparkles className="h-4 w-4 text-gold-500" />} href="/login">
+              Google দিয়ে সাইন ইন
             </DropdownItem>
             <DropdownSeparator />
             <DropdownLabel>থিম</DropdownLabel>
