@@ -9,7 +9,7 @@ import {
   HelpCircle,
   LogOut,
   Moon,
-  Settings,
+  Phone,
   Sparkles,
   Sun,
   User,
@@ -284,10 +284,10 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
             <DropdownSeparator />
 
             <DropdownItem
-              icon={<Settings className="h-4 w-4" />}
-              onClick={() => router.push('/contact')}
+              icon={<Phone className="h-4 w-4" />}
+              href="/contact"
             >
-              অ্যাপ সেটিংস
+              যোগাযোগ
             </DropdownItem>
             <DropdownItem
               icon={<Sparkles className="h-4 w-4 text-gold-500" />}
