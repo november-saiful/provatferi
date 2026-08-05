@@ -79,24 +79,24 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
   return (
     <Stagger className="space-y-7">
       <StaggerItem>
-        <div className="notice-board-hero relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-coffee-900 via-coffee-800 to-taupe-800 p-6 text-white shadow-xl sm:p-8">
+        <div className="notice-board-hero relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-gradient-to-br from-coffee-900 via-coffee-800 to-taupe-800 p-4 sm:p-6 text-white shadow-xl sm:p-8">
           <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" aria-hidden="true" />
           <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-gold-400/20 blur-3xl" aria-hidden="true" />
-          <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="relative flex flex-col gap-4 sm:gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-2xl">
-              <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-gold-300">
+              <div className="mb-3 sm:mb-4 flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-gold-300">
                 <span className="notice-board-live-dot" aria-hidden="true" /> লাইভ নোটিশ বোর্ড
               </div>
-              <h2 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">দেয়ালে যা নতুন</h2>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-white/75 sm:text-base">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight sm:text-4xl">দেয়ালে যা নতুন</h2>
+              <p className="mt-2 sm:mt-3 max-w-xl text-xs sm:text-sm leading-6 sm:leading-7 text-white/75 sm:text-base">
                 কমিটির ঘোষণা, জরুরি আপডেট ও ছোট ছোট খবর—একটি উষ্ণ, জীবন্ত বোর্ডে সাজানো।
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-              <Bell className="h-5 w-5 text-gold-300" aria-hidden="true" />
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border border-white/15 bg-white/10 px-3 sm:px-4 py-2.5 sm:py-3 backdrop-blur-sm">
+              <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-gold-300" aria-hidden="true" />
               <div>
-                <p className="text-2xl font-bold leading-none">{allNotices.length}</p>
-                <p className="mt-1 text-xs text-white/65">প্রকাশ্য নোটিশ</p>
+                <p className="text-xl sm:text-2xl font-bold leading-none">{allNotices.length}</p>
+                <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-white/65">প্রকাশ্য নোটিশ</p>
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
       )}
 
       <StaggerItem>
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card/80 p-3 shadow-sm sm:flex-row sm:items-center sm:p-4">
+        <div className="flex flex-col gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border border-border bg-card/80 p-2.5 sm:p-3 shadow-sm sm:flex-row sm:items-center sm:p-4">
           <div className="relative min-w-0 flex-1">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input aria-label="নোটিশ খুঁজুন" placeholder="নোটিশ খুঁজুন…" className="h-11 border-border/80 bg-background pl-10" value={search} onChange={(event) => setSearch(event.target.value)} />

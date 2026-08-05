@@ -142,7 +142,7 @@ export function Gallery() {
   return (
     <div className="relative min-h-[calc(100vh-4rem)]">
       {/* Main feed */}
-      <div className="gallery-feed mx-auto max-w-[1680px] px-1 sm:px-2 md:px-4" style={{ paddingTop: 'calc(var(--gallery-gap, 4px) + env(safe-area-inset-top, 0px))', paddingBottom: 'calc(110px + env(safe-area-inset-bottom, 0px))' }}>
+      <div className="gallery-feed mx-auto max-w-[1680px] px-1 sm:px-2 md:px-4" style={{ paddingTop: 'calc(var(--gallery-gap, 3px) + env(safe-area-inset-top, 0px))', paddingBottom: 'calc(100px + env(safe-area-inset-bottom, 0px))' }}>
         {isLoading && (
           <div className="gallery-masonry">
             {Array.from({ length: 12 }).map((_, i) => (

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 const TOOLBAR_BTN =
-  'inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40';
+  'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40';
 
 interface MarkdownEditorProps {
   id: string;
@@ -69,7 +69,7 @@ export function MarkdownEditor({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="flex max-w-full flex-wrap items-center gap-1 overflow-x-auto pb-0.5">
         <button type="button" className={TOOLBAR_BTN} onClick={() => wrapSelection('**')} title="Bold" aria-label="Bold">
           <Bold className="h-4 w-4" />
         </button>

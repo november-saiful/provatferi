@@ -191,7 +191,7 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
         side="bottom"
         sideOffset={8}
         staggered
-        className="max-h-[calc(100vh-5rem)] w-72 overflow-y-auto"
+        className="max-h-[calc(100vh-5rem)] w-[calc(100vw-2rem)] sm:w-72 overflow-y-auto"
       >
         {filteredGroups.map((group, gIdx) => (
           <React.Fragment key={group.id}>
@@ -257,7 +257,7 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
   const { profile, role: userRole, user } = useAuthStore();
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-background px-3 md:gap-3 md:px-4">
+    <header className="sticky top-0 z-40 flex h-12 sm:h-14 items-center gap-2 border-b border-border bg-background px-2.5 sm:px-3 md:gap-3 md:px-4">
       {/* Nav menu (hamburger dropdown — works on all screen sizes) */}
       <NavMenu groups={groups} role={role} authed={authed} pathname={pathname} />
 
@@ -272,7 +272,7 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="প্রভাতফেরী" className="h-14 w-14 p-1 object-contain" />
+        <img src="/logo.png" alt="প্রভাতফেরী" className="h-11 w-11 sm:h-14 sm:w-14 p-0.5 sm:p-1 object-contain" />
       </Link>
 
       {/* Right actions */}
@@ -309,10 +309,10 @@ function AppShell({ footerLabel, mainClassName, children }: AppShellProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header groups={groups} role={role} authed={authed} pathname={pathname} />
-      <main className={cn('flex-1', mainClassName ?? 'p-4 md:p-6 lg:p-8')}>
+      <main className={cn('flex-1', mainClassName ?? 'p-3 sm:p-4 md:p-6 lg:p-8')}>
         <PageTransition>{children}</PageTransition>
       </main>
-      <footer className="border-t border-border bg-muted/20 px-6 py-4 text-center">
+      <footer className="border-t border-border bg-muted/20 px-4 sm:px-6 py-3 sm:py-4 text-center">
         <p className="text-xs text-muted-foreground">{footerLabel}</p>
       </footer>
     </div>

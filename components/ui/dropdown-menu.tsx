@@ -239,7 +239,10 @@ export function DropdownContent({
 
   const alignClass = alignClassMap[align];
   const sideClass = sideClassMap[side];
-  const alignmentX = align === 'center' ? '-50%' : align === 'end' ? '-100%' : '0%';
+  // Portal positioning already accounts for the trigger edge. Applying a second
+  // `translateX(-100%)` to end-aligned menus was shifting them completely off
+  // screen on phones. Only centered menus need a horizontal transform.
+  const alignmentX = align === 'center' ? '-50%' : 0;
 
   React.useLayoutEffect(() => {
     if (!portal || !visible) return;
@@ -261,30 +264,44 @@ export function DropdownContent({
         const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
         const menuMaxWidth = Math.min(352, viewportWidth - 32); // 22rem = 352px, minus padding
         
-        let left: number;
-        if (align === 'start') {
-          left = triggerRect.left;
-        } else if (align === 'center') {
-          left = triggerRect.left + triggerRect.width / 2 - menuMaxWidth / 2;
-        } else {
-          // align = 'end': position right edge of menu at trigger's right edge
-          left = triggerRect.right - menuMaxWidth;
+        const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+        const edge = 8;
+        // Prefer the requested side, but flip when the trigger is close to the
+        // viewport edge. This matters most for bottom-right mobile controls.
+        const flip = side === 'bottom'
+          ? triggerRect.bottom > viewportHeight * 0.68
+          : triggerRect.top < viewportHeight * 0.32;
+        const effectiveSide = flip ? (side === 'bottom' ? 'top' : 'bottom') : side;
+        const vertical = effectiveSide === 'bottom'
+          ? { top: triggerRect.bottom + sideOffset }
+          : { bottom: viewportHeight - triggerRect.top + sideOffset };
+
+        // Use the viewport edge for end alignment instead of guessing the
+        // rendered menu width. This keeps custom widths (notifications, action
+        // menus, etc.) aligned and clamped on narrow screens.
+        if (align === 'end') {
+          return {
+            position: 'fixed' as const,
+            ...vertical,
+            right: Math.max(edge, viewportWidth - triggerRect.right),
+          };
         }
-        
-        // Clamp to viewport bounds
-        left = Math.max(8, Math.min(left, viewportWidth - menuMaxWidth - 8));
-        
-        return side === 'bottom'
-          ? {
-              position: 'fixed' as const,
-              top: triggerRect.bottom + sideOffset,
-              left,
-            }
-          : {
-              position: 'fixed' as const,
-              bottom: (typeof window !== 'undefined' ? window.innerHeight : 0) - triggerRect.top + sideOffset,
-              left,
-            };
+
+        if (align === 'center') {
+          const center = triggerRect.left + triggerRect.width / 2;
+          const halfMenu = menuMaxWidth / 2;
+          return {
+            position: 'fixed' as const,
+            ...vertical,
+            left: Math.max(halfMenu + edge, Math.min(center, viewportWidth - halfMenu - edge)),
+          };
+        }
+
+        return {
+          position: 'fixed' as const,
+          ...vertical,
+          left: Math.max(edge, Math.min(triggerRect.left, viewportWidth - menuMaxWidth - edge)),
+        };
       })()
     : undefined;
   const offsetStyle: React.CSSProperties =
@@ -307,7 +324,7 @@ export function DropdownContent({
           className={cn(
             'site-card-surface z-50 overflow-hidden rounded-xl border border-border text-popover-foreground shadow-xl',
             'backdrop-blur-none',
-            'max-w-[calc(100vw-1rem)]',
+            'max-w-[calc(100vw-1rem)] min-w-0',
             'p-1.5',
             sizeMap[size],
             portal ? 'fixed max-h-[calc(100dvh-1rem)] overflow-y-auto' : 'absolute',

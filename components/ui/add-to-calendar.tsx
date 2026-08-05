@@ -103,7 +103,7 @@ function FloatingTooltip({
       ref={tooltipRef}
       role="tooltip"
       className={cn(
-        'pointer-events-none fixed z-[100] -translate-x-1/2 whitespace-nowrap rounded-lg',
+        'pointer-events-none fixed z-[100] max-w-[calc(100vw-1rem)] -translate-x-1/2 whitespace-normal rounded-lg text-center',
         'bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg',
         'transition-all duration-150',
         visible
