@@ -1151,9 +1151,18 @@
     overflow-wrap: anywhere;
   }
 
-  button,
-  [role="button"],
-  a.inline-flex {
+  /* Tap-target floor for controls without a fixed square/circular shape.
+     Icon buttons pin BOTH their height and width (header avatar, hamburger,
+     bell, table actions — e.g. h-9 w-9), so they keep their intended shape
+     on phones instead of being stretched into ovals. Buttons sized only by
+     height (standard form buttons like h-9 px-4) keep the comfortable
+     floor. */
+  button:not([class*=" h-"]),
+  button:not([class*=" w-"]),
+  [role="button"]:not([class*=" h-"]),
+  [role="button"]:not([class*=" w-"]),
+  a.inline-flex:not([class*=" h-"]),
+  a.inline-flex:not([class*=" w-"]) {
     min-height: 2.75rem;
   }
 

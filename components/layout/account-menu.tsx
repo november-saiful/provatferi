@@ -42,16 +42,15 @@ interface AvatarRingProps {
   asButton?: boolean;
   className?: string;
   /**
-   * 'visitor' renders a clean default-avatar look (neutral fill plus a
-   * subtle silhouette) and skips the warm 4-color conic ring entirely so
-   * the entire button reads as a default profile placeholder — used when
-   * the user is not signed in and we don't want any brand mark on it.
+   * 'visitor' renders a clean default-avatar look (neutral gradient fill
+   * plus a subtle account silhouette) so the whole control reads as a
+   * default profile placeholder — used when the user is not signed in.
    */
   variant?: 'authed' | 'visitor';
 }
 
-/** Account blob: warm Drive-style ring for signed-in users, neutral
- *  default-avatar placeholder for visitors. */
+/** Circular account avatar: a plain photo circle (with a hairline edge) for
+ *  signed-in users, a neutral default-avatar placeholder for visitors. */
 export function AccountBlob({
   name,
   src,
@@ -63,43 +62,25 @@ export function AccountBlob({
   className
 }: AvatarRingProps) {
   const outer =
-    size === 'sm'
-      ? 'h-8 w-8 p-[2px]'
-      : size === 'lg'
-        ? 'h-12 w-12 p-[3px]'
-        : 'h-9 w-9 p-[2.5px]';
-  const inner =
-    size === 'sm'
-      ? 'h-[calc(100%-4px)] w-[calc(100%-4px)] text-[11px]'
-      : size === 'lg'
-        ? 'h-[calc(100%-6px)] w-[calc(100%-6px)] text-base'
-        : 'h-[calc(100%-5px)] w-[calc(100%-5px)] text-[13px]';
+    size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-9 w-9';
+  const textClass =
+    size === 'sm' ? 'text-[11px]' : size === 'lg' ? 'text-base' : 'text-[13px]';
 
-  // For authed users: Drive uses blue→red→yellow→green; for our warm brand
-  // we use coffee → gold → sage → warmred so each segment adds character.
-  // For visitors: a clean neutral gradient fill PLUS a hairline border —
-  // the WHOLE pill reads as the default profile placeholder, with a subtle
-  // account glyph rendered inside for non-signed-in users.
-  const ringClass =
+  // Authed = plain avatar circle with a subtle hairline edge so the photo
+  // reads on the header. Visitor = the neutral gradient placeholder pill.
+  const surfaceClass =
     variant === 'visitor'
       ? 'bg-gradient-to-br from-coffee-100 via-cream-200 to-coffee-200 dark:from-coffee-900/40 dark:via-coffee-900/30 dark:to-coffee-800/40 border border-border dark:border-white/15'
-      : 'bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-coffee-500 via-gold-400 via-sage-400 to-warmred-500';
+      : 'bg-card border border-black/10 dark:border-white/15';
 
   const handleClick = onClick;
 
   const innerNode = (
-    <span
-      className={cn(
-        'flex items-center justify-center rounded-full font-bold overflow-hidden',
-        variant === 'visitor' ? 'bg-transparent' : 'bg-card text-foreground',
-        inner
-      )}
-    >
+    <span className={cn('flex h-full w-full items-center justify-center overflow-hidden rounded-full font-bold', textClass)}>
       {(() => {
         if (variant === 'visitor') {
-          // Visitor = the whole grad + border pill IS the default-avatar
-          // placeholder. A subtle account icon stands in for the missing
-          // photo — no initials, no brand mark.
+          // The whole gradient pill IS the default-avatar placeholder; a
+          // subtle account icon stands in for the missing photo.
           return (
             <User
               className="h-[52%] w-[52%] text-coffee-600/75 dark:text-coffee-300/75"
@@ -113,16 +94,18 @@ export function AccountBlob({
           return <img src={src} alt={name ?? 'avatar'} className="h-full w-full object-cover" />;
         }
         const init = initials(name);
-        if (init) return <span className="text-foreground/80">{init}</span>;
-        // Authed but somehow no name yet — render a soft default-avatar
-        // pill INSIDE the conic ring so the conic frame never appears
-        // hollow. Same neutral gradient as the visitor variant, in a
-        // small lozenge, no glyph.
         return (
-          <span
-            aria-hidden
-            className="h-[58%] w-[58%] rounded-full bg-gradient-to-br from-coffee-100 via-cream-200 to-coffee-200 dark:from-coffee-800/50 dark:via-coffee-900/40 dark:to-coffee-800/50"
-          />
+          <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coffee-100 via-cream-200 to-coffee-200 text-foreground/80 dark:from-coffee-800/50 dark:via-coffee-900/40 dark:to-coffee-800/50">
+            {init ? (
+              <span className="relative">{init}</span>
+            ) : (
+              <User
+                className="h-[45%] w-[45%] text-coffee-600/60 dark:text-coffee-300/60"
+                strokeWidth={2}
+                aria-hidden
+              />
+            )}
+          </span>
         );
       })()}
     </span>
@@ -132,9 +115,9 @@ export function AccountBlob({
     return (
       <span
         className={cn(
-          'inline-flex items-center justify-center shrink-0 rounded-full',
+          'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border',
           outer,
-          ringClass,
+          surfaceClass,
           active && 'shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]'
         )}
       >
@@ -147,16 +130,16 @@ export function AccountBlob({
     <button
       type="button"
       onClick={handleClick}
-       aria-label="অ্যাকাউন্ট মেনু"
-       className={cn(
-         'group relative inline-flex items-center justify-center shrink-0 rounded-full hover:scale-[1.04] active:scale-[0.96]',
-         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-         outer,
-         ringClass,
-         active && 'shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]',
-         className
-       )}
-     >
+      aria-label="অ্যাকাউন্ট মেনু"
+      className={cn(
+        'group relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border transition-transform duration-200 hover:scale-[1.04] active:scale-[0.96]',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        outer,
+        surfaceClass,
+        active && 'shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]',
+        className
+      )}
+    >
       {innerNode}
     </button>
   );

@@ -191,7 +191,7 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
         side="bottom"
         sideOffset={8}
         staggered
-        className="max-h-[calc(100vh-5rem)] w-[calc(100vw-2rem)] sm:w-72 overflow-y-auto"
+        className="max-h-[calc(100vh-5rem)] w-[min(20rem,calc(100vw_-_2rem))] sm:w-72 overflow-y-auto"
       >
         {filteredGroups.map((group, gIdx) => (
           <React.Fragment key={group.id}>
