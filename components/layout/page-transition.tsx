@@ -11,25 +11,34 @@ interface PageTransitionProps {
   topLevel?: boolean;
 }
 
+/**
+ * Direction-aware page transition: forward navigation (link click) enters from
+ * below and exits upward; backward navigation (browser back) settles down.
+ * Directional motion keeps spatial continuity — the user always knows which
+ * way the app is moving (motion rule: navigation-direction / continuity).
+ */
 export function PageTransition({ children, className, topLevel = false }: PageTransitionProps) {
   const pathname = usePathname();
   const reduce = useReducedMotion();
 
   const key = topLevel ? `/${pathname.split('/')[1] ?? ''}` : pathname;
 
-  const isPop = React.useRef(false);
+  const isBackRef = React.useRef(false);
   React.useEffect(() => {
     const onPop = () => {
-      isPop.current = true;
+      isBackRef.current = true;
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   React.useEffect(() => {
-    const pop = isPop.current;
-    isPop.current = false;
-    if (pop) return;
+    // If this render came from a popstate (browser back/forward), keep the
+    // back direction for the exit of the current page, then reset for the
+    // next push navigation.
+    const wasBack = isBackRef.current;
+    isBackRef.current = false;
+    if (wasBack) return;
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [key]);
 
@@ -42,9 +51,9 @@ export function PageTransition({ children, className, topLevel = false }: PageTr
       <motion.div
         key={key}
         className={className}
-        initial={{ opacity: 0, y: 20, scale: 0.995 }}
+        initial={{ opacity: 0, y: isBackRef.current ? -18 : 22, scale: 0.995 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -10, scale: 0.998 }}
+        exit={{ opacity: 0, y: isBackRef.current ? 18 : -14, scale: 0.998 }}
         transition={{ duration: 0.35, ease: EASE }}
       >
         {children}

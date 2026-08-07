@@ -28,6 +28,7 @@ import type { ModuleId, RoleId } from '@/lib/types';
 import { RECRUITMENT_URL, SITE_NAME } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { PageTransition } from '@/components/layout/page-transition';
+import { ScrollProgress } from '@/components/ui/scroll-progress';
 import { AccountMenu } from '@/components/layout/account-menu';
 import { NotificationsMenu } from '@/components/layout/notifications-menu';
 
@@ -308,6 +309,7 @@ function AppShell({ footerLabel, mainClassName, children }: AppShellProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      <ScrollProgress />
       <Header groups={groups} role={role} authed={authed} pathname={pathname} />
       <main className={cn('flex-1', mainClassName ?? 'p-3 sm:p-4 md:p-6 lg:p-8')}>
         <PageTransition>{children}</PageTransition>

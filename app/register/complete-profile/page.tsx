@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { GraduationCap, Building2, Landmark, IdCard, MailCheck, ArrowRight, type LucideIcon } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
+import { Reveal, RevealStagger, RevealItem } from '@/components/ui/motion';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -116,10 +117,13 @@ export default function CompleteProfilePage() {
     <PublicShell>
       <Seo title="প্রোফাইল সম্পন্ন করুন" />
       <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16">
-        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sage-500 to-sage-600 text-white shadow-lg shadow-sage-500/25">
-          <MailCheck className="h-8 w-8" />
-        </span>
-        <Card className="mt-8 w-full shadow-lg border-2">
+        <Reveal className="flex justify-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sage-500 to-sage-600 text-white shadow-lg shadow-sage-500/25">
+            <MailCheck className="h-8 w-8" />
+          </span>
+        </Reveal>
+        <Reveal delay={0.08} className="w-full">
+          <Card className="mt-8 w-full shadow-lg border-2">
           <CardHeader className="text-center">
             <CardTitle className="text-xl">রেজিস্ট্রেশন সম্পূর্ণ করুন</CardTitle>
             <p className="text-sm text-muted-foreground">
@@ -132,65 +136,78 @@ export default function CompleteProfilePage() {
               <p className="text-xs text-muted-foreground">
                 ইমেইল: <span className="font-medium text-foreground">{user?.email}</span>
               </p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field id="fullName" label="পূর্ণ নাম" icon={GraduationCap} error={errors.fullName}>
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="যেমন: Saiful Islam Ibu"
-                  />
-                </Field>
-                <Field id="phone" label="মোবাইল নম্বর" icon={GraduationCap} error={errors.phone}>
-                  <Input
-                    id="phone"
-                    value={phone}
-                    inputMode="numeric"
-                    maxLength={11}
-                    onChange={(e) => setPhone(e.target.value.replace(BANGLA_DIGITS, ''))}
-                    placeholder="01XXXXXXXXX"
-                  />
-                </Field>
-                <Field id="academicSession" label="শিক্ষাবর্ষ" icon={GraduationCap} hint="2020-21" error={errors.academicSession}>
-                  <Input
-                    id="academicSession"
-                    value={academicSession}
-                    onChange={(e) => setAcademicSession(e.target.value)}
-                    placeholder="যেমন: 2020-21"
-                  />
-                </Field>
-                <Field id="department" label="বিভাগ" icon={Building2} error={errors.department}>
-                  <Input
-                    id="department"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="যেমন: দর্শন বিভাগ"
-                  />
-                </Field>
-                <Field id="hallName" label="হলের নাম" icon={Landmark} error={errors.hallName}>
-                  <Input
-                    id="hallName"
-                    value={hallName}
-                    onChange={(e) => setHallName(e.target.value)}
-                    placeholder="যেমন: রোকেয়া হল"
-                  />
-                </Field>
-                <Field id="regId" label="রেজিস্ট্রেশন আইডি" icon={IdCard} error={errors.regId}>
-                  <Input
-                    id="regId"
-                    value={regId}
-                    onChange={(e) => setRegId(e.target.value)}
-                    placeholder="যেমন: 2019XXXXXX"
-                  />
-                </Field>
-              </div>
+              <RevealStagger className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="fullName" label="পূর্ণ নাম" icon={GraduationCap} error={errors.fullName}>
+                    <Input
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="যেমন: Saiful Islam Ibu"
+                    />
+                  </Field>
+                </RevealItem>
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="phone" label="মোবাইল নম্বর" icon={GraduationCap} error={errors.phone}>
+                    <Input
+                      id="phone"
+                      value={phone}
+                      inputMode="numeric"
+                      maxLength={11}
+                      onChange={(e) => setPhone(e.target.value.replace(BANGLA_DIGITS, ''))}
+                      placeholder="01XXXXXXXXX"
+                    />
+                  </Field>
+                </RevealItem>
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="academicSession" label="শিক্ষাবর্ষ" icon={GraduationCap} hint="2020-21" error={errors.academicSession}>
+                    <Input
+                      id="academicSession"
+                      value={academicSession}
+                      onChange={(e) => setAcademicSession(e.target.value)}
+                      placeholder="যেমন: 2020-21"
+                    />
+                  </Field>
+                </RevealItem>
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="department" label="বিভাগ" icon={Building2} error={errors.department}>
+                    <Input
+                      id="department"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      placeholder="যেমন: দর্শন বিভাগ"
+                    />
+                  </Field>
+                </RevealItem>
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="hallName" label="হলের নাম" icon={Landmark} error={errors.hallName}>
+                    <Input
+                      id="hallName"
+                      value={hallName}
+                      onChange={(e) => setHallName(e.target.value)}
+                      placeholder="যেমন: রোকেয়া হল"
+                    />
+                  </Field>
+                </RevealItem>
+                <RevealItem className="min-w-0" y={10}>
+                  <Field id="regId" label="রেজিস্ট্রেশন আইডি" icon={IdCard} error={errors.regId}>
+                    <Input
+                      id="regId"
+                      value={regId}
+                      onChange={(e) => setRegId(e.target.value)}
+                      placeholder="যেমন: 2019XXXXXX"
+                    />
+                  </Field>
+                </RevealItem>
+              </RevealStagger>
               <Button type="submit" className="w-full" disabled={saving}>
                 <ArrowRight className="h-4 w-4" />
                 {saving ? 'সংরক্ষণ হচ্ছে…' : 'সম্পন্ন করুন'}
               </Button>
             </form>
           </div>
-        </Card>
+          </Card>
+        </Reveal>
       </div>
     </PublicShell>
   );

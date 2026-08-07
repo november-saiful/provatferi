@@ -22,7 +22,13 @@ export default function DashboardAttendancePage() {
         description="ছয়টি সংগীত কোর্সের হাজিরা ও অগ্রগতি।"
       >
         {canManageAttendance(role) && (
-          <Link href="/dashboard/cia/manage" className={cn(buttonVariants(), 'shrink-0')}>
+          <Link
+            href="/dashboard/cia/manage"
+            className={cn(
+              buttonVariants(),
+              'shrink-0 transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.97]'
+            )}
+          >
             <ClipboardEdit className="h-4 w-4" /> হাজিরা পূরণ করুন
           </Link>
         )}
