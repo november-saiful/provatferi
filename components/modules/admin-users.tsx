@@ -4,9 +4,9 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useProfiles, useRoles } from '@/lib/queries';
+import { useProfiles, useRoles, useRoleExtraPermissions } from '@/lib/queries';
 import { useAuthStore } from '@/lib/auth-store';
-import { ROLE_NAMES, isOrganizationRole } from '@/lib/permissions';
+import { ROLE_NAMES, isOrganizationRole, canManageUsers } from '@/lib/permissions';
 import { invokeUserAdmin } from '@/lib/service';
 import { formatDate, cn, toBengaliDigits } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,6 +34,7 @@ export function AdminUsers() {
   const { user } = useAuthStore();
   const { data: profiles, isLoading } = useProfiles(true);
   const { data: roles } = useRoles();
+  const { data: extraPermissions } = useRoleExtraPermissions();
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [query, setQuery] = React.useState('');
   const [roleFilter, setRoleFilter] = React.useState('all');
@@ -71,6 +72,11 @@ export function AdminUsers() {
 
   const isRoot = myProfile?.role_id === 'root';
   const isPresident = myProfile?.role_id === 'pr';
+  // Deletion permission comes from Role Supervision (manage_users). Fall back to
+  // the legacy hardcoded admin-role check until the migration is applied.
+  const canDeleteUsers =
+    extraPermissions?.find((p) => p.role_id === myProfile?.role_id)?.manage_users ??
+    canManageUsers(myProfile?.role_id);
 
   const changeRole = async (userId: string, roleId: string) => {
     if (userId === user?.id) {
@@ -286,17 +292,19 @@ export function AdminUsers() {
                             {p.is_active ? <Ban className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             <span className="hidden lg:inline">{p.is_active ? 'ব্যান' : 'সক্রিয়'}</span>
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-warmred-500 hover:bg-warmred-50 hover:text-warmred-600 dark:hover:bg-warmred-900/30"
-                            disabled={p.id === user?.id || (p.role_id === 'root' && !isRoot) || (p.role_id === 'pr' && !isRoot && !isPresident)}
-                            onClick={() => setRemoveTarget(p)}
-                            title={p.role_id === 'root' && !isRoot ? 'শুধুমাত্র রুট ব্যবহারকারীকে মুছে ফেলা যাবে না' : p.role_id === 'pr' && !isRoot && !isPresident ? 'শুধুমাত্র রুট সভাপতিকে মুছে ফেলতে পারবেন' : 'ব্যবহারকারী মুছে ফেলুন'}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="hidden lg:inline">মুছুন</span>
-                          </Button>
+                          {canDeleteUsers && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-warmred-500 hover:bg-warmred-50 hover:text-warmred-600 dark:hover:bg-warmred-900/30"
+                              disabled={p.id === user?.id || (p.role_id === 'root' && !isRoot) || (p.role_id === 'pr' && !isRoot && !isPresident)}
+                              onClick={() => setRemoveTarget(p)}
+                              title={p.role_id === 'root' && !isRoot ? 'শুধুমাত্র রুট ব্যবহারকারীকে মুছে ফেলা যাবে না' : p.role_id === 'pr' && !isRoot && !isPresident ? 'শুধুমাত্র রুট সভাপতিকে মুছে ফেলতে পারবেন' : 'ব্যবহারকারী মুছে ফেলুন'}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="hidden lg:inline">মুছুন</span>
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

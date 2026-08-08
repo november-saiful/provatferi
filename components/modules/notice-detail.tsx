@@ -2,13 +2,20 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, CalendarDays, Pin } from 'lucide-react';
-import { useNotice } from '@/lib/queries';
-import { formatDateTime, renderMarkdown } from '@/lib/utils';
+import { ArrowLeft, Bell, CalendarDays, Pencil, Pin, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase/client';
+import { useNotice, useRealtimeInvalidate } from '@/lib/queries';
+import { useAuthStore } from '@/lib/auth-store';
+import { canWrite, canPinNotices } from '@/lib/permissions';
+import { formatDateTime, renderMarkdown, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ConfirmDeleteDialog } from '@/components/ui/confirm-delete-dialog';
+import { NoticeForm } from '@/components/forms/notice-form';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
 export function NoticeDetail({
@@ -19,7 +26,58 @@ export function NoticeDetail({
   basePath?: string;
 }) {
   const router = useRouter();
+  const qc = useQueryClient();
+  const { role } = useAuthStore();
   const { data: notice, isLoading } = useNotice(noticeId ?? undefined);
+  useRealtimeInvalidate('notices', [['notices', noticeId ?? '']]);
+
+  const canEdit = canWrite(role, 'ntb');
+  const canPin = canPinNotices(role);
+
+  const [editing, setEditing] = React.useState(false);
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+  const [togglingPin, setTogglingPin] = React.useState(false);
+
+  const togglePin = async () => {
+    if (!notice) return;
+    if (!notice.is_pinned) {
+      const { count, error: countError } = await supabase
+        .from('notices')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_pinned', true);
+      if (countError) {
+        toast.error(countError.message);
+        return;
+      }
+      if ((count ?? 0) >= 3) {
+        toast.error('সর্বোচ্চ ৩টি নোটিশ পিন করা যায়');
+        return;
+      }
+    }
+    setTogglingPin(true);
+    const { error } = await supabase.from('notices').update({ is_pinned: !notice.is_pinned }).eq('id', notice.id);
+    setTogglingPin(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(notice.is_pinned ? 'পিন খোলা হয়েছে' : 'পিন করা হয়েছে');
+      qc.invalidateQueries({ queryKey: ['notices'] });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!notice) return;
+    setDeleting(true);
+    const { error } = await supabase.from('notices').delete().eq('id', notice.id);
+    setDeleting(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('নোটিশ মুছে ফেলা হয়েছে');
+      router.push(basePath);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -44,9 +102,27 @@ export function NoticeDetail({
   return (
     <Stagger className="mx-auto max-w-3xl space-y-5">
       <StaggerItem>
-        <Button variant="ghost" onClick={() => router.push(basePath)}>
-          <ArrowLeft /> নোটিশে ফিরুন
-        </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button variant="ghost" onClick={() => router.push(basePath)}>
+            <ArrowLeft /> নোটিশে ফিরুন
+          </Button>
+          {canEdit && (
+            <div className="flex items-center gap-2">
+              {canPin && (
+                <Button variant="outline" size="sm" onClick={togglePin} disabled={togglingPin}>
+                  <Pin className={cn('h-4 w-4', notice.is_pinned && 'text-gold-500')} aria-hidden="true" />
+                  {notice.is_pinned ? 'আনপিন করুন' : 'পিন করুন'}
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
+                <Pencil className="h-4 w-4" aria-hidden="true" /> সম্পাদনা
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(true)}>
+                <Trash2 className="h-4 w-4" aria-hidden="true" /> মুছুন
+              </Button>
+            </div>
+          )}
+        </div>
       </StaggerItem>
       <StaggerItem>
         <article className="notice-detail-paper relative overflow-hidden rounded-[2rem] border-2 border-border bg-card shadow-xl">
@@ -93,6 +169,23 @@ export function NoticeDetail({
           </footer>
         </article>
       </StaggerItem>
+
+      <NoticeForm
+        open={editing}
+        onClose={() => setEditing(false)}
+        notice={notice}
+        onSaved={() => qc.invalidateQueries({ queryKey: ['notices'] })}
+      />
+
+      <ConfirmDeleteDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={handleDelete}
+        title="নোটিশ মুছুন"
+        name={notice.title}
+        description="এটি ফেরানো যাবে না। নিশ্চিত করতে নোটিশের শিরোনাম টাইপ করুন।"
+        isDeleting={deleting}
+      />
     </Stagger>
   );
 }

@@ -320,6 +320,7 @@ export interface RoleExtraPermission {
   manage_sponsors: boolean;
   manage_donations: boolean;
   manage_attendance: boolean;
+  manage_users: boolean;
   created_at: string;
   updated_at: string;
 }

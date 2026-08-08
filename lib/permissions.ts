@@ -117,6 +117,12 @@ export function canManageAttendance(role: RoleId | null | undefined): boolean {
   return !!role && ['root', 'pr', 'vp', 'admin', 'gs', 'jgs', 'cc'].includes(role);
 }
 
+/** Legacy hardcoded list for who may delete users; superseded by the
+ * role_extra_permissions.manage_users toggle editable in Role Supervision. */
+export function canManageUsers(role: RoleId | null | undefined): boolean {
+  return !!role && ['root', 'pr', 'vp', 'admin'].includes(role);
+}
+
 /**
  * Committee members: every role except alumni and visitors.
  * Root is included as the organization itself — not a person but the club entity.

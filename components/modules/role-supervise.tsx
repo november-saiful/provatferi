@@ -51,7 +51,8 @@ const EXTRA_PERMISSIONS: { key: string; label: string; description: string }[] =
   { key: 'edit_budget', label: 'বাজেট সম্পাদনা', description: 'বাজেট সম্পাদনা করতে পারবেন' },
   { key: 'manage_sponsors', label: 'স্পনসর ব্যবস্থাপনা', description: 'স্পনসর যোগ/সম্পাদনা করতে পারবেন' },
   { key: 'manage_donations', label: 'অনুদান ব্যবস্থাপনা', description: 'অনুদান অনুমোদন/মুছে ফেলা করতে পারবেন' },
-  { key: 'manage_attendance', label: 'হাজিরা ব্যবস্থাপনা', description: 'কোর্স হাজিরা ব্যবস্থাপনা করতে পারবেন' }
+  { key: 'manage_attendance', label: 'হাজিরা ব্যবস্থাপনা', description: 'কোর্স হাজিরা ব্যবস্থাপনা করতে পারবেন' },
+  { key: 'manage_users', label: 'ব্যবহারকারী মুছে ফেলা', description: 'অ্যাডমিন প্যানেল থেকে ব্যবহারকারীর অ্যাকাউন্ট মুছে ফেলতে পারবেন' }
 ];
 
 export function RoleSupervise() {
@@ -97,7 +98,8 @@ export function RoleSupervise() {
         edit_budget: existingExtra?.edit_budget ?? false,
         manage_sponsors: existingExtra?.manage_sponsors ?? false,
         manage_donations: existingExtra?.manage_donations ?? false,
-        manage_attendance: existingExtra?.manage_attendance ?? false
+        manage_attendance: existingExtra?.manage_attendance ?? false,
+        manage_users: existingExtra?.manage_users ?? false
       });
 
       setLocalPermissions(newPerms);
@@ -134,6 +136,7 @@ export function RoleSupervise() {
       case 'manage_sponsors': return extra.manage_sponsors;
       case 'manage_donations': return extra.manage_donations;
       case 'manage_attendance': return extra.manage_attendance;
+      case 'manage_users': return extra.manage_users;
       default: return false;
     }
   };

@@ -59,6 +59,14 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Insufficient permissions' }), { status: 403, headers: corsHeaders });
   }
 
+  // Deleting users requires the manage_users extra permission, toggled in
+  // Role Supervision (migration 00033). Ban/unban keep the legacy role check.
+  const { data: callerExtra } = await supabase
+    .from('role_extra_permissions')
+    .select('manage_users')
+    .eq('role_id', callerProfile.role_id)
+    .maybeSingle();
+
   const { action, userId } = await req.json().catch(() => ({}));
 
   if (!['ban', 'unban', 'delete'].includes(action) || typeof userId !== 'string' || !userId) {
@@ -90,6 +98,9 @@ Deno.serve(async (req) => {
   }
 
   if (action === 'delete') {
+    if (!callerExtra?.manage_users) {
+      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), { status: 403, headers: corsHeaders });
+    }
     const { error } = await supabase.auth.admin.deleteUser(userId);
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders });
