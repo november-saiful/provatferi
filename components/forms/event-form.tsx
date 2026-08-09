@@ -23,6 +23,7 @@ const schema = z.object({
   event_date: z.string().optional(),
   location: z.string().optional(),
   organizer_id: z.string().optional(),
+  coordinator_id: z.string().optional(),
   courtesy: z.string().optional()
 });
 
@@ -37,7 +38,7 @@ export function EventForm({
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
-  event?: { id: string; title: string; description: string | null; status: 'upcoming' | 'ongoing' | 'past'; event_date: string | null; location: string | null; cover_image: string | null; organizer_id: string | null; courtesy: string | null } | null;
+  event?: { id: string; title: string; description: string | null; status: 'upcoming' | 'ongoing' | 'past'; event_date: string | null; location: string | null; cover_image: string | null; organizer_id: string | null; coordinator_id: string | null; courtesy: string | null } | null;
 }) {
   const [cover, setCover] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
@@ -70,6 +71,7 @@ export function EventForm({
       event_date: toLocalDatetime(event?.event_date ?? null),
       location: event?.location ?? '',
       organizer_id: event?.organizer_id ?? '',
+      coordinator_id: event?.coordinator_id ?? '',
       courtesy: event?.courtesy ?? ''
     }
   });
@@ -85,6 +87,7 @@ export function EventForm({
         // For a new event, pre-select the publisher as the organizer so the
         // "আয়োজনে …" attribution matches the old behavior unless changed.
         organizer_id: event?.organizer_id ?? (event ? '' : user?.id ?? ''),
+        coordinator_id: event?.coordinator_id ?? '',
         courtesy: event?.courtesy ?? ''
       });
       setCover(null);
@@ -113,6 +116,7 @@ export function EventForm({
         event_date: eventDate,
         location: values.location || null,
         organizer_id: values.organizer_id || null,
+        coordinator_id: values.coordinator_id || null,
         courtesy: values.courtesy?.trim() || null,
         ...(event ? {} : { created_by: user.id }),
         cover_image: coverImage
@@ -183,6 +187,18 @@ export function EventForm({
             ))}
           </Select>
           <p className="text-xs text-muted-foreground">ইভেন্ট পেজে ‘আয়োজনে …’ হিসেবে কাকে দেখানো হবে তা বেছে নিন।</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="coordinator_id">সংগঠক</Label>
+          <Select id="coordinator_id" {...register('coordinator_id')}>
+            <option value="">— নির্বাচন করুন (ঐচ্ছিক) —</option>
+            {(members ?? []).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.full_name ?? m.email}
+              </option>
+            ))}
+          </Select>
+          <p className="text-xs text-muted-foreground">ইভেন্টের সংগঠক হিসেবে কাকে দেখানো হবে তা বেছে নিন। ফাঁকা রাখলে লাইনটি দেখানো হবে না।</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="courtesy">সৌজন্যে</Label>

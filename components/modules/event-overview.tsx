@@ -76,6 +76,11 @@ function OverviewCard({ event }: { event: EventItem }) {
             <span className="block truncate">
               আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</span>
             </span>
+            {event.coordinator?.full_name && (
+              <span className="block truncate">
+                সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+              </span>
+            )}
             {event.courtesy && (
               <span className="block truncate">
                 সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
@@ -211,6 +216,12 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
               />
               <span className="text-xs text-muted-foreground">
                 আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(featured)?.full_name ?? 'প্রভাতফেরী'}</span>
+                {featured.coordinator?.full_name && (
+                  <>
+                    <span aria-hidden> · </span>
+                    সংগঠক <span className="font-semibold text-foreground">{featured.coordinator.full_name}</span>
+                  </>
+                )}
                 {featured.courtesy && (
                   <>
                     <span aria-hidden> · </span>

@@ -53,7 +53,7 @@ export function useEvents(status?: string) {
       let q = supabase
         .from('events')
         .select(
-          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT})`
+          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT}), coordinator:profiles!events_coordinator_id_fkey(${PROFILE_SELECT})`
         )
         .order('event_date', { ascending: false });
       if (status && status !== 'all') q = q.eq('status', status);
@@ -72,7 +72,7 @@ export function useEvent(id?: string) {
       const { data, error } = await supabase
         .from('events')
         .select(
-          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT})`
+          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT}), coordinator:profiles!events_coordinator_id_fkey(${PROFILE_SELECT})`
         )
         .eq('id', id!)
         .maybeSingle();

@@ -61,6 +61,8 @@ export interface EventItem {
   created_by: string | null;
   /** Selected organizer (আয়োজক) — falls back to the creator when unset. */
   organizer_id: string | null;
+  /** Selected coordinator (সংগঠক) — a committee member credited alongside the organizer. */
+  coordinator_id: string | null;
   /** Courtesy line (সৌজন্যে) — a person or organization name. */
   courtesy: string | null;
   created_at: string;
@@ -69,6 +71,8 @@ export interface EventItem {
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
   /** Selected organizer profile (organizer_id). */
   organizer?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+  /** Selected coordinator profile (coordinator_id). */
+  coordinator?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
   comments?: EventComment[];
 }
 

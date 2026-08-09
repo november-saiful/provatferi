@@ -157,6 +157,11 @@ function EventCard({
             <span className="block truncate">
               আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</span>
             </span>
+            {event.coordinator?.full_name && (
+              <span className="block truncate">
+                সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+              </span>
+            )}
             {event.courtesy && (
               <span className="block truncate">
                 সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
@@ -257,6 +262,7 @@ function FeaturedEvent({
           <p className="truncate text-sm font-semibold">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</p>
           <p className="text-[11px] text-muted-foreground">
             পাবলিক ইভেন্ট · আয়োজক
+            {event.coordinator?.full_name && <> · সংগঠক {event.coordinator.full_name}</>}
             {event.courtesy && <> · সৌজন্যে {event.courtesy}</>}
           </p>
           <RsvpCount eventId={event.id} className="mt-0.5" />

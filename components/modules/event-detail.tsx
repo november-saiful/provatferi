@@ -238,6 +238,14 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
               <span>
                 আয়োজনে <span className="font-semibold text-foreground">{hostName}</span>
               </span>
+              {event.coordinator?.full_name && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>
+                    সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+                  </span>
+                </>
+              )}
               {event.courtesy && (
                 <>
                   <span aria-hidden>·</span>
@@ -424,6 +432,11 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
                 <p className="text-xs text-muted-foreground">ইভেন্টের আয়োজক</p>
               </div>
             </div>
+            {event.coordinator?.full_name && (
+              <p className="mt-3 border-t border-border/70 pt-3 text-xs text-muted-foreground">
+                সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+              </p>
+            )}
             {event.courtesy && (
               <p className="mt-3 border-t border-border/70 pt-3 text-xs text-muted-foreground">
                 সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
