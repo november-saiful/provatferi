@@ -91,7 +91,8 @@ const DASHBOARD_NAV: NavGroup[] = [
     label: 'কমিউনিটি',
     items: [
       { href: '/dashboard/cia', label: 'হাজিরা', icon: Music4, module: 'cia' },
-      { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, module: 'coi' }
+      { href: '/dashboard/coi', label: 'বিশ্লেষণ', icon: BarChart3, module: 'coi' },
+      { href: '/alumni', label: 'অ্যালামনাই', icon: GraduationCap }
     ]
   },
   {
