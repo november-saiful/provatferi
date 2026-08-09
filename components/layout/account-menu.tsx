@@ -15,11 +15,13 @@ import {
   User,
   Monitor,
   ChevronRight,
+  Landmark,
   type LucideIcon
 } from 'lucide-react';
 import { GoogleButton } from '@/components/auth/google-button';
 import { useAuthStore } from '@/lib/auth-store';
-import { ROLE_NAMES } from '@/lib/permissions';
+import { ROLE_NAMES, canAccessRootBank } from '@/lib/permissions';
+import { RootBankWidget } from '@/components/layout/root-bank-widget';
 import { SITE_NAME } from '@/lib/constants';
 import { initials, cn } from '@/lib/utils';
 import {
@@ -244,6 +246,22 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
                 }
               />
             </div>
+
+            {canAccessRootBank(role) && (
+              <>
+                <DropdownSeparator />
+                <DropdownLabel>রুট ব্যাংক</DropdownLabel>
+                <div className="px-1 pb-1">
+                  <RootBankWidget />
+                </div>
+                <DropdownItem
+                  icon={<Landmark className="h-4 w-4" />}
+                  href="/dashboard/root-bank"
+                >
+                  রুট ব্যাংক প্যানেল
+                </DropdownItem>
+              </>
+            )}
 
             <DropdownLabel>সাইন ইন করা আছে</DropdownLabel>
 

@@ -8,14 +8,16 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
-import { useBudgets } from '@/lib/queries';
+import { useBudgets, useRootBankBudgets } from '@/lib/queries';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
-import type { Expense } from '@/lib/types';
+import type { Expense, RootBankExpense } from '@/lib/types';
+
+type ExpenseTable = 'expenses' | 'root_bank_expenses';
 
 const schema = z.object({
   title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
@@ -32,16 +34,21 @@ export function ExpenseForm({
   open,
   onClose,
   onSaved,
-  expense
+  expense,
+  table = 'expenses'
 }: {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
-  expense?: Expense | null;
+  expense?: Expense | RootBankExpense | null;
+  /** Which table to write to — `expenses` (club) or `root_bank_expenses` (Root Bank). */
+  table?: ExpenseTable;
 }) {
   const [receipt, setReceipt] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  const { data: budgets } = useBudgets(open);
+  const { data: clubBudgets } = useBudgets(open && table === 'expenses');
+  const { data: rootBankBudgets } = useRootBankBudgets(open && table === 'root_bank_expenses');
+  const budgets = table === 'root_bank_expenses' ? rootBankBudgets : clubBudgets;
 
   const {
     register,
@@ -109,11 +116,11 @@ export function ExpenseForm({
         ...(expense ? {} : { created_by: user.id })
       };
       if (expense) {
-        const { error } = await supabase.from('expenses').update(payload).eq('id', expense.id);
+        const { error } = await supabase.from(table).update(payload).eq('id', expense.id);
         if (error) throw error;
-        toast.success('ব্যয় আপডেট হয়েছে — মূল স্রষ্টাকে জানানো হয়েছে');
+        toast.success('ব্যয় আপডেট হয়েছে');
       } else {
-        const { error } = await supabase.from('expenses').insert(payload);
+        const { error } = await supabase.from(table).insert(payload);
         if (error) throw error;
         toast.success('ব্যয় রেকর্ড হয়েছে');
       }

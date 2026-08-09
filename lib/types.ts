@@ -167,6 +167,43 @@ export interface Budget {
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
+// ── Root Bank (migration 00037) — independent budget/expense system ───────
+// Only root, president (pr) and admin may access these rows.
+
+export interface RootBankBudget {
+  id: string;
+  project_name: string;
+  allocated_amount: number;
+  spent_amount: number;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RootBankExpense {
+  id: string;
+  title: string;
+  amount: number;
+  category: string | null;
+  description: string | null;
+  receipt_url: string | null;
+  expense_date: string;
+  budget_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+}
+
+export interface RootBankBalance {
+  allocated: number | string;
+  spent: number | string;
+}
+
 export type RecordAction = 'create' | 'update' | 'delete';
 export type RecordTableName = 'expenses' | 'budgets' | 'notices' | 'calendar_events' | 'events';
 
@@ -240,6 +277,20 @@ export interface Sponsor {
   payment_method: 'bkash' | 'nagad' | null;
   transaction_id: string | null;
   created_at: string;
+}
+
+/**
+ * A former member (`role_id = 'alm') listed on the public alumni page.
+ * Includes the contact/study details shown on the directory card.
+ */
+export interface AlumniMember {
+  id: string;
+  full_name: string | null;
+  email: string;
+  phone: string | null;
+  academic_session: string | null;
+  department: string | null;
+  avatar_url: string | null;
 }
 
 /**

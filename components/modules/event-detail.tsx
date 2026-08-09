@@ -242,7 +242,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
                 <>
                   <span aria-hidden>·</span>
                   <span>
-                    সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+                    সংগঠনে <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
                   </span>
                 </>
               )}
@@ -434,7 +434,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
             </div>
             {event.coordinator?.full_name && (
               <p className="mt-3 border-t border-border/70 pt-3 text-xs text-muted-foreground">
-                সংগঠক <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
+                সংগঠনে <span className="font-semibold text-foreground">{event.coordinator.full_name}</span>
               </p>
             )}
             {event.courtesy && (

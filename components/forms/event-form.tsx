@@ -5,10 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { Landmark } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
 import { useCommitteeMembers } from '@/lib/queries';
-import { useAuthStore } from '@/lib/auth-store';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,6 @@ const schema = z.object({
   status: z.enum(['upcoming', 'ongoing', 'past']),
   event_date: z.string().optional(),
   location: z.string().optional(),
-  organizer_id: z.string().optional(),
   coordinator_id: z.string().optional(),
   courtesy: z.string().optional()
 });
@@ -42,8 +41,17 @@ export function EventForm({
 }) {
   const [cover, setCover] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  const { user } = useAuthStore();
   const { data: members } = useCommitteeMembers();
+
+  // The organizer is always the root user (the organization itself) — every
+  // event is credited as "আয়োজনে …" with the organization regardless of who
+  // publishes it, so this is not an editable option in the form.
+  const rootOrganizer = React.useMemo(
+    () => members?.find((m) => m.role_id === 'root') ?? null,
+    [members]
+  );
+  const rootOrganizerId = rootOrganizer?.id ?? null;
+  const rootOrganizerName = rootOrganizer?.full_name ?? 'প্রভাতফেরী';
 
   // Extract YYYY-MM-DDTHH:MM from an ISO date string, preserving the
   // original local-time parts (not converting through UTC).
@@ -70,7 +78,6 @@ export function EventForm({
       status: event?.status ?? 'upcoming',
       event_date: toLocalDatetime(event?.event_date ?? null),
       location: event?.location ?? '',
-      organizer_id: event?.organizer_id ?? '',
       coordinator_id: event?.coordinator_id ?? '',
       courtesy: event?.courtesy ?? ''
     }
@@ -84,15 +91,12 @@ export function EventForm({
         status: event?.status ?? 'upcoming',
         event_date: toLocalDatetime(event?.event_date ?? null),
         location: event?.location ?? '',
-        // For a new event, pre-select the publisher as the organizer so the
-        // "আয়োজনে …" attribution matches the old behavior unless changed.
-        organizer_id: event?.organizer_id ?? (event ? '' : user?.id ?? ''),
         coordinator_id: event?.coordinator_id ?? '',
         courtesy: event?.courtesy ?? ''
       });
       setCover(null);
     }
-  }, [open, event, reset, user?.id]);
+  }, [open, event, reset]);
 
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -115,7 +119,7 @@ export function EventForm({
         status: values.status,
         event_date: eventDate,
         location: values.location || null,
-        organizer_id: values.organizer_id || null,
+        organizer_id: rootOrganizerId,
         coordinator_id: values.coordinator_id || null,
         courtesy: values.courtesy?.trim() || null,
         ...(event ? {} : { created_by: user.id }),
@@ -177,19 +181,17 @@ export function EventForm({
           <Input id="location" {...register('location')} placeholder="অবস্থান / ঠিকানা" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="organizer_id">আয়োজক (আয়োজনে)</Label>
-          <Select id="organizer_id" {...register('organizer_id')}>
-            <option value="">— নির্বাচন করুন (ডিফল্ট: প্রকাশক) —</option>
-            {(members ?? []).map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.full_name ?? m.email}
-              </option>
-            ))}
-          </Select>
-          <p className="text-xs text-muted-foreground">ইভেন্ট পেজে ‘আয়োজনে …’ হিসেবে কাকে দেখানো হবে তা বেছে নিন।</p>
+          <Label>আয়োজক (আয়োজনে)</Label>
+          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-sm">
+            <Landmark className="h-4 w-4 shrink-0 text-primary/70" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">{rootOrganizerName}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            প্রতিটি ইভেন্ট সংগঠনের পক্ষ থেকে আয়োজিত হয় — ‘আয়োজনে …’ হিসেবে সর্বদা {rootOrganizerName} দেখানো হবে।
+          </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="coordinator_id">সংগঠক</Label>
+          <Label htmlFor="coordinator_id">সংগঠনে</Label>
           <Select id="coordinator_id" {...register('coordinator_id')}>
             <option value="">— নির্বাচন করুন (ঐচ্ছিক) —</option>
             {(members ?? []).map((m) => (
@@ -198,7 +200,7 @@ export function EventForm({
               </option>
             ))}
           </Select>
-          <p className="text-xs text-muted-foreground">ইভেন্টের সংগঠক হিসেবে কাকে দেখানো হবে তা বেছে নিন। ফাঁকা রাখলে লাইনটি দেখানো হবে না।</p>
+          <p className="text-xs text-muted-foreground">ইভেন্ট পেজে ‘সংগঠনে …’ হিসেবে কাকে দেখানো হবে তা বেছে নিন। ফাঁকা রাখলে লাইনটি দেখানো হবে না।</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="courtesy">সৌজন্যে</Label>

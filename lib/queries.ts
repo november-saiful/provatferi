@@ -6,9 +6,13 @@ import { supabase } from './supabase/client';
 import { useAuthStore } from './auth-store';
 import { COMMITTEE_ROLES, ROLE_ORDER } from './permissions';
 import type {
+  AlumniMember,
   AppNotification,
   AttendanceRecord,
   Budget,
+  RootBankBalance,
+  RootBankBudget,
+  RootBankExpense,
   CalendarEvent,
   ClubBalance,
   CommitteeMember,
@@ -369,6 +373,60 @@ export function useClubBalance(enabled = true) {
   });
 }
 
+// ---------- Root Bank (migration 00037) ----------
+// Independent budget/expense system — RLS restricts every row to root, pr,
+// admin only, so these queries return nothing for every other role.
+
+export function useRootBankBudgets(enabled = false) {
+  return useQuery({
+    queryKey: ['root-bank-budgets'],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('root_bank_budgets')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return asRows<RootBankBudget>(data);
+    }
+  });
+}
+
+export function useRootBankExpenses(enabled = false) {
+  return useQuery({
+    queryKey: ['root-bank-expenses'],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('root_bank_expenses')
+        .select(embed('*'))
+        .order('expense_date', { ascending: false });
+      if (error) throw error;
+      return asRows<RootBankExpense>(data);
+    }
+  });
+}
+
+/**
+ * Universal Root Bank balance — computed server-side via the
+ * `get_root_bank_balance` RPC so the allowed roles all see identical totals.
+ * Refreshes live whenever root bank finance data changes.
+ */
+export function useRootBankBalance(enabled = true) {
+  useRealtimeInvalidate('root_bank_expenses', [['root-bank-balance']]);
+  useRealtimeInvalidate('root_bank_budgets', [['root-bank-balance']]);
+
+  return useQuery({
+    queryKey: ['root-bank-balance'],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_root_bank_balance').maybeSingle();
+      if (error) throw error;
+      return asRow<RootBankBalance>(data);
+    }
+  });
+}
+
 // ---------- Records ----------
 export function useRecords(enabled = false) {
   return useQuery({
@@ -458,6 +516,26 @@ export function useCommitteeMembers() {
           (rank.get(a.role_id) ?? 99) - (rank.get(b.role_id) ?? 99) ||
           (a.full_name ?? '').localeCompare(b.full_name ?? '')
       );
+    }
+  });
+}
+
+/**
+ * All active alumni — every profile whose role is `alm`. Public directory:
+ * name, contact details, department and session for the alumni page.
+ */
+export function useAlumni() {
+  return useQuery({
+    queryKey: ['alumni'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, email, phone, academic_session, department')
+        .eq('role_id', 'alm')
+        .eq('is_active', true)
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      return asRows<AlumniMember>(data);
     }
   });
 }

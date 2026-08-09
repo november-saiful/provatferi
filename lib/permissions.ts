@@ -79,6 +79,17 @@ export const MODULE_WRITE: Record<ModuleId, RoleSet> = {
 
 export const SUPER_ADMINS: RoleSet = ['root', 'pr', 'vp', 'admin'];
 
+/**
+ * Root Bank — a private budget/expense vault. Only root, president and admin
+ * may see the widget in the right-side menu or open the page (migration
+ * 00037 mirrors this in RLS).
+ */
+export const ROOT_BANK_ROLES: RoleSet = ['root', 'pr', 'admin'];
+
+export function canAccessRootBank(role: RoleId | null | undefined): boolean {
+  return !!role && ROOT_BANK_ROLES.includes(role);
+}
+
 export function canRead(role: RoleId | null | undefined, module: ModuleId): boolean {
   if (!role) return false;
   return MODULE_READ[module].includes(role);

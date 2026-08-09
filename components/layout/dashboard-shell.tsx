@@ -16,6 +16,7 @@ import {
   History,
   Music4,
   BarChart3,
+  GraduationCap,
   ExternalLink,
   UserCog,
   Phone,
@@ -117,7 +118,8 @@ const PUBLIC_NAV: NavGroup[] = [
       { href: '/sponsor', label: 'স্পনসর', icon: Handshake },
       { href: '/courses', label: 'কোর্স', icon: Music4 },
       { href: '/insights', label: 'বিশ্লেষণ', icon: BarChart3 },
-      { href: '/contact', label: 'যোগাযোগ', icon: Phone }
+      { href: '/contact', label: 'যোগাযোগ', icon: Phone },
+      { href: '/alumni', label: 'অ্যালামনাই', icon: GraduationCap }
     ]
   }
 ];
