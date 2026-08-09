@@ -38,6 +38,16 @@ export function EventForm({
   const [cover, setCover] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
 
+  // Extract YYYY-MM-DDTHH:MM from an ISO date string, preserving the
+  // original local-time parts (not converting through UTC).
+  const toLocalDatetime = (iso: string | null): string => {
+    if (!iso) return '';
+    // Try direct string parse first — Supabase returns ISO strings like
+    // "2022-11-04T22:00:00+06:00". We want the YYYY-MM-DDTHH:MM part.
+    const match = iso.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+    return match ? match[1] : '';
+  };
+
   const {
     register,
     setValue,
@@ -51,7 +61,7 @@ export function EventForm({
       title: event?.title ?? '',
       description: event?.description ?? '',
       status: event?.status ?? 'upcoming',
-      event_date: event?.event_date ? new Date(event.event_date).toISOString().slice(0, 16) : '',
+      event_date: toLocalDatetime(event?.event_date ?? null),
       location: event?.location ?? ''
     }
   });
@@ -62,7 +72,7 @@ export function EventForm({
         title: event?.title ?? '',
         description: event?.description ?? '',
         status: event?.status ?? 'upcoming',
-        event_date: event?.event_date ? new Date(event.event_date).toISOString().slice(0, 16) : '',
+        event_date: toLocalDatetime(event?.event_date ?? null),
         location: event?.location ?? ''
       });
       setCover(null);
@@ -81,11 +91,14 @@ export function EventForm({
       if (cover) {
         coverImage = await uploadImage(cover, 'events');
       }
+      // Treat the datetime-local value as Bangladesh time (UTC+6)
+      // so the time the user entered is exactly what gets stored/displayed.
+      const eventDate = values.event_date ? `${values.event_date}:00+06:00` : null;
       const payload = {
         title: values.title,
         description: values.description || null,
         status: values.status,
-        event_date: values.event_date ? new Date(values.event_date).toISOString() : null,
+        event_date: eventDate,
         location: values.location || null,
         ...(event ? {} : { created_by: user.id }),
         cover_image: coverImage

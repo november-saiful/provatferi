@@ -67,6 +67,13 @@ export function CalendarEventForm({
 
   const category = watch('category');
 
+  // Extract YYYY-MM-DDTHH:MM from an ISO date string.
+  const toLocalDatetime = (iso: string | null): string => {
+    if (!iso) return '';
+    const match = iso.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+    return match ? match[1] : '';
+  };
+
   React.useEffect(() => {
     if (open) {
       reset({
@@ -74,11 +81,11 @@ export function CalendarEventForm({
         category: event?.category ?? 'general',
         custom_category: event?.custom_category ?? '',
         start_date: event
-          ? new Date(event.start_date).toISOString().slice(0, 16)
+          ? toLocalDatetime(event.start_date)
           : defaultDate
-            ? defaultDate.toISOString().slice(0, 16)
+            ? toLocalDatetime(defaultDate.toISOString())
             : '',
-        end_date: event?.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : '',
+        end_date: event?.end_date ? toLocalDatetime(event.end_date) : '',
         description: event?.description ?? '',
         location: event?.location ?? ''
       });
@@ -95,8 +102,8 @@ export function CalendarEventForm({
       title: values.title,
       category: values.category,
       custom_category: values.category === 'custom' ? values.custom_category || null : null,
-      start_date: new Date(values.start_date).toISOString(),
-      end_date: values.end_date ? new Date(values.end_date).toISOString() : null,
+      start_date: `${values.start_date}:00+06:00`,
+      end_date: values.end_date ? `${values.end_date}:00+06:00` : null,
       description: values.description || null,
       location: values.location || null,
       ...(event ? {} : { created_by: user.id })
