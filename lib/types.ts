@@ -59,9 +59,16 @@ export interface EventItem {
   location: string | null;
   cover_image: string | null;
   created_by: string | null;
+  /** Selected organizer (আয়োজক) — falls back to the creator when unset. */
+  organizer_id: string | null;
+  /** Courtesy line (সৌজন্যে) — a person or organization name. */
+  courtesy: string | null;
   created_at: string;
   updated_at: string;
+  /** Creator profile (created_by). */
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+  /** Selected organizer profile (organizer_id). */
+  organizer?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
   comments?: EventComment[];
 }
 

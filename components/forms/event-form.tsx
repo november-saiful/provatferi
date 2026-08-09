@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
+import { useCommitteeMembers } from '@/lib/queries';
+import { useAuthStore } from '@/lib/auth-store';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +21,9 @@ const schema = z.object({
   description: z.string().optional(),
   status: z.enum(['upcoming', 'ongoing', 'past']),
   event_date: z.string().optional(),
-  location: z.string().optional()
+  location: z.string().optional(),
+  organizer_id: z.string().optional(),
+  courtesy: z.string().optional()
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -33,10 +37,12 @@ export function EventForm({
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
-  event?: { id: string; title: string; description: string | null; status: 'upcoming' | 'ongoing' | 'past'; event_date: string | null; location: string | null; cover_image: string | null } | null;
+  event?: { id: string; title: string; description: string | null; status: 'upcoming' | 'ongoing' | 'past'; event_date: string | null; location: string | null; cover_image: string | null; organizer_id: string | null; courtesy: string | null } | null;
 }) {
   const [cover, setCover] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
+  const { user } = useAuthStore();
+  const { data: members } = useCommitteeMembers();
 
   // Extract YYYY-MM-DDTHH:MM from an ISO date string, preserving the
   // original local-time parts (not converting through UTC).
@@ -62,7 +68,9 @@ export function EventForm({
       description: event?.description ?? '',
       status: event?.status ?? 'upcoming',
       event_date: toLocalDatetime(event?.event_date ?? null),
-      location: event?.location ?? ''
+      location: event?.location ?? '',
+      organizer_id: event?.organizer_id ?? '',
+      courtesy: event?.courtesy ?? ''
     }
   });
 
@@ -73,11 +81,15 @@ export function EventForm({
         description: event?.description ?? '',
         status: event?.status ?? 'upcoming',
         event_date: toLocalDatetime(event?.event_date ?? null),
-        location: event?.location ?? ''
+        location: event?.location ?? '',
+        // For a new event, pre-select the publisher as the organizer so the
+        // "আয়োজনে …" attribution matches the old behavior unless changed.
+        organizer_id: event?.organizer_id ?? (event ? '' : user?.id ?? ''),
+        courtesy: event?.courtesy ?? ''
       });
       setCover(null);
     }
-  }, [open, event, reset]);
+  }, [open, event, reset, user?.id]);
 
   const onSubmit = async (values: FormValues) => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -100,6 +112,8 @@ export function EventForm({
         status: values.status,
         event_date: eventDate,
         location: values.location || null,
+        organizer_id: values.organizer_id || null,
+        courtesy: values.courtesy?.trim() || null,
         ...(event ? {} : { created_by: user.id }),
         cover_image: coverImage
       };
@@ -157,6 +171,23 @@ export function EventForm({
         <div className="space-y-2">
           <Label htmlFor="location">স্থান</Label>
           <Input id="location" {...register('location')} placeholder="অবস্থান / ঠিকানা" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="organizer_id">আয়োজক (আয়োজনে)</Label>
+          <Select id="organizer_id" {...register('organizer_id')}>
+            <option value="">— নির্বাচন করুন (ডিফল্ট: প্রকাশক) —</option>
+            {(members ?? []).map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.full_name ?? m.email}
+              </option>
+            ))}
+          </Select>
+          <p className="text-xs text-muted-foreground">ইভেন্ট পেজে ‘আয়োজনে …’ হিসেবে কাকে দেখানো হবে তা বেছে নিন।</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="courtesy">সৌজন্যে</Label>
+          <Input id="courtesy" {...register('courtesy')} placeholder="যার সৌজন্যে ইভেন্টটি আয়োজিত (ব্যক্তি/প্রতিষ্ঠান) — ঐচ্ছিক" />
+          <p className="text-xs text-muted-foreground">ইভেন্ট পেজে ‘সৌজন্যে …’ লাইন হিসেবে দেখানো হবে। ফাঁকা রাখলে লাইনটি দেখানো হবে না।</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="cover">কভার ছবি</Label>

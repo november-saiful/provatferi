@@ -24,7 +24,7 @@ import { storageThumb } from '@/lib/supabase/client';
 import { supabase } from '@/lib/supabase/client';
 import { cn, toBengaliDigits, truncate } from '@/lib/utils';
 import type { EventItem } from '@/lib/types';
-import { dateBox, compactDateTime, RsvpButtons, RsvpCount, StatusPill, useRsvp, type RsvpState } from '@/components/modules/event-shared';
+import { dateBox, compactDateTime, eventOrganizer, RsvpButtons, RsvpCount, StatusPill, useRsvp, type RsvpState } from '@/components/modules/event-shared';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -148,9 +148,20 @@ function EventCard({
 
         {/* Organizer row */}
         <div className="mt-3 flex items-center gap-2 border-t border-border/70 pt-3">
-          <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-6 w-6 text-[9px]" />
-          <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
-            আয়োজনে <span className="font-semibold text-foreground">{event.profiles?.full_name ?? 'প্রভাতফেরী'}</span>
+          <Avatar
+            name={eventOrganizer(event)?.full_name}
+            src={eventOrganizer(event)?.avatar_url}
+            className="h-6 w-6 text-[9px]"
+          />
+          <span className="min-w-0 flex-1 text-[11px] text-muted-foreground">
+            <span className="block truncate">
+              আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</span>
+            </span>
+            {event.courtesy && (
+              <span className="block truncate">
+                সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
+              </span>
+            )}
           </span>
           {event.event_date && (
             <AddToCalendar
@@ -236,10 +247,18 @@ function FeaturedEvent({
           </p>
         </div>
       </button>        <div className="flex flex-wrap items-center gap-3 p-4">
-        <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-9 w-9 text-xs" ring />
+        <Avatar
+          name={eventOrganizer(event)?.full_name}
+          src={eventOrganizer(event)?.avatar_url}
+          className="h-9 w-9 text-xs"
+          ring
+        />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold">{event.profiles?.full_name ?? 'প্রভাতফেরী'}</p>
-          <p className="text-[11px] text-muted-foreground">পাবলিক ইভেন্ট · আয়োজক</p>
+          <p className="truncate text-sm font-semibold">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</p>
+          <p className="text-[11px] text-muted-foreground">
+            পাবলিক ইভেন্ট · আয়োজক
+            {event.courtesy && <> · সৌজন্যে {event.courtesy}</>}
+          </p>
           <RsvpCount eventId={event.id} className="mt-0.5" />
         </div>
         <div className="flex gap-2">

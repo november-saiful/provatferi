@@ -52,7 +52,9 @@ export function useEvents(status?: string) {
     queryFn: async () => {
       let q = supabase
         .from('events')
-        .select(`*, profiles(${PROFILE_SELECT})`)
+        .select(
+          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT})`
+        )
         .order('event_date', { ascending: false });
       if (status && status !== 'all') q = q.eq('status', status);
       const { data, error } = await q;
@@ -69,7 +71,9 @@ export function useEvent(id?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('events')
-        .select(`*, profiles(${PROFILE_SELECT})`)
+        .select(
+          `*, profiles!events_created_by_fkey(${PROFILE_SELECT}), organizer:profiles!events_organizer_id_fkey(${PROFILE_SELECT})`
+        )
         .eq('id', id!)
         .maybeSingle();
       if (error) throw error;

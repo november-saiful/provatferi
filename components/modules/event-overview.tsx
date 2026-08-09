@@ -9,6 +9,7 @@ import type { EventItem } from '@/lib/types';
 import {
   dateBox,
   compactDateTime,
+  eventOrganizer,
   RsvpButtons,
   RsvpCount,
   StatusPill,
@@ -66,9 +67,20 @@ function OverviewCard({ event }: { event: EventItem }) {
           </p>
         )}
         <div className="mt-3 flex items-center gap-2 border-t border-border/70 pt-3">
-          <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-6 w-6 text-[9px]" />
-          <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
-            আয়োজনে <span className="font-semibold text-foreground">{event.profiles?.full_name ?? 'প্রভাতফেরী'}</span>
+          <Avatar
+            name={eventOrganizer(event)?.full_name}
+            src={eventOrganizer(event)?.avatar_url}
+            className="h-6 w-6 text-[9px]"
+          />
+          <span className="min-w-0 flex-1 text-[11px] text-muted-foreground">
+            <span className="block truncate">
+              আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী'}</span>
+            </span>
+            {event.courtesy && (
+              <span className="block truncate">
+                সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
+              </span>
+            )}
           </span>
           <RsvpCount eventId={event.id} />
           {event.event_date && (
@@ -192,9 +204,19 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
               />
             )}
             <div className="flex items-center gap-2">
-              <Avatar name={featured.profiles?.full_name} src={featured.profiles?.avatar_url} className="h-7 w-7 text-[10px]" />
+              <Avatar
+                name={eventOrganizer(featured)?.full_name}
+                src={eventOrganizer(featured)?.avatar_url}
+                className="h-7 w-7 text-[10px]"
+              />
               <span className="text-xs text-muted-foreground">
-                আয়োজনে <span className="font-semibold text-foreground">{featured.profiles?.full_name ?? 'প্রভাতফেরী'}</span>
+                আয়োজনে <span className="font-semibold text-foreground">{eventOrganizer(featured)?.full_name ?? 'প্রভাতফেরী'}</span>
+                {featured.courtesy && (
+                  <>
+                    <span aria-hidden> · </span>
+                    সৌজন্যে <span className="font-semibold text-foreground">{featured.courtesy}</span>
+                  </>
+                )}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">

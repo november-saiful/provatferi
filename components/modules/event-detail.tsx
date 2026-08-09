@@ -18,7 +18,7 @@ import { canWrite } from '@/lib/permissions';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
 import { formatDateTime, relativeTime, renderMarkdown, toBengaliDigits } from '@/lib/utils';
 import type { EventComment } from '@/lib/types';
-import { RsvpButtons, RsvpCount, StatusPill, useRsvp } from '@/components/modules/event-shared';
+import { RsvpButtons, RsvpCount, StatusPill, useRsvp, eventOrganizer } from '@/components/modules/event-shared';
 import { Button } from '@/components/ui/button';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -115,7 +115,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   const basePath = pathname?.startsWith('/dashboard') ? '/dashboard/evf' : '/events';
 
   const eventGallery = gallery?.filter((g) => g.event_id === eventId) ?? [];
-  const hostName = event?.profiles?.full_name ?? 'প্রভাতফেরী';
+  const hostName = eventOrganizer(event)?.full_name ?? 'প্রভাতফেরী';
 
   const handleDelete = async () => {
     if (!event) return;
@@ -230,10 +230,22 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
             <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
               <span>পাবলিক ইভেন্ট</span>
               <span aria-hidden>·</span>
-              <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-5 w-5 text-[8px]" />
+              <Avatar
+                name={eventOrganizer(event)?.full_name}
+                src={eventOrganizer(event)?.avatar_url}
+                className="h-5 w-5 text-[8px]"
+              />
               <span>
                 আয়োজনে <span className="font-semibold text-foreground">{hostName}</span>
               </span>
+              {event.courtesy && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>
+                    সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex gap-2 lg:hidden">
@@ -401,12 +413,22 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
 
             {/* আয়োজক */}
             <div className="flex items-center gap-3">
-              <Avatar name={event.profiles?.full_name} src={event.profiles?.avatar_url} className="h-11 w-11 text-sm" ring />
+              <Avatar
+                name={eventOrganizer(event)?.full_name}
+                src={eventOrganizer(event)?.avatar_url}
+                className="h-11 w-11 text-sm"
+                ring
+              />
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold">{hostName}</p>
                 <p className="text-xs text-muted-foreground">ইভেন্টের আয়োজক</p>
               </div>
             </div>
+            {event.courtesy && (
+              <p className="mt-3 border-t border-border/70 pt-3 text-xs text-muted-foreground">
+                সৌজন্যে <span className="font-semibold text-foreground">{event.courtesy}</span>
+              </p>
+            )}
           </aside>
         </StaggerItem>
       </div>

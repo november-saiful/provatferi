@@ -9,6 +9,7 @@ import { cn, toBengaliDigits } from '@/lib/utils';
 import { EVENT_STATUS_LABELS } from '@/lib/constants';
 import { useAuthStore } from '@/lib/auth-store';
 import { supabase } from '@/lib/supabase/client';
+import type { EventItem } from '@/lib/types';
 import {
   useEventRsvpCounts,
   useSetEventRsvp,
@@ -16,6 +17,14 @@ import {
 } from '@/lib/queries';
 
 // ── Shared Facebook-style event UI (forum, detail page and homepage) ──
+
+/**
+ * The person credited as the event organizer ("আয়োজনে …") — the organizer
+ * selected in the form, falling back to the publisher (created_by) when unset.
+ */
+export function eventOrganizer(event: EventItem | null | undefined) {
+  return event?.organizer ?? event?.profiles ?? null;
+}
 
 export const STATUS_PILL: Record<string, { dot: string; text: string; bg: string }> = {
   upcoming: { dot: 'bg-gold-500', text: 'text-gold-700 dark:text-gold-300', bg: 'bg-gold-100/80 dark:bg-gold-900/50' },
