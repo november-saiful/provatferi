@@ -400,7 +400,7 @@ export function useRootBankExpenses(enabled = false) {
       const { data, error } = await supabase
         .from('root_bank_expenses')
         .select(embed('*'))
-        .order('expense_date', { ascending: false });
+        .order('expensed_at', { ascending: false });
       if (error) throw error;
       return asRows<RootBankExpense>(data);
     }

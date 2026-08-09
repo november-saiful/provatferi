@@ -189,7 +189,8 @@ export interface RootBankExpense {
   category: string | null;
   description: string | null;
   receipt_url: string | null;
-  expense_date: string;
+  /** Date & time of the expense — stamped automatically on insert. */
+  expensed_at: string;
   created_by: string | null;
   created_at: string;
   updated_at: string;

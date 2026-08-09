@@ -15,9 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
-import type { Expense, RootBankExpense } from '@/lib/types';
-
-type ExpenseTable = 'expenses' | 'root_bank_expenses';
+import type { Expense } from '@/lib/types';
 
 const schema = z.object({
   title: z.string().min(2, 'শিরোনাম প্রয়োজন'),
@@ -34,21 +32,16 @@ export function ExpenseForm({
   open,
   onClose,
   onSaved,
-  expense,
-  table = 'expenses'
+  expense
 }: {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
-  expense?: Expense | RootBankExpense | null;
-  /** Which table to write to — `expenses` (club) or `root_bank_expenses` (Root Bank). */
-  table?: ExpenseTable;
+  expense?: Expense | null;
 }) {
   const [receipt, setReceipt] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  // Only club expenses can link to a budget; Root Bank budgets were removed
-  // (migration 00038) so Root Bank expenses never fetch/show the budget picker.
-  const { data: budgets } = useBudgets(open && table === 'expenses');
+  const { data: budgets } = useBudgets(open);
 
   const {
     register,
@@ -69,7 +62,7 @@ export function ExpenseForm({
         title: expense?.title ?? '',
         amount: expense?.amount ?? 0,
         category: expense?.category ?? '',
-        budget_id: expense && 'budget_id' in expense ? (expense.budget_id ?? '') : '',
+        budget_id: expense?.budget_id ?? '',
         description: expense?.description ?? '',
         expense_date: expense?.expense_date ?? new Date().toISOString().slice(0, 10)
       });
@@ -109,18 +102,18 @@ export function ExpenseForm({
         title: values.title,
         amount: values.amount,
         category: values.category || null,
-        ...(table === 'expenses' ? { budget_id: values.budget_id || null } : {}),
+        budget_id: values.budget_id || null,
         description: values.description || null,
         receipt_url: receiptUrl,
         expense_date: values.expense_date,
         ...(expense ? {} : { created_by: user.id })
       };
       if (expense) {
-        const { error } = await supabase.from(table).update(payload).eq('id', expense.id);
+        const { error } = await supabase.from('expenses').update(payload).eq('id', expense.id);
         if (error) throw error;
-        toast.success('ব্যয় আপডেট হয়েছে');
+        toast.success('ব্যয় আপডেট হয়েছে — মূল স্রষ্টাকে জানানো হয়েছে');
       } else {
-        const { error } = await supabase.from(table).insert(payload);
+        const { error } = await supabase.from('expenses').insert(payload);
         if (error) throw error;
         toast.success('ব্যয় রেকর্ড হয়েছে');
       }
@@ -157,7 +150,7 @@ export function ExpenseForm({
             </Select>
           </div>
         </div>
-        {table === 'expenses' && budgets && budgets.length > 0 && (
+        {budgets && budgets.length > 0 && (
           <div className="space-y-2">
             <Label htmlFor="x-budget">বাজেট (ঐচ্ছিক)</Label>
             <Select id="x-budget" {...register('budget_id')}>

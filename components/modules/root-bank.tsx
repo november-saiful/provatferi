@@ -13,18 +13,15 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useRootBankDeposits, useRootBankExpenses, useRootBankBalance } from '@/lib/queries';
-import { EXPENSE_CATEGORIES } from '@/lib/constants';
-import { formatMoney, cn, toBengaliDigits, formatDate, formatDateTime } from '@/lib/utils';
+import { formatMoney, cn, toBengaliDigits, formatDateTime } from '@/lib/utils';
 import { storageUrl } from '@/lib/supabase/client';
 import type { RootBankDeposit, RootBankExpense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Badge } from '@/components/ui/badge';
-import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { RootBankDepositForm } from '@/components/forms/root-bank-deposit-form';
-import { ExpenseForm } from '@/components/forms/expense-form';
+import { RootBankExpenseForm } from '@/components/forms/root-bank-expense-form';
 import { Dialog } from '@/components/ui/dialog';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
@@ -200,16 +197,14 @@ function RootBankExpensesSection() {
   const qc = useQueryClient();
   const { data: expenses, isLoading } = useRootBankExpenses(true);
 
-  const [category, setCategory] = React.useState('');
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<RootBankExpense | null>(null);
   const [receipt, setReceipt] = React.useState<string | null>(null);
 
-  const filtered = React.useMemo(
-    () => (expenses ?? []).filter((e) => !category || e.category === category),
-    [expenses, category]
+  const total = React.useMemo(
+    () => (expenses ?? []).reduce((s, e) => s + Number(e.amount), 0),
+    [expenses]
   );
-  const total = React.useMemo(() => filtered.reduce((s, e) => s + Number(e.amount), 0), [filtered]);
 
   const handleDelete = async (e: RootBankExpense) => {
     if (!confirm(`রুট ব্যাংক ব্যয় "${e.title}" মুছে ফেলবেন?`)) return;
@@ -231,12 +226,6 @@ function RootBankExpensesSection() {
           <h2 id="root-bank-expenses-title" className="mt-1 text-xl font-bold tracking-tight">রুট ব্যাংক ব্যয়</h2>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Select value={category} onChange={(e) => setCategory(e.target.value)} className="w-40">
-            <option value="">সব বিভাগ</option>
-            {EXPENSE_CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </Select>
           <span className="text-sm text-muted-foreground">
             মোট: <span className="font-semibold text-coffee-700">{formatMoney(total)}</span>
           </span>
@@ -253,7 +242,7 @@ function RootBankExpensesSection() {
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
-      {!isLoading && filtered.length === 0 && (
+      {!isLoading && (expenses ?? []).length === 0 && (
         <EmptyState
           title="কোনো ব্যয় রেকর্ড নেই"
           description="রুট ব্যাংকে নতুন ব্যয় যোগ করুন।"
@@ -261,14 +250,13 @@ function RootBankExpensesSection() {
         />
       )}
 
-      {filtered.length > 0 && (
+      {(expenses ?? []).length > 0 && (
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-soft">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>তারিখ</TableHead>
-                <TableHead>শিরোনাম</TableHead>
-                <TableHead>বিভাগ</TableHead>
+                <TableHead>তারিখ ও সময়</TableHead>
+                <TableHead>শিরোনাম / রেফারেন্স</TableHead>
                 <TableHead className="text-right">পরিমাণ</TableHead>
                 <TableHead>রসিদ</TableHead>
                 <TableHead>যিনি তৈরি করেছেন</TableHead>
@@ -276,13 +264,10 @@ function RootBankExpensesSection() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((e) => (
+              {(expenses ?? []).map((e) => (
                 <TableRow key={e.id}>
-                  <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(e.expense_date)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(e.expensed_at)}</TableCell>
                   <TableCell className="font-medium">{e.title}</TableCell>
-                  <TableCell>
-                    {e.category && <Badge variant="coffee">{e.category}</Badge>}
-                  </TableCell>
                   <TableCell className="text-right font-mono font-semibold text-coffee-700">{formatMoney(Number(e.amount))}</TableCell>
                   <TableCell>
                     {e.receipt_url ? (
@@ -311,11 +296,10 @@ function RootBankExpensesSection() {
         </div>
       )}
 
-      <ExpenseForm
+      <RootBankExpenseForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
         expense={editing}
-        table="root_bank_expenses"
         onSaved={() => {
           qc.invalidateQueries({ queryKey: ['root-bank-expenses'] });
           qc.invalidateQueries({ queryKey: ['root-bank-balance'] });
