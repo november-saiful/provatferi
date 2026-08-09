@@ -11,7 +11,7 @@ import type {
   AttendanceRecord,
   Budget,
   RootBankBalance,
-  RootBankBudget,
+  RootBankDeposit,
   RootBankExpense,
   CalendarEvent,
   ClubBalance,
@@ -377,17 +377,17 @@ export function useClubBalance(enabled = true) {
 // Independent budget/expense system — RLS restricts every row to root, pr,
 // admin only, so these queries return nothing for every other role.
 
-export function useRootBankBudgets(enabled = false) {
+export function useRootBankDeposits(enabled = false) {
   return useQuery({
-    queryKey: ['root-bank-budgets'],
+    queryKey: ['root-bank-deposits'],
     enabled,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('root_bank_budgets')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from('root_bank_deposits')
+        .select(embed('*'))
+        .order('deposited_at', { ascending: false });
       if (error) throw error;
-      return asRows<RootBankBudget>(data);
+      return asRows<RootBankDeposit>(data);
     }
   });
 }
@@ -409,12 +409,12 @@ export function useRootBankExpenses(enabled = false) {
 
 /**
  * Universal Root Bank balance — computed server-side via the
- * `get_root_bank_balance` RPC so the allowed roles all see identical totals.
- * Refreshes live whenever root bank finance data changes.
+ * `get_root_bank_balance` RPC (deposits − expenses) so the allowed roles all
+ * see identical totals. Refreshes live whenever root bank data changes.
  */
 export function useRootBankBalance(enabled = true) {
+  useRealtimeInvalidate('root_bank_deposits', [['root-bank-balance']]);
   useRealtimeInvalidate('root_bank_expenses', [['root-bank-balance']]);
-  useRealtimeInvalidate('root_bank_budgets', [['root-bank-balance']]);
 
   return useQuery({
     queryKey: ['root-bank-balance'],

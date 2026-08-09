@@ -167,21 +167,19 @@ export interface Budget {
   profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
-// ── Root Bank (migration 00037) — independent budget/expense system ───────
+// ── Root Bank (migrations 00037–00038) — deposits/expense system ──────────
 // Only root, president (pr) and admin may access these rows.
 
-export interface RootBankBudget {
+export interface RootBankDeposit {
   id: string;
-  project_name: string;
-  allocated_amount: number;
-  spent_amount: number;
-  description: string | null;
-  start_date: string | null;
-  end_date: string | null;
-  status: string;
+  title: string;
+  amount: number;
+  /** Date & time of the deposit — stamped automatically on insert. */
+  deposited_at: string;
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
 }
 
 export interface RootBankExpense {
@@ -192,7 +190,6 @@ export interface RootBankExpense {
   description: string | null;
   receipt_url: string | null;
   expense_date: string;
-  budget_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -200,7 +197,7 @@ export interface RootBankExpense {
 }
 
 export interface RootBankBalance {
-  allocated: number | string;
+  deposits: number | string;
   spent: number | string;
 }
 

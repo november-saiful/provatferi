@@ -19,10 +19,10 @@ interface RootBankWidgetProps {
 export function RootBankWidget({ className }: RootBankWidgetProps) {
   const { data: balance } = useRootBankBalance();
 
-  const allocated = Number(balance?.allocated ?? 0);
+  const deposits = Number(balance?.deposits ?? 0);
   const spent = Number(balance?.spent ?? 0);
-  const remaining = Math.max(allocated - spent, 0);
-  const pct = allocated > 0 ? Math.min(100, Math.round((spent / allocated) * 100)) : 0;
+  const remaining = deposits - spent;
+  const pct = deposits > 0 ? Math.min(100, Math.round((spent / deposits) * 100)) : 0;
   const barColor = pct < 60 ? 'bg-sage-500' : pct < 85 ? 'bg-amber-500' : 'bg-warmred-500';
 
   return (
@@ -33,7 +33,7 @@ export function RootBankWidget({ className }: RootBankWidgetProps) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold text-foreground">রুট ব্যাংক</p>
-          <p className="truncate text-[10px] text-muted-foreground">বাজেট বরাদ্দ ও ব্যয়</p>
+          <p className="truncate text-[10px] text-muted-foreground">জমা ও ব্যয়</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export function RootBankWidget({ className }: RootBankWidgetProps) {
           {toBengaliDigits(pct)}% ব্যবহৃত
         </p>
         <p className="text-[11px] text-muted-foreground tabular-nums leading-none">
-          {formatMoney(spent)} / {formatMoney(allocated)}
+          {formatMoney(spent)} / {formatMoney(deposits)}
         </p>
       </div>
 
@@ -57,7 +57,10 @@ export function RootBankWidget({ className }: RootBankWidgetProps) {
 
       <div className="mt-2.5 flex items-center justify-between gap-2 text-[10.5px]">
         <span className="text-muted-foreground tabular-nums">
-          অবশিষ্ট · <span className="font-semibold text-sage-600 dark:text-sage-400">{formatMoney(remaining)}</span>
+          অবশিষ্ট ·{' '}
+          <span className={cn('font-semibold', remaining < 0 ? 'text-warmred-500' : 'text-sage-600 dark:text-sage-400')}>
+            {formatMoney(remaining)}
+          </span>
         </span>
         <Link
           href="/dashboard/root-bank"

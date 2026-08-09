@@ -5,40 +5,38 @@ import {
   Plus,
   Pencil,
   Trash2,
-  AlertTriangle,
-  Flame,
   Landmark,
+  PiggyBank,
   Receipt
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
-import { useRootBankBudgets, useRootBankExpenses, useRootBankBalance } from '@/lib/queries';
-import { BUDGET_STATUS_LABELS, EXPENSE_CATEGORIES } from '@/lib/constants';
-import { formatMoney, cn, toBengaliDigits, formatDate } from '@/lib/utils';
+import { useRootBankDeposits, useRootBankExpenses, useRootBankBalance } from '@/lib/queries';
+import { EXPENSE_CATEGORIES } from '@/lib/constants';
+import { formatMoney, cn, toBengaliDigits, formatDate, formatDateTime } from '@/lib/utils';
 import { storageUrl } from '@/lib/supabase/client';
-import type { RootBankBudget, RootBankExpense } from '@/lib/types';
+import type { RootBankDeposit, RootBankExpense } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { BudgetForm } from '@/components/forms/budget-form';
+import { RootBankDepositForm } from '@/components/forms/root-bank-deposit-form';
 import { ExpenseForm } from '@/components/forms/expense-form';
 import { Dialog } from '@/components/ui/dialog';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 
-/* ── Balance card ─────────────────────────────────────────────────────── */
+/* ── Balance card (deposits − expenses) ────────────────────────────────── */
 
 function BalanceCard() {
   const { data: balance } = useRootBankBalance();
 
-  const allocated = Number(balance?.allocated ?? 0);
+  const deposits = Number(balance?.deposits ?? 0);
   const spent = Number(balance?.spent ?? 0);
-  const remaining = Math.max(allocated - spent, 0);
-  const pct = allocated > 0 ? Math.min(100, Math.round((spent / allocated) * 100)) : 0;
+  const remaining = deposits - spent;
+  const pct = deposits > 0 ? Math.min(100, Math.round((spent / deposits) * 100)) : 0;
   const barColor = pct < 60 ? 'bg-sage-500' : pct < 85 ? 'bg-amber-500' : 'bg-warmred-500';
 
   return (
@@ -49,7 +47,7 @@ function BalanceCard() {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">রুট ব্যাংক ব্যালেন্স</p>
-          <p className="truncate text-xs text-muted-foreground">বাজেট বরাদ্দ ও ব্যয়</p>
+          <p className="truncate text-xs text-muted-foreground">জমা ও ব্যয়</p>
         </div>
       </div>
 
@@ -58,20 +56,26 @@ function BalanceCard() {
           {toBengaliDigits(pct)}% ব্যবহৃত
         </p>
         <p className="text-xs text-muted-foreground tabular-nums leading-none">
-          {formatMoney(spent)} / {formatMoney(allocated)}
+          {formatMoney(spent)} / {formatMoney(deposits)}
         </p>
       </div>
 
       <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700', barColor)} style={{ width: `${pct}%` }} />
+        <div
+          className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700', barColor)}
+          style={{ width: `${pct}%` }}
+        />
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
         <span className="text-muted-foreground tabular-nums">
-          অবশিষ্ট · <span className="font-semibold text-sage-600 dark:text-sage-400">{formatMoney(remaining)}</span>
+          অবশিষ্ট ·{' '}
+          <span className={cn('font-semibold', remaining < 0 ? 'text-warmred-500' : 'text-sage-600 dark:text-sage-400')}>
+            {formatMoney(remaining)}
+          </span>
         </span>
         <span className="text-muted-foreground tabular-nums text-center">
-          বরাদ্দ · <span className="font-semibold">{formatMoney(allocated)}</span>
+          জমা · <span className="font-semibold">{formatMoney(deposits)}</span>
         </span>
         <span className="text-muted-foreground tabular-nums text-right">
           ব্যয় · <span className="font-semibold">{formatMoney(spent)}</span>
@@ -81,145 +85,108 @@ function BalanceCard() {
   );
 }
 
-/* ── Budgets ───────────────────────────────────────────────────────────── */
+/* ── Deposits ──────────────────────────────────────────────────────────── */
 
-function RootBankBudgetsSection() {
+function RootBankDepositsSection() {
   const qc = useQueryClient();
-  const { data: budgets, isLoading } = useRootBankBudgets(true);
+  const { data: deposits, isLoading } = useRootBankDeposits(true);
 
   const [formOpen, setFormOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<RootBankBudget | null>(null);
+  const [editing, setEditing] = React.useState<RootBankDeposit | null>(null);
 
-  const handleDelete = async (b: RootBankBudget) => {
-    if (!confirm(`রুট ব্যাংক বাজেট "${b.project_name}" মুছে ফেলবেন?`)) return;
-    const { error } = await supabase.from('root_bank_budgets').delete().eq('id', b.id);
+  const total = React.useMemo(
+    () => (deposits ?? []).reduce((s, d) => s + Number(d.amount), 0),
+    [deposits]
+  );
+
+  const handleDelete = async (d: RootBankDeposit) => {
+    if (!confirm(`জমা "${d.title}" মুছে ফেলবেন?`)) return;
+    const { error } = await supabase.from('root_bank_deposits').delete().eq('id', d.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('রুট ব্যাংক বাজেট মুছে ফেলা হয়েছে');
-      qc.invalidateQueries({ queryKey: ['root-bank-budgets'] });
+      toast.success('জমা মুছে ফেলা হয়েছে');
+      qc.invalidateQueries({ queryKey: ['root-bank-deposits'] });
       qc.invalidateQueries({ queryKey: ['root-bank-balance'] });
     }
   };
 
   return (
-    <section aria-labelledby="root-bank-budgets-title">
+    <section aria-labelledby="root-bank-deposits-title">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/75">বাজেট</p>
-          <h2 id="root-bank-budgets-title" className="mt-1 text-xl font-bold tracking-tight">রুট ব্যাংক বাজেট</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary/75">জমা</p>
+          <h2 id="root-bank-deposits-title" className="mt-1 text-xl font-bold tracking-tight">রুট ব্যাংক জমা</h2>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus /> নতুন বাজেট
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm text-muted-foreground">
+            মোট: <span className="font-semibold text-sage-600 dark:text-sage-400">{formatMoney(total)}</span>
+          </span>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus /> জমা যোগ করুন
+          </Button>
+        </div>
       </div>
 
       {isLoading && <Skeleton className="h-64 w-full" />}
 
-      {!isLoading && (!budgets || budgets.length === 0) && (
-        <EmptyState title="কোনো বাজেট নেই" description="রুট ব্যাংকে নতুন বাজেট যোগ করুন।" icon={<Landmark className="h-7 w-7" />} />
+      {!isLoading && (!deposits || deposits.length === 0) && (
+        <EmptyState
+          title="কোনো জমা নেই"
+          description="রুট ব্যাংকে নতুন জমা যোগ করুন।"
+          icon={<PiggyBank className="h-7 w-7" />}
+        />
       )}
 
-      {budgets && budgets.length > 0 && (
-        <Stagger className="grid gap-4 md:grid-cols-2">
-          {budgets.map((b) => {
-            const allocated = Number(b.allocated_amount);
-            const spent = Number(b.spent_amount);
-            const pct = allocated > 0 ? (spent / allocated) * 100 : 0;
-            const remaining = allocated - spent;
-            const barColor = pct > 95 ? 'bg-warmred-500' : pct >= 75 ? 'bg-amber-500' : 'bg-sage-500';
-            const isCritical = pct > 95;
-            const isWarning = pct >= 80 && pct <= 95;
-            return (
-              <StaggerItem
-                key={b.id}
-                className={cn(
-                  'rounded-xl2 border bg-card p-5 shadow-soft transition-colors',
-                  isCritical
-                    ? 'border-warmred-300 dark:border-warmred-700 bg-warmred-50/30 dark:bg-warmred-950/20'
-                    : isWarning
-                      ? 'border-amber-300 dark:border-amber-700 bg-amber-50/30 dark:bg-amber-950/20'
-                      : 'border-border'
-                )}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-semibold">{b.project_name}</h3>
-                    <p className="text-xs text-muted-foreground">{b.description || '—'}</p>
-                  </div>
-                  <Badge variant={b.status === 'active' ? 'coffee' : b.status === 'completed' ? 'success' : 'secondary'}>
-                    {BUDGET_STATUS_LABELS[b.status] ?? b.status}
-                  </Badge>
-                </div>
-
-                <div className="mt-4 space-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">বরাদ্দ</span>
-                    <span className="font-medium">{formatMoney(allocated)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ব্যয়</span>
-                    <span className="font-medium">{formatMoney(spent)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">অবশিষ্ট</span>
-                    <span className={cn('font-semibold', remaining < 0 ? 'text-warmred-500' : 'text-sage-600')}>
-                      {formatMoney(remaining)}
-                    </span>
-                  </div>
-                </div>
-
-                <Progress value={pct} className="mt-3" barClassName={barColor} />
-                <div className="mt-1 flex items-center justify-between">
-                  {isCritical ? (
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-warmred-600 dark:text-warmred-400">
-                      <Flame className="h-3 w-3" />
-                      বাজেট অতিক্রান্ত!
-                    </span>
-                  ) : isWarning ? (
-                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                      <AlertTriangle className="h-3 w-3" />
-                      সতর্কতা: ৮০%+ ব্যয় হয়েছে
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-                  <p className="text-xs text-muted-foreground">{toBengaliDigits(pct.toFixed(1))}% ব্যয় হয়েছে</p>
-                </div>
-
-                <div className="mt-4 flex justify-end gap-2 border-t border-border pt-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditing(b);
-                      setFormOpen(true);
-                    }}
-                  >
-                    <Pencil /> সম্পাদনা
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => handleDelete(b)}>
-                    <Trash2 /> মুছুন
-                  </Button>
-                </div>
-              </StaggerItem>
-            );
-          })}
-        </Stagger>
+      {deposits && deposits.length > 0 && (
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-soft">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>তারিখ ও সময়</TableHead>
+                <TableHead>শিরোনাম / রেফারেন্স</TableHead>
+                <TableHead className="text-right">পরিমাণ</TableHead>
+                <TableHead>যিনি যোগ করেছেন</TableHead>
+                <TableHead className="text-right">কার্যক্রম</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {deposits.map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(d.deposited_at)}</TableCell>
+                  <TableCell className="font-medium">{d.title}</TableCell>
+                  <TableCell className="text-right font-mono font-semibold text-sage-600 dark:text-sage-400">
+                    {formatMoney(Number(d.amount))}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{d.profiles?.full_name ?? '—'}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => { setEditing(d); setFormOpen(true); }}>
+                        <Pencil />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-warmred-500" onClick={() => handleDelete(d)}>
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
-      <BudgetForm
+      <RootBankDepositForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        budget={editing}
-        table="root_bank_budgets"
+        deposit={editing}
         onSaved={() => {
-          qc.invalidateQueries({ queryKey: ['root-bank-budgets'] });
+          qc.invalidateQueries({ queryKey: ['root-bank-deposits'] });
           qc.invalidateQueries({ queryKey: ['root-bank-balance'] });
         }}
       />
@@ -252,7 +219,6 @@ function RootBankExpensesSection() {
     } else {
       toast.success('রুট ব্যাংক ব্যয় মুছে ফেলা হয়েছে');
       qc.invalidateQueries({ queryKey: ['root-bank-expenses'] });
-      qc.invalidateQueries({ queryKey: ['root-bank-budgets'] });
       qc.invalidateQueries({ queryKey: ['root-bank-balance'] });
     }
   };
@@ -288,7 +254,11 @@ function RootBankExpensesSection() {
       {isLoading && <Skeleton className="h-64 w-full" />}
 
       {!isLoading && filtered.length === 0 && (
-        <EmptyState title="কোনো ব্যয় রেকর্ড নেই" description="রুট ব্যাংকে নতুন ব্যয় যোগ করুন।" icon={<Receipt className="h-7 w-7" />} />
+        <EmptyState
+          title="কোনো ব্যয় রেকর্ড নেই"
+          description="রুট ব্যাংকে নতুন ব্যয় যোগ করুন।"
+          icon={<Receipt className="h-7 w-7" />}
+        />
       )}
 
       {filtered.length > 0 && (
@@ -348,7 +318,6 @@ function RootBankExpensesSection() {
         table="root_bank_expenses"
         onSaved={() => {
           qc.invalidateQueries({ queryKey: ['root-bank-expenses'] });
-          qc.invalidateQueries({ queryKey: ['root-bank-budgets'] });
           qc.invalidateQueries({ queryKey: ['root-bank-balance'] });
         }}
       />
@@ -372,7 +341,7 @@ export function RootBank() {
         <BalanceCard />
       </StaggerItem>
       <StaggerItem>
-        <RootBankBudgetsSection />
+        <RootBankDepositsSection />
       </StaggerItem>
       <StaggerItem>
         <RootBankExpensesSection />

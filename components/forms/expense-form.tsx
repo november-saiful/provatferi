@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase/client';
 import { uploadImage } from '@/lib/upload';
 import { EXPENSE_CATEGORIES } from '@/lib/constants';
-import { useBudgets, useRootBankBudgets } from '@/lib/queries';
+import { useBudgets } from '@/lib/queries';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,9 +46,9 @@ export function ExpenseForm({
 }) {
   const [receipt, setReceipt] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  const { data: clubBudgets } = useBudgets(open && table === 'expenses');
-  const { data: rootBankBudgets } = useRootBankBudgets(open && table === 'root_bank_expenses');
-  const budgets = table === 'root_bank_expenses' ? rootBankBudgets : clubBudgets;
+  // Only club expenses can link to a budget; Root Bank budgets were removed
+  // (migration 00038) so Root Bank expenses never fetch/show the budget picker.
+  const { data: budgets } = useBudgets(open && table === 'expenses');
 
   const {
     register,
@@ -69,7 +69,7 @@ export function ExpenseForm({
         title: expense?.title ?? '',
         amount: expense?.amount ?? 0,
         category: expense?.category ?? '',
-        budget_id: expense?.budget_id ?? '',
+        budget_id: expense && 'budget_id' in expense ? (expense.budget_id ?? '') : '',
         description: expense?.description ?? '',
         expense_date: expense?.expense_date ?? new Date().toISOString().slice(0, 10)
       });
@@ -109,7 +109,7 @@ export function ExpenseForm({
         title: values.title,
         amount: values.amount,
         category: values.category || null,
-        budget_id: values.budget_id || null,
+        ...(table === 'expenses' ? { budget_id: values.budget_id || null } : {}),
         description: values.description || null,
         receipt_url: receiptUrl,
         expense_date: values.expense_date,
@@ -157,7 +157,7 @@ export function ExpenseForm({
             </Select>
           </div>
         </div>
-        {budgets && budgets.length > 0 && (
+        {table === 'expenses' && budgets && budgets.length > 0 && (
           <div className="space-y-2">
             <Label htmlFor="x-budget">বাজেট (ঐচ্ছিক)</Label>
             <Select id="x-budget" {...register('budget_id')}>

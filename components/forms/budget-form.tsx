@@ -13,9 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
-import type { Budget, RootBankBudget } from '@/lib/types';
-
-type BudgetTable = 'budgets' | 'root_bank_budgets';
+import type { Budget } from '@/lib/types';
 
 const schema = z.object({
   project_name: z.string().min(2, 'প্রকল্পের নাম প্রয়োজন'),
@@ -32,15 +30,12 @@ export function BudgetForm({
   open,
   onClose,
   onSaved,
-  budget,
-  table = 'budgets'
+  budget
 }: {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
-  budget?: Budget | RootBankBudget | null;
-  /** Which table to write to — `budgets` (club) or `root_bank_budgets` (Root Bank). */
-  table?: BudgetTable;
+  budget?: Budget | null;
 }) {
   const {
     register,
@@ -82,11 +77,11 @@ export function BudgetForm({
         ...(budget ? {} : { created_by: user.id, spent_amount: 0 })
       };
       if (budget) {
-        const { error } = await supabase.from(table).update(payload).eq('id', budget.id);
+        const { error } = await supabase.from('budgets').update(payload).eq('id', budget.id);
         if (error) throw error;
         toast.success('বাজেট আপডেট হয়েছে');
       } else {
-        const { error } = await supabase.from(table).insert(payload);
+        const { error } = await supabase.from('budgets').insert(payload);
         if (error) throw error;
         toast.success('বাজেট তৈরি হয়েছে');
       }
