@@ -6,6 +6,11 @@ import { PAYMENT_METHODS, type PaymentMethodId } from '@/lib/constants';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useAppConfig } from '@/lib/queries';
+import { useAuthStore } from '@/lib/auth-store';
+import { InlineEditableText } from '@/components/ui/inline-editable';
+
+const EDITABLE_ROLES = ['root', 'pr', 'admin'] as const;
 
 interface PaymentSectionProps {
   method: PaymentMethodId | '';
@@ -37,6 +42,16 @@ export function PaymentSection({
   title = 'পেমেন্ট (Send Money)'
 }: PaymentSectionProps) {
   const [copied, setCopied] = React.useState(false);
+  const { role } = useAuthStore();
+  const canEditNumbers = !!role && EDITABLE_ROLES.includes(role as typeof EDITABLE_ROLES[number]);
+
+  // Fetch wallet numbers from DB (falls back to hardcoded constants)
+  const { data: bkashNumber } = useAppConfig('bkash_number');
+  const { data: nagadNumber } = useAppConfig('nagad_number');
+  const walletNumber = (method: PaymentMethodId) => {
+    if (method === 'bkash') return bkashNumber || PAYMENT_METHODS.bkash.number;
+    return nagadNumber || PAYMENT_METHODS.nagad.number;
+  };
 
   const copyNumber = async (number: string) => {
     try {
@@ -101,12 +116,17 @@ export function PaymentSection({
             {PAYMENT_METHODS[method].label} — Send Money করুন এই নম্বরে
           </p>
           <div className="mt-1 flex items-center justify-between gap-2">
-            <span className="font-mono text-lg font-bold tracking-wider text-primary">
-              {PAYMENT_METHODS[method].number}
-            </span>
+            <InlineEditableText
+              configKey={method === 'bkash' ? 'bkash_number' : 'nagad_number'}
+              fallback={PAYMENT_METHODS[method].number}
+              canEdit={canEditNumbers}
+              displayClassName="font-mono text-lg font-bold tracking-wider text-primary"
+              inputType="tel"
+              placeholder="নম্বর লিখুন"
+            />
             <button
               type="button"
-              onClick={() => copyNumber(PAYMENT_METHODS[method].number)}
+              onClick={() => copyNumber(walletNumber(method))}
               className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {copied ? <Check className="h-3 w-3 text-sage-600" /> : <Copy className="h-3 w-3" />}

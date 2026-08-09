@@ -25,24 +25,31 @@ export function AlbumSlider() {
   useRealtimeInvalidate('gallery_items', [['gallery']]);
 
   const photos = useMemo(() => {
-    const albums = new Map<
+    // Group all images by album (event_id).
+    const albumMap = new Map<
       string,
-      { id: string; image_url: string; title: string; event_id: string | null }
+      Array<{ id: string; image_url: string; title: string; event_id: string | null }>
     >();
     for (const item of items ?? []) {
       if (!item.image_url) continue;
       const key = item.event_id ?? 'general';
-      if (!albums.has(key)) {
-        albums.set(key, {
-          id: item.id,
-          image_url: item.image_url,
-          title: item.events?.title ?? item.title ?? 'গ্যালারি',
-          event_id: item.event_id
-        });
-      }
-      if (albums.size >= MAX_ALBUMS) break;
+      const entry = {
+        id: item.id,
+        image_url: item.image_url,
+        title: item.events?.title ?? item.title ?? 'গ্যালারি',
+        event_id: item.event_id
+      };
+      const list = albumMap.get(key);
+      if (list) list.push(entry);
+      else albumMap.set(key, [entry]);
     }
-    return Array.from(albums.values());
+    // Pick a random photo from each album.
+    const result: Array<{ id: string; image_url: string; title: string; event_id: string | null }> = [];
+    for (const photos of Array.from(albumMap.values())) {
+      if (result.length >= MAX_ALBUMS) break;
+      result.push(photos[Math.floor(Math.random() * photos.length)]);
+    }
+    return result;
   }, [items]);
 
   if (isLoading) {

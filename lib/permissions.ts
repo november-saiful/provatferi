@@ -123,6 +123,11 @@ export function canManageUsers(role: RoleId | null | undefined): boolean {
   return !!role && ['root', 'pr', 'vp', 'admin'].includes(role);
 }
 
+/** Edit payment/contact phone numbers displayed on public pages. */
+export function canEditPaymentNumbers(role: RoleId | null | undefined): boolean {
+  return !!role && ['root', 'pr', 'admin'].includes(role);
+}
+
 /**
  * Committee members: every role except alumni and visitors.
  * Root is included as the organization itself — not a person but the club entity.

@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
-import { useCommitteeMembers } from '@/lib/queries';
+import { useCommitteeMembers, useAppConfig } from '@/lib/queries';
+import { useAuthStore } from '@/lib/auth-store';
 import { ROLE_NAMES, isOrganizationRole } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,10 +23,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Avatar } from '@/components/ui/avatar';
 import { PageHeader } from '@/components/ui/page-header';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
+import { InlineEditableText } from '@/components/ui/inline-editable';
 import type { CommitteeMember } from '@/lib/types';
 
 const FALLBACK_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'provatferi2009@gmail.com';
 const FALLBACK_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '+880 1839-858853';
+const EDITABLE_ROLES = ['root', 'pr', 'admin'] as const;
 const MAP_URL = process.env.NEXT_PUBLIC_MAP_URL || 'https://maps.app.goo.gl/XWfzeC1RScAnpvKQ9';
 
 function phoneHref(phone: string) {
@@ -110,7 +113,7 @@ function MemberCard({ member }: { member: CommitteeMember }) {
         <div className="flex items-start gap-4">
           <Avatar name={name} src={member.avatar_url} iconPlaceholder className={cn('h-14 w-14 shrink-0 text-base', isOrg && 'ring-2 ring-gold-300/60 dark:ring-gold-600/50')} ring />
           <div className="min-w-0 pt-0.5">
-            <p className="truncate font-semibold tracking-tight">{name}</p>
+            <p className="break-words font-semibold leading-snug tracking-tight">{name}</p>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <p className={cn(
                 'inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold',
@@ -142,11 +145,13 @@ function MemberCard({ member }: { member: CommitteeMember }) {
 
 export default function ContactPage() {
   const { data: members, isLoading, isError } = useCommitteeMembers();
+  const { role } = useAuthStore();
+  const { data: dbPhone } = useAppConfig('contact_phone');
   const [query, setQuery] = React.useState('');
+  const canEditNumbers = !!role && EDITABLE_ROLES.includes(role as typeof EDITABLE_ROLES[number]);
 
-  // Use env variables directly — database app_config may have stale values
   const officeEmail = FALLBACK_EMAIL;
-  const officePhone = FALLBACK_PHONE;
+  const officePhone = dbPhone || FALLBACK_PHONE;
 
   const visibleMembers = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -198,13 +203,17 @@ export default function ContactPage() {
                   <span className="truncate max-w-56 sm:max-w-none">{officeEmail}</span>
                 </a>
                 {usablePhone(officePhone) && (
-                  <a
-                    href={phoneHref(officePhone)}
-                    className="group inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/25"
-                  >
+                  <div className="group inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/25">
                     <Phone className="h-4 w-4 text-gold-300" aria-hidden="true" />
-                    {officePhone}
-                  </a>
+                    <InlineEditableText
+                      configKey="contact_phone"
+                      fallback={FALLBACK_PHONE}
+                      canEdit={canEditNumbers}
+                      displayClassName="text-sm font-semibold text-white"
+                      inputType="tel"
+                      placeholder="ফোন নম্বর"
+                    />
+                  </div>
                 )}
               </div>
             </div>
@@ -225,8 +234,8 @@ export default function ContactPage() {
             </div>
             <MapPin className="h-5 w-5 text-primary/60" aria-hidden="true" />
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card className="card-hover">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Card className="card-hover h-full">
               <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coffee-100 text-coffee-700 dark:bg-coffee-900/50 dark:text-coffee-300">
                   <Mail className="h-5 w-5" aria-hidden="true" />
@@ -235,41 +244,41 @@ export default function ContactPage() {
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">ইমেইল</p>
                   <a
                     href={`mailto:${officeEmail}`}
-                    className="mt-1 block truncate text-sm font-semibold hover:text-primary hover:underline"
+                    className="mt-1 block break-words text-sm font-semibold leading-snug hover:text-primary hover:underline"
                   >
                     {officeEmail}
                   </a>
                 </div>
               </CardContent>
             </Card>
-            <Card className="card-hover">
+            <Card className="card-hover h-full">
               <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300">
                   <Phone className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">ফোন</p>
-                  {usablePhone(officePhone) ? (
-                    <a
-                      href={phoneHref(officePhone)}
-                      className="mt-1 block truncate text-sm font-semibold hover:text-primary hover:underline"
-                    >
-                      {officePhone}
-                    </a>
-                  ) : (
-                    <p className="mt-1 text-sm font-semibold">শীঘ্রই জানানো হবে</p>
-                  )}
+                  <div className="mt-1">
+                    <InlineEditableText
+                      configKey="contact_phone"
+                      fallback={FALLBACK_PHONE}
+                      canEdit={canEditNumbers}
+                      displayClassName="block break-words text-sm font-semibold leading-snug"
+                      inputType="tel"
+                      placeholder="ফোন নম্বর"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="card-hover group cursor-pointer" onClick={() => window.open(MAP_URL, '_blank', 'noreferrer')}>
+            <Card className="card-hover group h-full cursor-pointer" onClick={() => window.open(MAP_URL, '_blank', 'noreferrer')}>
               <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">ক্লাব হাউস</p>
-                  <p className="mt-1 truncate text-sm font-semibold group-hover:text-primary group-hover:underline">মূল ক্যাম্পাস — ম্যাপে দেখুন</p>
+                  <p className="mt-1 break-words text-sm font-semibold leading-snug group-hover:text-primary group-hover:underline">মূল ক্যাম্পাস — ম্যাপে দেখুন</p>
                 </div>
               </CardContent>
             </Card>

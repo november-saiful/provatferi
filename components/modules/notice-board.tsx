@@ -87,7 +87,7 @@ export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string
               <div className="mb-3 sm:mb-4 flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-gold-300">
                 <span className="notice-board-live-dot" aria-hidden="true" /> লাইভ নোটিশ বোর্ড
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight sm:text-4xl">দেয়ালে যা নতুন</h2>
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight sm:text-4xl">যা যা নতুন</h2>
               <p className="mt-2 sm:mt-3 max-w-xl text-xs sm:text-sm leading-6 sm:leading-7 text-white/75 sm:text-base">
                 কমিটির ঘোষণা, জরুরি আপডেট ও ছোট ছোট খবর—একটি উষ্ণ, জীবন্ত বোর্ডে সাজানো।
               </p>

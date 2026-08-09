@@ -53,7 +53,7 @@ export function useEvents(status?: string) {
       let q = supabase
         .from('events')
         .select(`*, profiles(${PROFILE_SELECT})`)
-        .order('event_date', { ascending: true });
+        .order('event_date', { ascending: false });
       if (status && status !== 'all') q = q.eq('status', status);
       const { data, error } = await q;
       if (error) throw error;
