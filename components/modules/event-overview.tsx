@@ -111,9 +111,14 @@ function OverviewCard({ event }: { event: EventItem }) {
 
 export function EventOverview({ events, isLoading }: { events?: EventItem[]; isLoading: boolean }) {
   const upcoming = React.useMemo(() => (events ?? []).filter((e) => e.status === 'upcoming'), [events]);
+  const ongoing = React.useMemo(() => (events ?? []).filter((e) => e.status === 'ongoing'), [events]);
+  const past = React.useMemo(() => (events ?? []).filter((e) => e.status === 'past').slice(0, 3), [events]);
   const featured = upcoming[0] ?? null;
   const rest = upcoming.slice(1, 4);
-  const eventIds = React.useMemo(() => upcoming.map((e) => e.id), [upcoming]);
+  const eventIds = React.useMemo(
+    () => [...upcoming, ...ongoing, ...past].map((e) => e.id),
+    [upcoming, ongoing, past]
+  );
   const { rsvp, handleRsvp } = useRsvp(eventIds);
 
   if (isLoading) {
@@ -129,7 +134,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
     );
   }
 
-  if (upcoming.length === 0) {
+  if (upcoming.length === 0 && ongoing.length === 0 && past.length === 0) {
     return (
       <div className="flex flex-col items-center rounded-2xl border-2 border-dashed border-border bg-muted/20 px-6 py-14 text-center">
         <p className="text-sm font-semibold">এখন কোনো আসন্ন ইভেন্ট নেই</p>
@@ -266,6 +271,40 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
             </RevealItem>
           ))}
         </RevealStagger>
+      )}
+
+      {/* ── Ongoing events ── */}
+      {ongoing.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="h-4 w-1 rounded-full bg-sage-500" aria-hidden />
+            <h3 className="text-sm font-bold tracking-tight">চলমান ইভেন্ট</h3>
+          </div>
+          <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ongoing.map((event) => (
+              <RevealItem key={event.id} className="h-full">
+                <OverviewCard event={event} />
+              </RevealItem>
+            ))}
+          </RevealStagger>
+        </div>
+      )}
+
+      {/* ── Recent past events ── */}
+      {past.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="h-4 w-1 rounded-full bg-taupe-400" aria-hidden />
+            <h3 className="text-sm font-bold tracking-tight">সম্প্রতি সমাপ্ত ইভেন্ট</h3>
+          </div>
+          <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {past.map((event) => (
+              <RevealItem key={event.id} className="h-full">
+                <OverviewCard event={event} />
+              </RevealItem>
+            ))}
+          </RevealStagger>
+        </div>
       )}
     </div>
   );
