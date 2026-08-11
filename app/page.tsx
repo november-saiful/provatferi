@@ -13,8 +13,12 @@ import {
   Download,
   CheckCircle2,
   AlertCircle,
-  MapPin
+  MapPin,
+  Globe
 } from 'lucide-react';
+
+const FACEBOOK_PAGE_URL = 'https://www.facebook.com/provatferi.org/';
+const ORGANIZATION_SITE_URL = 'https://home.provatferi2009.workers.dev/';
 
 const banglaDigits: Record<string, string> = {
   '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
@@ -245,6 +249,33 @@ export default function Home() {
               >
                 ক্লাবের সদস্য হতে চাই
               </button>
+            </div>
+
+            {/* External links - Facebook page & main website */}
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <p className="text-xs text-slate-500 mb-3">অথবা আমাদের সাথে যুক্ত হোন</p>
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href={FACEBOOK_PAGE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-brand-primary bg-brand-primary-light hover:bg-brand-secondary-light border border-brand-primary/40 active:scale-[0.99] transition-all duration-200"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
+                  </svg>
+                  ফেসবুক পেজ
+                </a>
+                <a
+                  href={ORGANIZATION_SITE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-brand-primary bg-brand-primary-light hover:bg-brand-secondary-light border border-brand-primary/40 active:scale-[0.99] transition-all duration-200"
+                >
+                  <Globe className="w-4 h-4" />
+                  মূল ওয়েবসাইট
+                </a>
+              </div>
             </div>
           </div>
         </div>
