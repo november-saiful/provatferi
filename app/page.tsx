@@ -717,7 +717,7 @@ export default function Home() {
                 <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
                   <p className="text-sm text-center text-slate-600">নিম্নোক্ত নাম্বারে টাকা পাঠিয়ে (সেন্ড-মানি) ট্রানজাকশন নাম্বারটি কপি করে এখানে পেস্ট করুন।</p>
                   <div className="flex justify-center bg-white p-5 rounded-2xl border border-slate-200">
-                    <span className="text-2xl font-black text-brand-primary">{formData.paymentMethod === 'nagad' ? '01839858853' : '01407604000'}</span>
+                    <span className="text-2xl font-black text-brand-primary">{formData.paymentMethod === 'nagad' ? '01842587676' : '01407604000'}</span>
                   </div>
                   <label className="text-xs font-bold text-slate-600 block mt-2">
                     Transaction ID (TrxID) লিখুন <span className="text-rose-500">*</span>
