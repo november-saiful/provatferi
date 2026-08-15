@@ -1,14 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  // CSS transitions cover color/shadow only — framer-motion owns `transform`
-  // (y-lift + press scale), so the spring never fights a CSS transition.
-  'relative inline-flex min-w-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-[color,background-color,border-color,box-shadow] duration-300 ease-out-expo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
+  // Hover/tap feedback is pure CSS transform — no JS gesture listeners, so
+  // dozens of buttons cost nothing while idle and stay buttery on mobile.
+  'relative inline-flex min-w-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-[color,background-color,border-color,box-shadow,transform] duration-300 ease-out-expo focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -40,29 +39,25 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      // These DOM events are redefined by framer-motion with incompatible
-      // signatures (animation/drag handlers receive motion values).
-      'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onDragExit' | 'onDragEnter' | 'onDragOver' | 'onDragLeave' | 'onDrop'
-    >,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, type = 'button', ...props }, ref) => {
-    const reduce = useReducedMotion();
     // Text links shouldn't lift or scale; ghost buttons keep a light press
     // but no hover jump so dense tables stay calm.
     const lifts = variant !== 'link' && variant !== 'ghost';
 
     return (
-      <motion.button
+      <button
         type={type}
         ref={ref}
-        className={cn(buttonVariants({ variant, size }), className)}
-        whileHover={reduce || !lifts ? undefined : { y: -2 }}
-        whileTap={reduce || variant === 'link' ? undefined : { scale: 0.96 }}
-        transition={{ type: 'spring', stiffness: 420, damping: 24, mass: 0.6 }}
+        className={cn(
+          buttonVariants({ variant, size }),
+          'active:scale-[0.96] motion-reduce:transform-none',
+          lifts && 'hover:-translate-y-0.5',
+          className
+        )}
         {...props}
       />
     );

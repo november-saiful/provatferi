@@ -50,9 +50,10 @@ function asRow<T>(data: unknown): T | null {
 }
 
 // ---------- Events ----------
-export function useEvents(status?: string) {
+export function useEvents(status?: string, enabled = true) {
   return useQuery({
     queryKey: ['events', status ?? 'all'],
+    enabled,
     queryFn: async () => {
       let q = supabase
         .from('events')
@@ -446,9 +447,10 @@ export function useRecords(enabled = false) {
 }
 
 // ---------- Courses & Attendance ----------
-export function useCourseSchedules() {
+export function useCourseSchedules(enabled = true) {
   return useQuery({
     queryKey: ['course-schedules'],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('course_schedules')
@@ -498,9 +500,10 @@ export function useAllAttendance(enabled = true) {
  * nor alumni (see committee-members-reference.md). Derived directly from
  * `profiles.role_id`, so the roster always mirrors the real roles.
  */
-export function useCommitteeMembers() {
+export function useCommitteeMembers(enabled = true) {
   return useQuery({
     queryKey: ['committee-members'],
+    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
@@ -590,11 +593,16 @@ import { subscribeTable, unsubscribeTable } from './realtime-subscriptions';
  * Requires the table to be part of the `supabase_realtime` publication
  * (see supabase/migrations/00009_realtime.sql).
  */
-export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<string | number>>) {
+export function useRealtimeInvalidate(
+  table: string,
+  queryKeys: Array<Array<string | number>>,
+  enabled = true
+) {
   const qc = useQueryClient();
   const keysKey = JSON.stringify(queryKeys);
 
   React.useEffect(() => {
+    if (!enabled) return;
     const onChanges = (keys: string[]) => {
       for (const k of keys) {
         qc.invalidateQueries({ queryKey: JSON.parse(k) as Array<string | number> });
@@ -609,7 +617,7 @@ export function useRealtimeInvalidate(table: string, queryKeys: Array<Array<stri
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table, keysKey, qc]);
+  }, [table, keysKey, enabled, qc]);
 }
 
 // ---------- In-app notifications (spec §7) ----------

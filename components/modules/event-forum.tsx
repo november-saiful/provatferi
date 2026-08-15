@@ -24,7 +24,7 @@ import { storageThumb } from '@/lib/supabase/client';
 import { supabase } from '@/lib/supabase/client';
 import { cn, toBengaliDigits, truncate } from '@/lib/utils';
 import type { EventItem } from '@/lib/types';
-import { dateBox, compactDateTime, eventOrganizer, RsvpButtons, RsvpCount, StatusPill, useRsvp, type RsvpState } from '@/components/modules/event-shared';
+import { dateBox, compactDateTime, eventOrganizer, RsvpButtons, RsvpCount, useRsvpCountsFor, StatusPill, useRsvp, type RsvpState } from '@/components/modules/event-shared';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +49,7 @@ function EventCard({
   event,
   saved,
   rsvp,
+  counts,
   onSave,
   onRsvp,
   onDelete,
@@ -57,6 +58,7 @@ function EventCard({
   event: EventItem;
   saved: boolean;
   rsvp: RsvpState;
+  counts?: { going: number; interested: number } | null;
   onSave: (e: EventItem) => void;
   onRsvp: (id: string, type: 'interested' | 'going') => void;
   onDelete?: (e: EventItem) => void;
@@ -194,7 +196,7 @@ function EventCard({
 
         {/* Attendee count + RSVP row */}
         <div className="mt-2.5">
-          <RsvpCount eventId={event.id} />
+          <RsvpCount counts={counts} />
         </div>
         <div className="mt-2.5 flex items-center gap-2">
           <RsvpButtons eventId={event.id} rsvp={rsvp} onToggle={onRsvp} />
@@ -209,11 +211,13 @@ function EventCard({
 function FeaturedEvent({
   event,
   rsvp,
+  counts,
   onRsvp,
   basePath
 }: {
   event: EventItem;
   rsvp: RsvpState;
+  counts?: { going: number; interested: number } | null;
   onRsvp: (id: string, type: 'interested' | 'going') => void;
   basePath: string;
 }) {
@@ -265,7 +269,7 @@ function FeaturedEvent({
             {event.coordinator?.full_name && <> · সংগঠনে {event.coordinator.full_name}</>}
             {event.courtesy && <> · সৌজন্যে {event.courtesy}</>}
           </p>
-          <RsvpCount eventId={event.id} className="mt-0.5" />
+          <RsvpCount counts={counts} className="mt-0.5" />
         </div>
         <div className="flex gap-2">
           <RsvpButtons eventId={event.id} rsvp={rsvp} onToggle={onRsvp} compact />
@@ -338,7 +342,10 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
   const { rsvp, handleRsvp } = useRsvp(eventIds);
   const { data: gallery } = useGallery();
   // Spec §7.2: new events appear in the lists without a refresh.
-  useRealtimeInvalidate('events', [['events']]);
+  // Signed-in users only — public visitors just need the cached snapshot.
+  useRealtimeInvalidate('events', [['events']], !!user);
+  // Batch RSVP counts for every fetched event — one query instead of 2 per card.
+  const { data: rsvpCounts } = useRsvpCountsFor((events ?? []).map((e) => e.id));
 
   const filtered = React.useMemo(() => {
     if (!events) return [];
@@ -407,7 +414,7 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
     <Stagger className="space-y-5" gap={10}>
       {/* ── Sticky filter bar (Facebook sub-nav) ── */}
       <StaggerItem>
-        <div className="sticky top-14 z-20 -mx-4 border-b border-border/80 bg-background/85 px-4 py-3 backdrop-blur-md md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
+        <div className="sticky top-12 z-20 -mx-4 border-b border-border/80 bg-background/85 px-4 py-3 backdrop-blur-md sm:top-14 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex gap-1.5 overflow-x-auto pb-0.5" role="group" aria-label="ইভেন্ট ফিল্টার">
               {STATUS_TABS.map((tab) => {
@@ -454,7 +461,13 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
       {/* ── Featured event ── */}
       {showFeatured && featured && (
         <StaggerItem>
-          <FeaturedEvent event={featured} rsvp={rsvp} onRsvp={handleRsvp} basePath={basePath} />
+          <FeaturedEvent
+            event={featured}
+            rsvp={rsvp}
+            counts={rsvpCounts?.[featured.id] ?? null}
+            onRsvp={handleRsvp}
+            basePath={basePath}
+          />
         </StaggerItem>
       )}
 
@@ -514,6 +527,7 @@ export function EventForum({ basePath = '/dashboard/evf' }: { basePath?: string 
                   event={event}
                   saved={saved.has(event.id)}
                   rsvp={rsvp}
+                  counts={rsvpCounts?.[event.id] ?? null}
                   onSave={handleSave}
                   onRsvp={handleRsvp}
                   onDelete={

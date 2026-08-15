@@ -203,17 +203,26 @@ export function useRsvp(eventIds: string[]) {
   };
 
   // Live updates: counts and lists refresh the moment anyone RSVPs.
-  useRealtimeInvalidate('event_rsvps', [['event-rsvp-counts'], ['event-rsvps'], ['my-rsvps']]);
+  // Only for signed-in users — public visitors don't need a websocket open
+  // just to see a count that changes a few times a day.
+  useRealtimeInvalidate('event_rsvps', [['event-rsvp-counts'], ['event-rsvps'], ['my-rsvps']], !!userId);
 
   return { rsvp: local, handleRsvp };
 }
 
-/** Compact "X জন যাচ্ছে · Y আগ্রহী" counter for event cards and heroes. */
-export function RsvpCount({ eventId, className }: { eventId: string; className?: string }) {
-  const { data: counts } = useEventRsvpCounts(eventId);
+/** Compact "X জন যাচ্ছে · Y আগ্রহী" counter for event cards and heroes.
+ *  Purely presentational: pass precomputed counts (from `useRsvpCountsFor`)
+ *  so lists of events render with ONE batched query instead of 2 per card. */
+export function RsvpCount({
+  counts,
+  className
+}: {
+  counts?: { going: number; interested: number } | null;
+  className?: string;
+}) {
   const going = counts?.going ?? 0;
   const interested = counts?.interested ?? 0;
-  if (going === 0 && interested === 0) return null;
+  if (!counts || (going === 0 && interested === 0)) return null;
   return (
     <span
       className={cn(
@@ -226,4 +235,39 @@ export function RsvpCount({ eventId, className }: { eventId: string; className?:
       {interested > 0 && <> · {toBengaliDigits(interested)} আগ্রহী</>}
     </span>
   );
+}
+
+/**
+ * Batch RSVP counts for a list of event ids in a single query — the list-page
+ * replacement for one `useEventRsvpCounts` call per card. Returns a map of
+ * event_id → { going, interested }.
+ */
+export function useRsvpCountsFor(eventIds: string[]) {
+  const ids = React.useMemo(() => Array.from(new Set(eventIds)), [eventIds]);
+
+  return useQuery({
+    queryKey: ['event-rsvp-counts', 'bulk', ids],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('event_rsvps')
+        .select('event_id, status')
+        .in('event_id', ids);
+      if (error) throw error;
+      const map: Record<string, { going: number; interested: number }> = {};
+      for (const row of data ?? []) {
+        if (!row.event_id) continue;
+        const entry = (map[row.event_id] ??= { going: 0, interested: 0 });
+        if (row.status === 'going') entry.going++;
+        else if (row.status === 'interested') entry.interested++;
+      }
+      return map;
+    }
+  });
+}
+
+/** Single-event counts — for detail pages that show just one event. */
+export function EventRsvpCount({ eventId, className }: { eventId: string; className?: string }) {
+  const { data: counts } = useEventRsvpCounts(eventId);
+  return <RsvpCount counts={counts} className={className} />;
 }

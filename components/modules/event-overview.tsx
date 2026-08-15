@@ -13,14 +13,21 @@ import {
   RsvpButtons,
   RsvpCount,
   StatusPill,
-  useRsvp
+  useRsvp,
+  useRsvpCountsFor
 } from '@/components/modules/event-shared';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RevealStagger, RevealItem } from '@/components/ui/motion';
 import { Avatar } from '@/components/ui/avatar';
 
-function OverviewCard({ event }: { event: EventItem }) {
+function OverviewCard({
+  event,
+  counts
+}: {
+  event: EventItem;
+  counts?: { going: number; interested: number } | null;
+}) {
   const box = dateBox(event.event_date);
   return (
     <Link
@@ -87,7 +94,7 @@ function OverviewCard({ event }: { event: EventItem }) {
               </span>
             )}
           </span>
-          <RsvpCount eventId={event.id} />
+          <RsvpCount counts={counts} />
           {event.event_date && (
             <AddToCalendar
               data={{
@@ -120,6 +127,8 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
     [upcoming, ongoing, past]
   );
   const { rsvp, handleRsvp } = useRsvp(eventIds);
+  // Batch RSVP counts for all shown events — one query instead of 2 per card.
+  const { data: rsvpCounts } = useRsvpCountsFor(eventIds);
 
   if (isLoading) {
     return (
@@ -237,7 +246,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
             </div>
             <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
               <RsvpButtons eventId={featured.id} rsvp={rsvp} onToggle={handleRsvp} compact />
-              <RsvpCount eventId={featured.id} />
+              <RsvpCount counts={rsvpCounts?.[featured.id] ?? null} />
               {featured.event_date && (
                 <AddToCalendar
                   data={{
@@ -267,7 +276,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
         <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((event) => (
             <RevealItem key={event.id} className="h-full">
-              <OverviewCard event={event} />
+              <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
             </RevealItem>
           ))}
         </RevealStagger>
@@ -283,7 +292,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
           <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ongoing.map((event) => (
               <RevealItem key={event.id} className="h-full">
-                <OverviewCard event={event} />
+                <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
               </RevealItem>
             ))}
           </RevealStagger>
@@ -300,7 +309,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
           <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((event) => (
               <RevealItem key={event.id} className="h-full">
-                <OverviewCard event={event} />
+                <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
               </RevealItem>
             ))}
           </RevealStagger>

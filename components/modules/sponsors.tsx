@@ -28,10 +28,10 @@ const STATUS_VARIANT: Record<string, 'warning' | 'success' | 'destructive'> = {
 
 export function Sponsors() {
   const qc = useQueryClient();
-  const { role } = useAuthStore();
+  const { role, user } = useAuthStore();
   const canManage = canManageSponsors(role);
   const { data: sponsors, isLoading } = useSponsors(canManage);
-  useRealtimeInvalidate('sponsors', [['sponsors']]);
+  useRealtimeInvalidate('sponsors', [['sponsors']], !!user);
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase.from('sponsors').update({ status }).eq('id', id);

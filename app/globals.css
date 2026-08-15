@@ -375,15 +375,10 @@
   object-fit: cover;
   border-radius: 14px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-  -webkit-box-reflect: below 0px linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.35));
   transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
-/* Cards stay grayscale while streaming, but hover/focus colorizes them so
-   they clearly read as clickable links to the gallery. `!important` beats the
-   running album-scale animation. */
 .album-slider .album-gallery .card a:hover img {
-  filter: grayscale(0) !important;
   box-shadow: 0 0 0 3px hsl(var(--accent) / 0.55), 0 18px 44px rgba(0, 0, 0, 0.45);
   transform: scale(1.04);
 }
@@ -399,8 +394,10 @@
 }
 
 /* Center-highlight window widened: 40%–60% → 20%–80% of each loop, so the
-   centered photo stays enlarged/colorful roughly three times longer than the
-   original design, while only the near-center card ever reaches full scale. */
+   centered photo stays enlarged roughly three times longer than the original
+   design, while only the near-center card ever reaches full scale.
+   Transform/z-index only — animating `filter` (grayscale) would re-rasterize
+   every card on every frame, which visibly janks low-end and mobile GPUs. */
 /* z-index ref: 0 (layer 0 — base content) / 10 (layer 10 — in-card accent) */
 @keyframes album-scale {
   0%,
@@ -409,12 +406,10 @@
   100% {
     transform: scale(1);
     z-index: 0;
-    filter: grayscale(1);
   }
   50% {
     transform: scale(1.8);
     z-index: 10;
-    filter: grayscale(0);
   }
 }
 

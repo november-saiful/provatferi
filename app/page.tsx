@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
-import { useEvents, useNotices, useDonorBoard, useRealtimeInvalidate } from '@/lib/queries';
+import { useEvents, useNotices, useDonorBoard } from '@/lib/queries';
 import { RECRUITMENT_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Reveal, RevealStagger, RevealItem, EASE } from '@/components/ui/motion';
@@ -35,9 +35,6 @@ export default function LandingPage() {
   const { data: events, isLoading: loadingEvents } = useEvents('all');
   const { data: notices, isLoading: loadingNotices, isError: noticesError } = useNotices();
   const { data: donors } = useDonorBoard();
-  useRealtimeInvalidate('events', [['events']]);
-  useRealtimeInvalidate('notices', [['notices']]);
-  useRealtimeInvalidate('donations', [['donor-board'], ['donations']]);
   const recruitmentUrl = RECRUITMENT_URL;
 
   const recentDonors = (donors ?? []).slice(0, 6);

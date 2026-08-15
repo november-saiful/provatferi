@@ -61,9 +61,9 @@ const DragAndDropCalendar = withDragAndDrop<RbcEvent, Record<string, unknown>>(R
 
 export function CalendarView() {
   const qc = useQueryClient();
-  const { role } = useAuthStore();
+  const { role, user } = useAuthStore();
   const { data: events, isLoading } = useCalendarEvents();
-  useRealtimeInvalidate('calendar_events', [['calendar-events']]);
+  useRealtimeInvalidate('calendar_events', [['calendar-events']], !!user);
 
   const [detail, setDetail] = React.useState<CalendarEvent | null>(null);
   const [formEvent, setFormEvent] = React.useState<CalendarEvent | null | undefined>(undefined);

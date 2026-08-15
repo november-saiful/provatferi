@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { useGallery, useRealtimeInvalidate } from '@/lib/queries';
+import { useAuthStore } from '@/lib/auth-store';
 import { storageThumb } from '@/lib/supabase/client';
 
 const MAX_ALBUMS = 10;
@@ -22,7 +23,10 @@ const MAX_ALBUMS = 10;
  */
 export function AlbumSlider() {
   const { data: items, isLoading } = useGallery();
-  useRealtimeInvalidate('gallery_items', [['gallery']]);
+  const { user } = useAuthStore();
+  // Only signed-in users keep a live channel open; visitors just need the
+  // cached snapshot (the gallery changes rarely).
+  useRealtimeInvalidate('gallery_items', [['gallery']], !!user);
 
   const photos = useMemo(() => {
     // Group all images by album (event_id).

@@ -41,7 +41,9 @@ export function EventForm({
 }) {
   const [cover, setCover] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
-  const { data: members } = useCommitteeMembers();
+  // Fetch the roster only when the dialog is actually open — otherwise the
+  // events page would query all committee members on every visit.
+  const { data: members } = useCommitteeMembers(open);
 
   // The organizer is always the root user (the organization itself) — every
   // event is credited as "আয়োজনে …" with the organization regardless of who

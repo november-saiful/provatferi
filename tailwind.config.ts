@@ -233,8 +233,10 @@ const config: Config = {
           '50%': { backgroundPosition: '100% 50%' }
         },
         'glow-pulse': {
-          '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
-          '50%': { opacity: '0.75', transform: 'scale(1.08)' }
+          // Opacity-only: scaling a blurred layer forces the browser to
+          // re-rasterize the blur every frame (very expensive on mobile).
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '0.75' }
         },
         shimmer: {
           '0%': { backgroundPosition: '150% 50%' },

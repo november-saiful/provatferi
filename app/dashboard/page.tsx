@@ -84,9 +84,12 @@ export default function DashboardHome() {
   useRealtimeInvalidate('events', [['events']]);
   const { data: events } = useEvents('all');
   const { data: notices } = useNotices();
-  const { data: budgets } = useBudgets(isCommitteeMember(role));
-  const { data: schedules } = useCourseSchedules();
-  const { data: attendance } = useAllAttendance(true);
+  const isCommittee = isCommitteeMember(role);
+  // Attendance + schedules only matter for committee stat cards — skip the
+  // heavy fetches for regular members so the dashboard home stays fast.
+  const { data: budgets } = useBudgets(isCommittee);
+  const { data: schedules } = useCourseSchedules(isCommittee);
+  const { data: attendance } = useAllAttendance(isCommittee);
   const recruitmentUrl = RECRUITMENT_URL;
 
   const upcoming = (events ?? []).filter((e) => e.status === 'upcoming').slice(0, 4);

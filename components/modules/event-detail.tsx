@@ -18,7 +18,7 @@ import { canWrite } from '@/lib/permissions';
 import { storageUrl, storageThumb } from '@/lib/supabase/client';
 import { formatDateTime, relativeTime, renderMarkdown, toBengaliDigits } from '@/lib/utils';
 import type { EventComment } from '@/lib/types';
-import { RsvpButtons, RsvpCount, StatusPill, useRsvp, eventOrganizer } from '@/components/modules/event-shared';
+import { RsvpButtons, EventRsvpCount, StatusPill, useRsvp, eventOrganizer } from '@/components/modules/event-shared';
 import { Button } from '@/components/ui/button';
 import { AddToCalendar } from '@/components/ui/add-to-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -103,7 +103,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
   const { data: comments } = useEventComments(eventId ?? undefined);
   const { data: gallery } = useGallery();
   const deleteComment = useDeleteComment();
-  useRealtimeInvalidate('event_comments', [['event-comments', eventId ?? '']]);
+  useRealtimeInvalidate('event_comments', [['event-comments', eventId ?? '']], !!user);
 
   const [editing, setEditing] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
@@ -414,7 +414,7 @@ export function EventDetail({ eventId }: { eventId?: string | null }) {
             <p className="mb-2.5 text-sm font-bold">আপনি কি অংশ নেবেন?</p>
             <RsvpButtons eventId={event.id} rsvp={rsvp} onToggle={handleRsvp} />
             <div className="mt-2.5 flex justify-center">
-              <RsvpCount eventId={event.id} />
+              <EventRsvpCount eventId={event.id} />
             </div>
 
             <div className="my-4 h-px bg-border" aria-hidden />

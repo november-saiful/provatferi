@@ -28,7 +28,7 @@ export function Donations() {
   const [tab, setTab] = React.useState('donate');
   const { data: board, isLoading } = useDonorBoard();
   const { data: donations, isLoading: loadingDonations } = useDonations(!!user);
-  useRealtimeInvalidate('donations', [['donations']]);
+  useRealtimeInvalidate('donations', [['donations']], !!user);
 
   const signedIn = !!user;
 

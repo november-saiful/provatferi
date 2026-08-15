@@ -12,7 +12,9 @@ const notoSerifBengali = Noto_Serif_Bengali({
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  // 800 is only referenced by `font-extrabold` on Bengali text, which the
+  // Bengali serif already covers — dropping it halves Inter's payload.
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-inter',
 });

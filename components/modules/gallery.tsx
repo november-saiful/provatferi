@@ -27,13 +27,14 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Dialog } from '@/components/ui/dialog';
 import { GalleryUpload } from '@/components/forms/gallery-upload';
 import type { GalleryItem } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, toBengaliDigits } from '@/lib/utils';
 
 export function Gallery() {
   const qc = useQueryClient();
   const { role, user } = useAuthStore();
   const { data: items, isLoading } = useGallery();
-  useRealtimeInvalidate('gallery_items', [['gallery']]);
+  // Signed-in users get live updates; visitors just need the cached snapshot.
+  useRealtimeInvalidate('gallery_items', [['gallery']], !!user);
   
   const queryEvent = useQueryParam('event');
   const [eventFilter, setEventFilter] = React.useState('');
@@ -45,6 +46,10 @@ export function Gallery() {
   const [activeView, setActiveView] = React.useState<'photos' | 'albums'>('photos');
   const [sortTooltip, setSortTooltip] = React.useState(false);
   const sortTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  // Render photos in pages so a large gallery never mounts every image at
+  // once (the biggest cause of jank on this page, especially on mobile).
+  const [visibleCount, setVisibleCount] = React.useState(36);
+  const PHOTO_PAGE = 36;
 
   React.useEffect(() => {
     return () => {
@@ -90,7 +95,8 @@ export function Gallery() {
     return Array.from(albumMap.values());
   }, [items, searchQuery]);
 
-  // Group items by date
+  // Group items by date, capped to the first `visibleCount` photos so the
+  // DOM stays small until the user asks for more.
   const groupedItems = React.useMemo(() => {
     const filtered = (items ?? []).filter((g) => {
       const matchesEvent = !eventFilter || g.event_id === eventFilter;
@@ -106,9 +112,9 @@ export function Gallery() {
       return sortOldest ? dateA - dateB : dateB - dateA;
     });
 
-    // Group by date
+    // Group by date (only the visible slice)
     const groups = new Map<string, GalleryItem[]>();
-    for (const item of sorted) {
+    for (const item of sorted.slice(0, visibleCount)) {
       const dateKey = new Date(item.created_at).toLocaleDateString('bn-BD', {
         year: 'numeric',
         month: 'long',
@@ -121,7 +127,21 @@ export function Gallery() {
     }
 
     return Array.from(groups.entries());
-  }, [items, eventFilter, searchQuery, sortOldest]);
+  }, [items, eventFilter, searchQuery, sortOldest, visibleCount]);
+
+  const totalFiltered = React.useMemo(() => {
+    if (!items) return 0;
+    return items.filter(
+      (g) =>
+        (!eventFilter || g.event_id === eventFilter) &&
+        (!searchQuery || (g.title?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false))
+    ).length;
+  }, [items, eventFilter, searchQuery]);
+
+  // Reset the visible page whenever the filter changes.
+  React.useEffect(() => {
+    setVisibleCount(PHOTO_PAGE);
+  }, [eventFilter, searchQuery, sortOldest]);
 
   const handleDelete = async (item: GalleryItem) => {
     if (!confirm('এই ছবিটি মুছে ফেলবেন?')) return;
@@ -256,14 +276,14 @@ export function Gallery() {
                         decoding="async"
                       />
                       {item.title && (
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 max-sm:opacity-100">
                           {item.title}
                         </div>
                       )}
                     </button>
                     {(canWrite(role, 'glr') || user?.id === item.uploaded_by) && (
                       <button
-                        className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-warmred-600 group-hover:opacity-100"
+                        className="absolute right-2 top-2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-warmred-600 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100"
                         onClick={() => handleDelete(item)}
                         aria-label="ছবি মুছুন"
                       >
@@ -276,6 +296,20 @@ export function Gallery() {
             </div>
           </section>
         ))}
+
+        {/* Load more */}
+        {!isLoading && activeView === 'photos' && visibleCount < totalFiltered && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + PHOTO_PAGE)}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-2.5 text-sm font-semibold text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md active:scale-[0.97]"
+            >
+              আরও ছবি দেখুন
+              <span className="text-xs text-muted-foreground">({toBengaliDigits(Math.min(PHOTO_PAGE, totalFiltered - visibleCount))}টি)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Floating Bottom Navigation */}
@@ -368,7 +402,7 @@ export function Gallery() {
 
       {/* Upload Dialog */}
       <Dialog open={showUpload} onClose={() => setShowUpload(false)} title="ছবি আপলোড করুন">
-        <GalleryUpload onDone={() => setShowUpload(false)} />
+        <GalleryUpload open={showUpload} onDone={() => setShowUpload(false)} />
       </Dialog>
 
       {/* Lightbox */}

@@ -102,7 +102,7 @@ function AlumniCard({ member }: { member: AlumniMember }) {
   return (
     <Card className="group relative h-full overflow-hidden border-2 border-border/80 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-xl">
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-accent to-primary/30" aria-hidden="true" />
-      <CardContent className="p-5 pt-6 sm:p-6 sm:pt-6">
+      <CardContent className="p-5 pt-6 sm:p-6 sm:pt-6 md:pt-6">
         <div className="flex items-start gap-4">
           <Avatar name={name} src={member.avatar_url} iconPlaceholder className="h-14 w-14 shrink-0 text-base" ring />
           <div className="min-w-0 pt-0.5">
@@ -163,7 +163,7 @@ export default function AlumniPage() {
         <section className="mb-10" aria-label="অ্যালামনাই পরিসংখ্যান">
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="h-full">
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coffee-100 text-coffee-700 dark:bg-coffee-900/50 dark:text-coffee-300">
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 </span>
@@ -174,7 +174,7 @@ export default function AlumniPage() {
               </CardContent>
             </Card>
             <Card className="h-full">
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300">
                   <UserRound className="h-5 w-5" aria-hidden="true" />
                 </span>
@@ -187,7 +187,7 @@ export default function AlumniPage() {
               </CardContent>
             </Card>
             <Card className="h-full">
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gold-100 text-gold-700 dark:bg-gold-900/50 dark:text-gold-300">
                   <GraduationCap className="h-5 w-5" aria-hidden="true" />
                 </span>

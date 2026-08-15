@@ -27,9 +27,9 @@ export function NoticeDetail({
 }) {
   const router = useRouter();
   const qc = useQueryClient();
-  const { role } = useAuthStore();
+  const { role, user } = useAuthStore();
   const { data: notice, isLoading } = useNotice(noticeId ?? undefined);
-  useRealtimeInvalidate('notices', [['notices', noticeId ?? '']]);
+  useRealtimeInvalidate('notices', [['notices', noticeId ?? '']], !!user);
 
   const canEdit = canWrite(role, 'ntb');
   const canPin = canPinNotices(role);

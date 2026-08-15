@@ -28,9 +28,11 @@ function plainNoticeContent(content: string) {
 
 export function NoticeBoard({ basePath = '/dashboard/ntb' }: { basePath?: string }) {
   const qc = useQueryClient();
-  const { role } = useAuthStore();
+  const { role, user } = useAuthStore();
   const { data: notices, isLoading, isError } = useNotices();
-  useRealtimeInvalidate('notices', [['notices']]);
+  // Live updates only for signed-in users (editors); visitors don't need a
+  // websocket open just to read the board.
+  useRealtimeInvalidate('notices', [['notices']], !!user);
   const [search, setSearch] = React.useState('');
   const [filter, setFilter] = React.useState<NoticeFilter>('all');
   const [formOpen, setFormOpen] = React.useState(false);

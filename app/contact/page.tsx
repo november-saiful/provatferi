@@ -109,7 +109,7 @@ function MemberCard({ member }: { member: CommitteeMember }) {
         )}
         aria-hidden="true"
       />
-      <CardContent className="p-5 pt-6 sm:p-6 sm:pt-6">
+      <CardContent className="p-5 pt-6 sm:p-6 sm:pt-6 md:pt-6">
         <div className="flex items-start gap-4">
           <Avatar name={name} src={member.avatar_url} iconPlaceholder className={cn('h-14 w-14 shrink-0 text-base', isOrg && 'ring-2 ring-gold-300/60 dark:ring-gold-600/50')} ring />
           <div className="min-w-0 pt-0.5">
@@ -236,7 +236,7 @@ export default function ContactPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Card className="card-hover h-full">
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coffee-100 text-coffee-700 dark:bg-coffee-900/50 dark:text-coffee-300">
                   <Mail className="h-5 w-5" aria-hidden="true" />
                 </span>
@@ -252,7 +252,7 @@ export default function ContactPage() {
               </CardContent>
             </Card>
             <Card className="card-hover h-full">
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300">
                   <Phone className="h-5 w-5" aria-hidden="true" />
                 </span>
@@ -272,7 +272,7 @@ export default function ContactPage() {
               </CardContent>
             </Card>
             <Card className="card-hover group h-full cursor-pointer" onClick={() => window.open(MAP_URL, '_blank', 'noreferrer')}>
-              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6">
+              <CardContent className="flex items-center gap-4 p-5 pt-5 sm:p-6 sm:pt-6 md:pt-6">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>

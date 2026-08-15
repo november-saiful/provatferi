@@ -13,9 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { cn, toBengaliDigits } from '@/lib/utils';
 
-export function GalleryUpload({ onDone }: { onDone?: () => void }) {
+export function GalleryUpload({ onDone, open = true }: { onDone?: () => void; open?: boolean }) {
   const qc = useQueryClient();
-  const { data: events } = useEvents('all');
+  // Fetch the event list only while the dialog is open.
+  const { data: events } = useEvents('all', open);
   const [files, setFiles] = React.useState<File[]>([]);
   const [eventId, setEventId] = React.useState('');
   const [title, setTitle] = React.useState('');
