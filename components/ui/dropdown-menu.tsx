@@ -327,7 +327,10 @@ export function DropdownContent({
             'max-w-[calc(100vw-1rem)] min-w-0',
             'p-1.5',
             sizeMap[size],
-            portal ? 'fixed max-h-[calc(100dvh-1rem)] overflow-y-auto' : 'absolute',
+            // Non-portal menus are anchored to the header, so cap them to the
+            // viewport and let them scroll internally — otherwise a tall menu
+            // (e.g. account) is unreachable below the fold on mobile.
+            portal ? 'fixed max-h-[calc(100dvh-1rem)] overflow-y-auto' : 'absolute max-h-[calc(100dvh-5rem)] overflow-y-auto',
             !portal && sideClass,
             !portal && alignClass,
             className
