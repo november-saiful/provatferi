@@ -276,7 +276,7 @@ function Header({ groups, role, authed, pathname }: HeaderProps) {
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="প্রভাতফেরী" className="h-11 w-11 sm:h-14 sm:w-14 p-0.5 sm:p-1 object-contain" />
+        <img src="/logo.svg" alt="প্রভাতফেরী" className="h-11 w-auto sm:h-14 p-0.5 sm:p-1 object-contain" />
       </Link>
 
       {/* Right actions */}
