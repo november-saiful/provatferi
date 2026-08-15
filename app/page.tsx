@@ -197,7 +197,7 @@ export default function LandingPage() {
               </Reveal>
               <RevealStagger className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                 {recentDonors.map((d) => (
-                  <RevealItem key={d.id}>
+                  <RevealItem key={d.id} className="min-w-0">
                     <div className="flex h-full flex-col items-center rounded-2xl border-2 border-border bg-card p-5 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/15 hover:shadow-lg">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-warmred-100 to-coffee-100 text-coffee-600 dark:from-coffee-900/60 dark:to-warmred-900/40 dark:text-coffee-400">
                         <Heart className="h-5 w-5" />

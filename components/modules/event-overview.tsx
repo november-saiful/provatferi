@@ -275,7 +275,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
       {rest.length > 0 && (
         <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((event) => (
-            <RevealItem key={event.id} className="h-full">
+            <RevealItem key={event.id} className="h-full min-w-0">
               <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
             </RevealItem>
           ))}
@@ -291,7 +291,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
           </div>
           <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ongoing.map((event) => (
-              <RevealItem key={event.id} className="h-full">
+              <RevealItem key={event.id} className="h-full min-w-0">
                 <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
               </RevealItem>
             ))}
@@ -308,7 +308,7 @@ export function EventOverview({ events, isLoading }: { events?: EventItem[]; isL
           </div>
           <RevealStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((event) => (
-              <RevealItem key={event.id} className="h-full">
+              <RevealItem key={event.id} className="h-full min-w-0">
                 <OverviewCard event={event} counts={rsvpCounts?.[event.id] ?? null} />
               </RevealItem>
             ))}
