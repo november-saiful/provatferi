@@ -184,7 +184,6 @@ const config: Config = {
       fontFamily: {
         sans: [
           'var(--font-noto-serif-bengali)',
-          'var(--font-inter)',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',

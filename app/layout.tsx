@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Serif_Bengali, Inter } from 'next/font/google';
+import { Noto_Serif_Bengali } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 
@@ -8,15 +8,6 @@ const notoSerifBengali = Noto_Serif_Bengali({
   weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
   variable: '--font-noto-serif-bengali',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  // 800 is only referenced by `font-extrabold` on Bengali text, which the
-  // Bengali serif already covers — dropping it halves Inter's payload.
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
@@ -74,7 +65,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="bn" suppressHydrationWarning className={`${notoSerifBengali.variable} ${inter.variable}`}>
+    <html lang="bn" suppressHydrationWarning className={notoSerifBengali.variable}>
       <body>
         <Providers>{children}</Providers>
       </body>
