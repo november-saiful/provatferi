@@ -30,6 +30,7 @@ import type {
   RoleExtraPermission,
   RolePermission,
   Sponsor,
+  Task,
   UserNotificationSettings
 } from './types';
 
@@ -424,6 +425,80 @@ export function useRootBankBalance(enabled = true) {
       const { data, error } = await supabase.rpc('get_root_bank_balance').maybeSingle();
       if (error) throw error;
       return asRow<RootBankBalance>(data);
+    }
+  });
+}
+
+// ---------- Tasks ----------
+
+/** Fetch tasks for a specific date. */
+export function useTasksByDate(date?: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tasks', date],
+    enabled: enabled && !!date,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`*, profiles(${PROFILE_SELECT})`)
+        .eq('task_date', date!)
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return asRows<Task>(data);
+    }
+  });
+}
+
+/** Fetch tasks within a date range (for calendar views). */
+export function useTasksByRange(startDate?: string, endDate?: string, enabled = true) {
+  return useQuery({
+    queryKey: ['tasks', 'range', startDate, endDate],
+    enabled: enabled && !!startDate && !!endDate,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`*, profiles(${PROFILE_SELECT})`)
+        .gte('task_date', startDate!)
+        .lte('task_date', endDate!)
+        .order('task_date', { ascending: true })
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return asRows<Task>(data);
+    }
+  });
+}
+
+/** Fetch all tasks (for admin overview). */
+export function useAllTasks(enabled = false) {
+  return useQuery({
+    queryKey: ['tasks', 'all'],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`*, profiles(${PROFILE_SELECT})`)
+        .order('task_date', { ascending: false })
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return asRows<Task>(data);
+    }
+  });
+}
+
+/** Fetch all distinct task dates (for calendar highlighting). */
+export function useTaskDates() {
+  return useQuery({
+    queryKey: ['tasks', 'dates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('task_date')
+        .order('task_date', { ascending: false });
+      if (error) throw error;
+      // Deduplicate
+      const uniqueDates = new Set((data as { task_date: string }[]).map((d) => d.task_date));
+      const dates: string[] = [];
+      uniqueDates.forEach((d) => dates.push(d));
+      return dates;
     }
   });
 }
@@ -849,7 +924,8 @@ export const DEFAULT_NOTIFICATION_SETTINGS = {
   mute_sponsor_inquiry: false,
   mute_donation: false,
   mute_event_comment: false,
-  mute_event_rsvp: false
+  mute_event_rsvp: false,
+  mute_task_assigned: false
 };
 
 /**
@@ -885,7 +961,7 @@ export function useUpdateNotificationSettings() {
   const qc = useQueryClient();
   const { user } = useAuthStore();
   return useMutation({
-    mutationFn: async (patch: Partial<Pick<UserNotificationSettings, 'mute_record_change' | 'mute_role_change' | 'mute_sponsor_inquiry' | 'mute_donation' | 'mute_event_comment' | 'mute_event_rsvp'>>) => {
+    mutationFn: async (patch: Partial<Pick<UserNotificationSettings, 'mute_record_change' | 'mute_role_change' | 'mute_sponsor_inquiry' | 'mute_donation' | 'mute_event_comment' | 'mute_event_rsvp' | 'mute_task_assigned'>>) => {
       if (!user) throw new Error('Sign in required');
       const { error } = await supabase
         .from('user_notification_settings')

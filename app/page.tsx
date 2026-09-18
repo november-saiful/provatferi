@@ -23,6 +23,12 @@ import { Reveal, RevealStagger, RevealItem, EASE } from '@/components/ui/motion'
 import { AlbumSlider } from '@/components/modules/album-slider';
 import { NoticeWall } from '@/components/modules/notice-wall';
 import { EventOverview } from '@/components/modules/event-overview';
+import dynamic from 'next/dynamic';
+
+const TaskCalendarView = dynamic(
+  () => import('@/components/modules/task-calendar-view').then((m) => m.TaskCalendarView),
+  { ssr: false, loading: () => <div className="h-[50vh] w-full animate-pulse rounded-xl bg-muted" /> }
+);
 
 const heroSection = {
   initial: { opacity: 0, y: 30 },
@@ -145,6 +151,27 @@ export default function LandingPage() {
           </Reveal>
 
           <EventOverview events={events} isLoading={loadingEvents} />
+        </section>
+
+        {/* ── Tasks Overview ── */}
+        <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
+          <Reveal className="mb-8 flex items-end justify-between">
+            <div>
+              <div className="mb-3 h-1 w-12 rounded-full bg-gradient-to-r from-blue-500 to-primary" />
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">টাস্ক</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                ক্লাবের কাজের তালিকা ও দায়িত্ব বণ্টন।
+              </p>
+            </div>
+            <Link
+              href="/tasks"
+              className="group flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary/80"
+            >
+              সব দেখুন
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
+          <TaskCalendarView />
         </section>
 
         {/* ── Quick Links ── */}

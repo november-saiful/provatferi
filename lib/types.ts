@@ -307,6 +307,23 @@ export interface CommitteeMember {
   roles?: { id: string; name: string; display_order: number } | null;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  assigned_to: string | null;
+  assignee_name: string;
+  task_date: string;
+  start_time: string | null;
+  end_time: string | null;
+  perks: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  profiles?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null;
+}
+
 export interface AppConfig {
   key: string;
   value: string;
@@ -331,7 +348,8 @@ export type AppNotificationType =
   | 'donation'
   | 'role_changed'
   | 'event_comment'
-  | 'event_rsvp';
+  | 'event_rsvp'
+  | 'task_assigned';
 
 export interface AppNotification {
   id: string;
@@ -356,6 +374,7 @@ export interface UserNotificationSettings {
   mute_donation: boolean;
   mute_event_comment: boolean;
   mute_event_rsvp: boolean;
+  mute_task_assigned: boolean;
   updated_at: string;
 }
 

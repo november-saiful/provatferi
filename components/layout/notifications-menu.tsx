@@ -14,6 +14,7 @@ import {
   UserCog,
   MessageSquare,
   CalendarCheck,
+  ListTodo,
   Settings2,
   type LucideIcon
 } from 'lucide-react';
@@ -42,7 +43,8 @@ const TYPE_ICON: Record<AppNotificationType, { icon: LucideIcon; tone: string }>
   donation: { icon: Heart, tone: 'bg-warmred-100 text-warmred-700 dark:bg-warmred-900/50 dark:text-warmred-300' },
   role_changed: { icon: UserCog, tone: 'bg-coffee-100 text-coffee-700 dark:bg-coffee-900/50 dark:text-coffee-300' },
   event_comment: { icon: MessageSquare, tone: 'bg-taupe-100 text-taupe-700 dark:bg-taupe-900/50 dark:text-taupe-300' },
-  event_rsvp: { icon: CalendarCheck, tone: 'bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300' }
+  event_rsvp: { icon: CalendarCheck, tone: 'bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300' },
+  task_assigned: { icon: ListTodo, tone: 'bg-gold-100 text-gold-700 dark:bg-gold-900/50 dark:text-gold-300' }
 };
 
 /**

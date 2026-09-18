@@ -150,6 +150,14 @@ export function isCommitteeMember(role: RoleId | null | undefined): boolean {
   return !!role && COMMITTEE_ROLES.includes(role);
 }
 
+/**
+ * Tasks — only root, president, vice-president and admin may create,
+ * edit or delete tasks. All signed-in users can view tasks.
+ */
+export function canManageTasks(role: RoleId | null | undefined): boolean {
+  return !!role && ['root', 'pr', 'vp', 'admin'].includes(role);
+}
+
 /** Root is the organization itself, not a person. */
 export function isOrganizationRole(role: RoleId | null | undefined): boolean {
   return role === 'root';

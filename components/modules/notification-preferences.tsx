@@ -9,6 +9,7 @@ import {
   Heart,
   MessageSquare,
   CalendarCheck,
+  ListTodo,
   BellOff,
   type LucideIcon
 } from 'lucide-react';
@@ -27,7 +28,8 @@ type MuteKey =
   | 'mute_sponsor_inquiry'
   | 'mute_donation'
   | 'mute_event_comment'
-  | 'mute_event_rsvp';
+  | 'mute_event_rsvp'
+  | 'mute_task_assigned';
 
 interface PreferenceRow {
   key: MuteKey;
@@ -79,6 +81,13 @@ const ROWS: PreferenceRow[] = [
     description: 'আপনার ইভেন্টে কেউ আগ্রহী/যাচ্ছে চিহ্নিত করলে জানান',
     icon: CalendarCheck,
     tone: 'bg-sage-100 text-sage-700 dark:bg-sage-900/50 dark:text-sage-300'
+  },
+  {
+    key: 'mute_task_assigned',
+    label: 'টাস্ক নির্ধারণ',
+    description: 'আপনাকে কোনো টাস্ক নির্ধারণ করলে জানান',
+    icon: ListTodo,
+    tone: 'bg-gold-100 text-gold-700 dark:bg-gold-900/50 dark:text-gold-300'
   }
 ];
 

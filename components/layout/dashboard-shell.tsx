@@ -21,6 +21,7 @@ import {
   UserCog,
   Phone,
   UserPlus,
+  ListTodo,
   type LucideIcon
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/auth-store';
@@ -72,7 +73,8 @@ const DASHBOARD_NAV: NavGroup[] = [
       { href: '/dashboard/evf', label: 'ইভেন্ট', icon: CalendarDays, module: 'evf' },
       { href: '/dashboard/glr', label: 'গ্যালারি', icon: Images, module: 'glr' },
       { href: '/dashboard/cln', label: 'ক্যালেন্ডার', icon: CalendarIcon, module: 'cln' },
-      { href: '/dashboard/ntb', label: 'নোটিশ', icon: Bell, module: 'ntb' }
+      { href: '/dashboard/ntb', label: 'নোটিশ', icon: Bell, module: 'ntb' },
+      { href: '/dashboard/task', label: 'টাস্ক', icon: ListTodo }
     ]
   },
   {
@@ -115,6 +117,7 @@ const PUBLIC_NAV: NavGroup[] = [
       { href: '/gallery', label: 'গ্যালারি', icon: Images },
       { href: '/calendar', label: 'ক্যালেন্ডার', icon: CalendarIcon },
       { href: '/notices', label: 'নোটিশ', icon: Bell },
+      { href: '/tasks', label: 'টাস্ক', icon: ListTodo },
       { href: '/donate', label: 'অনুদান', icon: HandCoins },
       { href: '/sponsor', label: 'স্পনসর', icon: Handshake },
       { href: '/courses', label: 'কোর্স', icon: Music4 },
