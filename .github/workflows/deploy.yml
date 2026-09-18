@@ -23,8 +23,8 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://uvilejtfmjykahnkujcm.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: https://home.provatferi2009.workers.dev
           NEXT_PUBLIC_RECRUITMENT_URL: https://example.com/recruitment
           NEXT_PUBLIC_CONTACT_EMAIL: contact@provatferi.org
