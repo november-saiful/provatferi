@@ -17,7 +17,6 @@ import {
   Music4,
   BarChart3,
   GraduationCap,
-  ExternalLink,
   UserCog,
   Phone,
   UserPlus,
@@ -222,17 +221,14 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
           </React.Fragment>
         ))}
 
-        {/* External link: Recruitment */}
+        {/* Recruitment (same site, /recruitment/) */}
         <DropdownSeparator staggered />
         <DropdownItem
           staggered
           href={RECRUITMENT_URL}
           icon={<UserPlus className="h-4 w-4 text-gold-500" />}
         >
-          <span className="flex items-center gap-1.5">
-            রিক্রুটমেন্ট
-            <ExternalLink className="h-3 w-3 opacity-60" />
-          </span>
+          রিক্রুটমেন্ট
         </DropdownItem>
 
         {/* Storage indicator — only for committee members and alumni */}

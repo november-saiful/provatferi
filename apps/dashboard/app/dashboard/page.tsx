@@ -199,8 +199,6 @@ export default function DashboardHome() {
       <StaggerItem>
         <a
           href={recruitmentUrl}
-          target="_blank"
-          rel="noreferrer"
           className="group flex items-center gap-4 rounded-2xl bg-gradient-to-r from-coffee-700 via-coffee-600 to-taupe-600 p-4 text-white shadow-lg transition-all duration-400 hover:-translate-y-1 hover:shadow-2xl sm:items-center sm:gap-5 sm:p-5"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/12 transition-transform duration-400 group-hover:scale-110 group-hover:bg-white/20 sm:h-14 sm:w-14">
