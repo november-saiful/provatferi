@@ -1,0 +1,1273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Warm Cream Base ── */
+    --background: 36 40% 97%;
+    --foreground: 22 28% 16%;
+
+    /* ── Rich Card Surfaces ── */
+    --card: 0 0% 100%;
+    --card-foreground: 22 28% 16%;
+
+    /* ── Deep Coffee Primary ── */
+    --primary: 16 52% 34%;
+    --primary-foreground: 36 40% 97%;
+
+    /* ── Warm Sand Secondary ── */
+    --secondary: 30 25% 92%;
+    --secondary-foreground: 22 28% 16%;
+
+    /* ── Muted Earth Tones ── */
+    --muted: 32 20% 93%;
+    --muted-foreground: 22 12% 42%;
+
+    /* ── Gold Accent ── */
+    --accent: 38 65% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* ── Destructive ── */
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ── Borders & Inputs ── */
+    --border: 30 18% 84%;
+    --input: 30 18% 84%;
+    --ring: 16 52% 34%;
+
+    /* ── Sidebar (Drive-inspired light) ── */
+    --sidebar: 36 38% 98%;
+    --sidebar-foreground: 22 28% 16%;
+    --sidebar-accent: 16 60% 95%;
+    --sidebar-active-foreground: 16 52% 28%;
+    --sidebar-border: 30 18% 88%;
+
+    /* ── Popovers / Menus ── */
+    --popover: 0 0% 100%;
+    --popover-foreground: 22 28% 16%;
+
+    /* ── Glass ── */
+    --glass-bg: 0 0% 100% / 0.72;
+    --glass-border: 0 0% 100% / 0.55;
+    --glass-blur: 14px;
+
+    /* ── Spacing Tokens ── */
+    --radius: 0.875rem;
+    --radius-sm: 0.625rem;
+    --radius-lg: 1.125rem;
+    --radius-xl: 1.5rem;
+    --header-height: 3.75rem;
+
+    /* ── Shadows ── */
+    --shadow-xs: 0 1px 2px rgba(89, 42, 18, 0.04);
+    --shadow-sm: 0 1px 3px rgba(89, 42, 18, 0.06), 0 1px 2px rgba(89, 42, 18, 0.04);
+    --shadow-md: 0 4px 6px rgba(89, 42, 18, 0.05), 0 2px 4px rgba(89, 42, 18, 0.04);
+    --shadow-lg: 0 10px 15px rgba(89, 42, 18, 0.06), 0 4px 6px rgba(89, 42, 18, 0.04);
+    --shadow-xl: 0 20px 25px rgba(89, 42, 18, 0.08), 0 8px 10px rgba(89, 42, 18, 0.04);
+    --shadow-2xl: 0 25px 50px rgba(89, 42, 18, 0.12);
+    --shadow-glow: 0 0 40px rgba(147, 69, 42, 0.15);
+    --shadow-glow-lg: 0 0 80px rgba(147, 69, 42, 0.2);
+  }
+
+  .dark {
+    --background: 22 24% 6%;
+    --foreground: 34 28% 90%;
+
+    --card: 22 20% 10%;
+    --card-foreground: 34 28% 90%;
+
+    --primary: 16 52% 58%;
+    --primary-foreground: 22 24% 6%;
+
+    --secondary: 22 16% 16%;
+    --secondary-foreground: 34 28% 90%;
+
+    --muted: 22 14% 14%;
+    --muted-foreground: 28 10% 58%;
+
+    --accent: 38 60% 50%;
+    --accent-foreground: 22 24% 6%;
+
+    --destructive: 0 58% 54%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 22 14% 18%;
+    --input: 22 14% 18%;
+    --ring: 16 52% 58%;
+
+    --sidebar: 22 24% 9%;
+    --sidebar-foreground: 34 28% 88%;
+    --sidebar-accent: 24 24% 16%;
+    --sidebar-active-foreground: 28 60% 72%;
+    --sidebar-border: 22 16% 18%;
+
+    --popover: 22 20% 10%;
+    --popover-foreground: 34 28% 90%;
+
+    --glass-bg: 22 20% 10% / 0.82;
+    --glass-border: 0 0% 100% / 0.08;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: var(--header-height);
+    /* Never let the page scroll sideways on mobile — clip instead (doesn't create a scroll container, so sticky stays intact). */
+    overflow-x: clip;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
+  }
+
+  /* ── Fluid Transitions ── */
+  .theme-surface {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+  }
+}
+
+@layer components {
+  /* ── Card Hover Lift ── */
+  .card-hover {
+    @apply transition-all duration-400 ease-smooth;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    border-color: hsl(var(--primary) / 0.25);
+  }
+
+  /* ── Focus Ring ── */
+  .fluent-ring {
+    @apply transition-shadow duration-200;
+  }
+  .fluent-ring:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px hsl(var(--background)),
+      0 0 0 5px hsl(var(--ring) / 0.5);
+  }
+
+  /* ── Glass Surface ── */
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-strong {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(20px) saturate(200%);
+    -webkit-backdrop-filter: blur(20px) saturate(200%);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* ── Gradient Text ── */
+  .text-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(16 50% 42%) 30%,
+      hsl(38 60% 42%) 70%,
+      hsl(var(--accent)) 100%
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-shift 6s ease infinite;
+  }
+
+  /* ── Grid Pattern ── */
+  .bg-grid {
+    background-image:
+      radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px),
+      radial-gradient(hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-size: 24px 24px, 48px 48px;
+    background-position: 0 0, 12px 12px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 45%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 45%, transparent 100%);
+  }
+
+  .bg-grid-subtle {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* ── Dot Pattern ── */
+  .bg-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 50%, black 30%, transparent 70%);
+  }
+
+  /* ── Gradient Mesh ── */
+  .bg-mesh {
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 40%, hsl(var(--primary) / 0.06), transparent 50%),
+      radial-gradient(ellipse 60% 50% at 80% 20%, hsl(var(--accent) / 0.05), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 50% 80%, hsl(28 30% 50% / 0.04), transparent 50%);
+  }
+
+  /* ── Shimmer Skeleton ── */
+  .shimmer {
+    background: linear-gradient(
+      105deg,
+      hsl(var(--muted)) 20%,
+      hsl(var(--muted-foreground) / 0.12) 38%,
+      hsl(var(--muted)) 58%
+    );
+    background-size: 300% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  /* ── Press Effect ── */
+  .press {
+    @apply transition-transform duration-150 active:scale-[0.97];
+  }
+}
+
+/* ── Keyframes ── */
+@keyframes shimmer {
+  0% { background-position: 150% 50%; }
+  100% { background-position: -50% 50%; }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(0.5deg); }
+  66% { transform: translateY(-4px) rotate(-0.5deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  50% { transform: translateY(-18px) translateX(8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: hsl(var(--primary) / 0.15); }
+  50% { border-color: hsl(var(--primary) / 0.35); }
+}
+
+/* ── Custom Scrollbar ── */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+  background-clip: padding-box;
+}
+
+/* ── 3D Album Slider (landing hero) ── */
+.album-slider {
+  /* Card width shrinks as the album count grows so the stream stays evenly
+     packed; --wd is defined here and re-tuned for phones below. */
+  --wd: min(170px, max(105px, calc(840px / var(--num, 8))));
+  --dur: 8s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12% 88%, transparent);
+}
+
+.album-slider .album-gallery {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: clamp(210px, 28vw, 320px);
+  position: relative;
+  perspective: 40em;
+}
+
+.album-slider .album-gallery .card {
+  width: calc(var(--wd) / 1.2);
+  position: absolute;
+  left: 100%;
+  transform-style: preserve-3d;
+  animation:
+    album-slide var(--dur) linear infinite,
+    album-scale var(--dur) ease-in-out infinite;
+  animation-delay: calc(var(--dur) * ((var(--timer, 1) - 1) / var(--num, 8) - 1));
+  transition: transform 0.25s ease-in-out;
+}
+
+.album-slider .album-gallery .card a {
+  display: block;
+}
+
+/* 3:4 height:width (i.e. 4:3 landscape) cards; `object-fit: cover` zooms and
+   crops any photo that doesn't match this frame so every slide looks uniform. */
+.album-slider .album-gallery .card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.album-slider .album-gallery .card a:hover img {
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.55), 0 18px 44px rgba(0, 0, 0, 0.45);
+  transform: scale(1.04);
+}
+
+.album-slider .album-gallery .card a:focus-visible img {
+  outline: 3px solid hsl(var(--accent) / 0.7);
+  outline-offset: 3px;
+}
+
+@keyframes album-slide {
+  from { left: 100%; }
+  to { left: calc(-1 * var(--wd)); }
+}
+
+/* Center-highlight window widened: 40%–60% → 20%–80% of each loop, so the
+   centered photo stays enlarged roughly three times longer than the original
+   design, while only the near-center card ever reaches full scale.
+   Transform/z-index only — animating `filter` (grayscale) would re-rasterize
+   every card on every frame, which visibly janks low-end and mobile GPUs. */
+/* z-index ref: 0 (layer 0 — base content) / 10 (layer 10 — in-card accent) */
+@keyframes album-scale {
+  0%,
+  20%,
+  80%,
+  100% {
+    transform: scale(1);
+    z-index: 0;
+  }
+  50% {
+    transform: scale(1.8);
+    z-index: 10;
+  }
+}
+
+@media (max-width: 640px) {
+  .album-slider {
+    --wd: min(120px, max(90px, calc(520px / var(--num, 8))));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-slider .album-gallery {
+    height: auto;
+    justify-content: center;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  .album-slider .album-gallery .card {
+    position: static;
+    flex: 0 0 auto;
+    animation: none;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ── Gallery Page (Google Photos-inspired) ── */
+@layer components {
+  .gallery-feed {
+    /* gap between masonry cells */
+    --gallery-gap: 3px;
+    --gallery-radius: 2px;
+  }
+
+  /* Masonry: CSS columns — natural photo height drives column break */
+  .gallery-masonry {
+    columns: 2;
+    column-gap: var(--gallery-gap);
+  }
+  @media (min-width: 400px) {
+    .gallery-masonry { columns: 3; }
+  }
+  @media (min-width: 560px) {
+    .gallery-masonry { columns: 4; }
+  }
+  @media (min-width: 860px) {
+    .gallery-masonry { columns: 5; }
+  }
+  @media (min-width: 1200px) {
+    .gallery-masonry { columns: 6; }
+  }
+  @media (min-width: 1600px) {
+    .gallery-masonry { columns: 7; }
+  }
+
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: var(--gallery-gap);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--gallery-radius);
+    background: hsl(var(--muted));
+  }
+
+  /* Day sections spacing */
+  .gallery-day + .gallery-day {
+    margin-top: 8px;
+  }
+
+  /* Albums grid view */
+  .gallery-albums-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px;
+  }
+  @media (min-width: 560px) {
+    .gallery-albums-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 860px) {
+    .gallery-albums-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1200px) {
+    .gallery-albums-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  .gallery-album-card {
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .gallery-album-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .gallery-album-cover {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 6px;
+  }
+  @media (min-width: 560px) {
+    .gallery-album-cover { aspect-ratio: 4 / 3; }
+  }
+
+  /* ── Sort / Action Button (beside search) ── */
+  .gallery-action-btn {
+    pointer-events: auto;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 0;
+    background: hsl(var(--glass-bg));
+    color: hsl(var(--muted-foreground));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .gallery-action-btn:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    transform: scale(1.05);
+  }
+
+  .gallery-action-btn-active {
+    background: hsl(var(--primary) / 0.15);
+    color: hsl(var(--primary));
+  }
+
+  .gallery-action-btn-active:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .gallery-action-btn:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 3px;
+  }
+
+  /* Sort tooltip — z-60 (layer 60 — tooltips) */
+  .gallery-sort-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid hsl(var(--border));
+    pointer-events: none;
+    z-index: 60;
+  }
+  .gallery-sort-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: hsl(var(--card));
+  }
+
+  /* ── Floating Bottom Navigation ── z-50 (layer 50 — floating panels) */
+  .gallery-bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    pointer-events: none;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 0 8px;
+  }
+
+  .gallery-tab-bar {
+    pointer-events: auto;
+    display: flex;
+    gap: 1px;
+    padding: 4px;
+    border-radius: 28px;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+  }
+
+  .gallery-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 24px;
+    border: 0;
+    background: none;
+    color: hsl(var(--muted-foreground));
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+  }
+
+  .gallery-tab.active {
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
+  @media (hover: hover) {
+    .gallery-tab:not(.active):hover {
+      background: rgba(128, 128, 128, 0.12);
+    }
+  }
+
+  .gallery-tab svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .gallery-search-btn {
+    pointer-events: auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    background: hsl(var(--glass-bg));
+    color: hsl(var(--muted-foreground));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 6px 18px rgba(0, 0, 0, 0.16);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .gallery-search-btn:hover {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    transform: scale(1.05);
+  }
+
+  .gallery-search-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Gallery responsive mobile tweaks */
+  @media (max-width: 480px) {
+    .gallery-tab {
+      padding: 8px 10px;
+      font-size: 12px;
+      gap: 4px;
+    }
+    .gallery-tab svg {
+      width: 14px;
+      height: 14px;
+    }
+    .gallery-action-btn,
+    .gallery-search-btn {
+      width: 40px;
+      height: 40px;
+    }
+    .gallery-action-btn svg,
+    .gallery-search-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .gallery-bottom-nav {
+      gap: 6px;
+    }
+  }
+
+  @media (min-width: 560px) {
+    .gallery-tab {
+      padding: 12px 18px;
+      font-size: 15px;
+      gap: 8px;
+    }
+    .gallery-tab svg {
+      width: 18px;
+      height: 18px;
+    }
+    .gallery-search-btn {
+      width: 52px;
+      height: 52px;
+    }
+    .gallery-search-btn svg {
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
+/* ── React Big Calendar Overrides ── */
+.rbc-calendar {
+  @apply font-sans text-sm;
+}
+.rbc-toolbar {
+  @apply mb-5 flex flex-wrap gap-2 items-center;
+}
+.rbc-toolbar button {
+  @apply rounded-lg border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:-translate-y-px;
+}
+.rbc-toolbar button.rbc-active {
+  @apply bg-primary text-primary-foreground border-primary shadow-sm;
+}
+.rbc-header {
+  @apply py-2 font-semibold text-muted-foreground uppercase text-[11px] tracking-wider;
+}
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  @apply rounded-xl border border-border bg-card overflow-hidden shadow-sm;
+}
+.rbc-month-row {
+  @apply border-t border-border;
+}
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row {
+  @apply border-l border-border;
+}
+.rbc-date-cell {
+  @apply pr-2 pt-1.5 text-right text-sm;
+}
+.rbc-today {
+  background-color: hsl(var(--primary) / 0.08);
+}
+.rbc-event {
+  @apply rounded-md border-none text-[12px] leading-tight px-1.5 py-0.5 text-white shadow-sm transition-transform duration-150 hover:scale-[1.02];
+}
+.rbc-show-more {
+  @apply text-primary font-semibold;
+}
+.rbc-off-range-bg {
+  @apply bg-muted/30;
+}
+@media (max-width: 640px) {
+  .rbc-toolbar {
+    @apply flex-col items-stretch;
+  }
+  .rbc-toolbar-label {
+    @apply order-first text-center;
+  }
+  .rbc-toolbar .rbc-btn-group {
+    @apply w-full;
+  }
+  .rbc-toolbar .rbc-btn-group button {
+    @apply flex-1 px-2 py-1.5 text-[13px];
+  }
+  .rbc-calendar {
+    font-size: 13px;
+  }
+  .rbc-event {
+    @apply text-[11px] px-1 py-0.5;
+  }
+  .rbc-time-view .rbc-time-header-content {
+    @apply min-w-0;
+  }
+  /* Keep all-day events visible but compact on phones */
+  .rbc-allday-cell {
+    max-height: 2.5rem;
+    overflow-y: auto;
+  }
+}
+
+/* ── Expressive dotted paper surface ──
+   This is the name of the notice-wall card background: a tactile,
+   noticeboard-inspired paper texture with a quiet dot grid and warm wash.
+   Shared Card primitives and card-like bg-card containers inherit it. */
+.site-card-surface,
+:where(div, section, article, aside, li)[class~="bg-card"],
+:where(div, section, article, aside, li)[class*="bg-card/"] {
+  background-color: hsl(var(--card));
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.065) 1.1px, transparent 1.35px),
+    linear-gradient(135deg, hsl(36 40% 94% / 0.3), transparent 55%);
+  background-size: 24px 24px, 100% 100%;
+}
+
+.dark .site-card-surface,
+.dark :where(div, section, article, aside, li)[class~="bg-card"],
+.dark :where(div, section, article, aside, li)[class*="bg-card/"] {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.045) 1.1px, transparent 1.35px),
+    linear-gradient(135deg, hsl(28 24% 18% / 0.45), transparent 55%);
+}
+
+/* ── Expressive Noticeboard ── */
+.notice-wall-board {
+  background-image:
+    radial-gradient(hsl(var(--foreground) / 0.09) 1.2px, transparent 1.2px),
+    linear-gradient(135deg, hsl(var(--coffee-100, 36 40% 94%) / 0.35), transparent 55%);
+  background-size: 24px 24px, 100% 100%;
+}
+
+.notice-paper {
+  isolation: isolate;
+  transform-origin: 50% 10%;
+}
+
+/* z-index ref: -1 (decorative pseudo-element) */
+.notice-paper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 40%);
+  pointer-events: none;
+}
+
+.paper-pin {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  display: flex;
+  height: 1.5rem;
+  width: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%) rotate(28deg);
+  border-radius: 9999px;
+  background: hsl(var(--warmred-500, 0 62% 48%));
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.28), inset 2px 2px 3px rgba(255,255,255,0.25);
+}
+
+.notice-board-live-dot {
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background: #55b96a;
+  box-shadow: 0 0 0 0 rgba(85,185,106,0.45);
+  animation: notice-live-pulse 2s infinite;
+}
+
+@keyframes notice-live-pulse {
+  70% { box-shadow: 0 0 0 0.45rem rgba(85,185,106,0); }
+  100% { box-shadow: 0 0 0 0 rgba(85,185,106,0); }
+}
+
+.notice-ticker p {
+  animation: notice-ticker-in 0.45s ease-out both;
+}
+
+@keyframes notice-ticker-in {
+  from { opacity: 0; transform: translateX(0.5rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.notice-ticker-viewport {
+  position: relative;
+}
+
+.notice-ticker-track {
+  gap: 4rem;
+  animation: notice-ticker-scroll 24s linear infinite;
+  white-space: nowrap;
+}
+
+.notice-ticker-track span {
+  display: inline-block;
+}
+
+@keyframes notice-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.notice-ticker:hover .notice-ticker-track {
+  animation-play-state: paused;
+}
+
+.notice-detail-paper {
+  background-image: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.3) 100%);
+}
+
+.notice-detail-content h1,
+.notice-detail-content h2,
+.notice-detail-content h3 {
+  margin-top: 1.75rem;
+  font-family: var(--font-noto-serif-bengali), serif;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.notice-detail-content h1 { font-size: 1.7rem; }
+.notice-detail-content h2 { font-size: 1.45rem; }
+.notice-detail-content h3 { font-size: 1.2rem; }
+.notice-detail-content a { font-weight: 600; }
+.notice-detail-content code { font-size: 0.86em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-paper,
+  .notice-ticker-track,
+  .notice-board-live-dot {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   COMPREHENSIVE MOBILE RESPONSIVE SYSTEM
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Responsive Tables: Card layout on mobile ── */
+@media (max-width: 768px) {
+  /* Tables become horizontally scrollable */
+  .site-card-surface:has(> table),
+  div[class*="overflow-auto"]:has(> table) {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* Table cells reduce padding */
+  table td, table th {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  table th {
+    font-size: 0.625rem;
+    white-space: nowrap;
+  }
+}
+
+/* ── Scrollable Tabs ── */
+.tabs-scrollable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tabs-scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Mobile Dialog / Modal ── */
+@media (max-width: 640px) {
+  [role="dialog"] {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 1rem !important;
+    max-height: 90vh !important;
+  }
+
+  /* Dialog action buttons stack on mobile */
+  [role="dialog"] .flex.gap-2,
+  [role="dialog"] .flex.gap-3 {
+    flex-wrap: wrap;
+  }
+
+  [role="dialog"] .flex.gap-2 > *,
+  [role="dialog"] .flex.gap-3 > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+/* ── Mobile Forms ── */
+@media (max-width: 640px) {
+  /* Opt-in stacking for dense mobile form sections. Existing responsive
+     grids keep their intended two-column layouts on phones. */
+  .mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mobile-actions > button,
+  .mobile-actions > a {
+    width: 100%;
+  }
+}
+
+/* ── Mobile Dashboard Shell ── */
+@media (max-width: 640px) {
+  /* Header actions compact */
+  header .flex.items-center.gap-1 > * {
+    gap: 0.25rem;
+  }
+
+  /* Nav dropdown full width on mobile */
+  [role="menu"].w-72 {
+    width: calc(100vw - 2rem) !important;
+    max-width: 20rem !important;
+  }
+}
+
+/* ── Mobile Notice Board ── */
+@media (max-width: 640px) {
+  .notice-board-hero {
+    border-radius: 1.25rem !important;
+    padding: 1rem !important;
+  }
+
+  .notice-board-hero h2 {
+    font-size: 1.5rem !important;
+  }
+
+  .notice-board-hero p {
+    font-size: 0.8125rem !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Notice cards */
+  .notice-card .flex.items-start.gap-3 {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* ── Mobile Events ── */
+@media (max-width: 640px) {
+  /* Featured event hero */
+  .aspect-\[16\/9\], .aspect-\[21\/10\] {
+    aspect-ratio: 16/9 !important;
+  }
+}
+
+/* ── Mobile Buttons ── */
+@media (max-width: 480px) {
+  /* Full-width buttons in forms */
+  form .w-full {
+    height: 2.75rem;
+  }
+
+  /* Opt-in compact button groups */
+  .mobile-button-group > button,
+  .mobile-button-group > a {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+}
+
+/* ── Mobile Cards ── */
+@media (max-width: 640px) {
+  /* Reduce card padding */
+  .site-card-surface {
+    border-radius: 0.75rem;
+  }
+}
+
+/* ── Mobile Page Headers ── */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+/* ── Mobile Admin Panels ── */
+@media (max-width: 768px) {
+  /* Admin grid layouts */
+  .grid.gap-4.md\:grid-cols-2,
+  .grid.gap-4.lg\:grid-cols-3,
+  .grid.gap-4.xl\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Mobile Balance Widget ── */
+@media (max-width: 640px) {
+  /* Balance widget compact when the component opts in. */
+  .mobile-wrap {
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+}
+
+/* ── Mobile Profile ── */
+@media (max-width: 640px) {
+  /* Profile sections stack */
+  .grid.grid-cols-1.md\:grid-cols-2 {
+    gap: 0.75rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE FOUNDATIONS FOR SHARED UI
+   These rules deliberately target shared primitives rather than individual
+   pages, so new modules inherit safe mobile behavior automatically.
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+  /* Keep content inside the visual viewport even when a translated child or
+     long Bengali string would otherwise create a horizontal page scroll. */
+  main,
+  main > *,
+  [role="main"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Headings and labels may wrap; controls should remain easy to tap. */
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  label {
+    overflow-wrap: anywhere;
+  }
+
+  /* Tap-target floor for controls without a fixed square/circular shape.
+     Icon buttons pin BOTH their height and width (header avatar, hamburger,
+     bell, table actions — e.g. h-9 w-9), so they keep their intended shape
+     on phones instead of being stretched into ovals. Buttons sized only by
+     height (standard form buttons like h-9 px-4) keep the comfortable
+     floor. */
+  button:not([class*=" h-"]),
+  button:not([class*=" w-"]),
+  [role="button"]:not([class*=" h-"]),
+  [role="button"]:not([class*=" w-"]),
+  a.inline-flex:not([class*=" h-"]),
+  a.inline-flex:not([class*=" w-"]) {
+    min-height: 2.75rem;
+  }
+
+  /* Do not allow a wide data grid to expand its card or the page. */
+  .table-scroll,
+  .table-scroll > table,
+  [role="dialog"],
+  [role="menu"] {
+    min-width: 0;
+    max-width: calc(100vw - 1rem);
+  }
+
+  [role="menu"] {
+    overscroll-behavior: contain;
+  }
+
+  /* Toolbars are allowed to wrap instead of compressing their controls to
+     unusable widths. */
+  .rbc-toolbar,
+  .page-header-actions {
+    align-items: stretch;
+  }
+}
+
+/* ── Mobile-safe overlays and data views ── */
+.table-scroll {
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.table-scroll > table {
+  width: max-content;
+  min-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .gallery-sort-tooltip {
+    max-width: calc(100vw - 1rem);
+    white-space: normal;
+    text-align: center;
+  }
+
+  .rbc-month-view,
+  .rbc-time-view,
+  .rbc-agenda-view {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .rbc-month-view {
+    min-height: 24rem;
+  }
+
+  .rbc-month-row {
+    min-height: 6rem;
+  }
+
+  .rbc-header {
+    overflow: hidden;
+    padding: 0.45rem 0.15rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.625rem;
+  }
+
+  .rbc-date-cell {
+    padding-right: 0.35rem;
+    padding-top: 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .rbc-row-segment {
+    padding: 0 1px 1px;
+  }
+
+  .rbc-event {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rbc-time-content,
+  .rbc-time-header-content {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rbc-time-view .rbc-time-content,
+  .rbc-agenda-view {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rbc-agenda-view table {
+    min-width: 100%;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

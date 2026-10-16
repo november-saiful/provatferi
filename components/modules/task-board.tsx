@@ -1,0 +1,263 @@
+'use client';
+
+import * as React from 'react';
+import { toast } from 'sonner';
+import { Plus, Trash2, Clock, Gift, User, CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase/client';
+import { useAuthStore } from '@/lib/auth-store';
+import { useTasksByDate, useTaskDates } from '@/lib/queries';
+import { canManageTasks } from '@/lib/permissions';
+import { formatDate, toBengaliDigits } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Dialog } from '@/components/ui/dialog';
+import { Stagger, StaggerItem } from '@/components/ui/motion';
+import { TaskForm } from '@/components/forms/task-form';
+import type { Task } from '@/lib/types';
+
+const STATUS_CONFIG = {
+  pending: { label: 'অপেক্ষমাণ', icon: Circle, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+  in_progress: { label: 'চলমান', icon: Loader2, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  completed: { label: 'সম্পন্ন', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-600/10' }
+} as const;
+
+type StatusKey = 'pending' | 'in_progress' | 'completed';
+
+const STATUS_CYCLE: StatusKey[] = ['pending', 'in_progress', 'completed'];
+
+function TaskCard({
+  task,
+  onDelete,
+  onStatusChange
+}: {
+  task: Task;
+  onDelete?: (t: Task) => void;
+  onStatusChange?: (task: Task, status: StatusKey) => void;
+}) {
+  const status = STATUS_CONFIG[task.status] ?? STATUS_CONFIG.pending;
+  const StatusIcon = status.icon;
+
+  return (
+    <div className="bg-muted after:bg-primary/70 relative rounded-md p-3 pl-7 text-sm after:absolute after:inset-y-2 after:left-2 after:w-1 after:rounded-full">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {onStatusChange ? (
+              <div className="flex items-center gap-1">
+                {STATUS_CYCLE.map((s) => {
+                  const cfg = STATUS_CONFIG[s];
+                  const Icon = cfg.icon;
+                  const active = task.status === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => onStatusChange(task, s)}
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium transition-all duration-200 ${
+                        active
+                          ? `${cfg.bg} ${cfg.color} ring-1 ring-current/20`
+                          : 'bg-transparent text-muted-foreground/50 hover:bg-muted hover:text-muted-foreground'
+                      }`}
+                      title={cfg.label}
+                    >
+                      <Icon className="h-3 w-3" />
+                      {cfg.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${status.bg} ${status.color}`}>
+                <StatusIcon className="h-3 w-3" />
+                {status.label}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 font-medium">{task.title}</div>
+          <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <User className="h-3 w-3" />
+              {task.assignee_name}
+            </span>
+            {task.start_time && (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {task.start_time.slice(0, 5)}
+                {task.end_time && ` – ${task.end_time.slice(0, 5)}`}
+              </span>
+            )}
+          </div>
+          {task.description && (
+            <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{task.description}</p>
+          )}
+          {task.perks && (
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+              <Gift className="h-3 w-3" />
+              {task.perks}
+            </div>
+          )}
+        </div>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(task)}
+            className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            title="মুছুন"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function TaskBoard() {
+  const qc = useQueryClient();
+  const { role, user } = useAuthStore();
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [formOpen, setFormOpen] = React.useState(false);
+  const [formTask, setFormTask] = React.useState<Task | null | undefined>(undefined);
+
+  const dateStr = date ? date.toISOString().split('T')[0] : undefined;
+  const { data: tasks, isLoading } = useTasksByDate(dateStr);
+  const { data: taskDates } = useTaskDates();
+
+  const canEdit = canManageTasks(role);
+
+  // Convert task dates to Date objects for calendar highlighting
+  const highlightedDates = React.useMemo(
+    () => (taskDates ?? []).map((d) => new Date(d + 'T00:00:00')),
+    [taskDates]
+  );
+
+  const handleDelete = async (task: Task) => {
+    if (!confirm('এই টাস্কটি মুছে ফেলবেন?')) return;
+    const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('টাস্ক মুছে ফেলা হয়েছে');
+      qc.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  };
+
+  const handleStatusChange = async (task: Task, newStatus: StatusKey) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus })
+      .eq('id', task.id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(`স্ট্যাটাস আপডেট: ${STATUS_CONFIG[newStatus].label}`);
+      qc.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  };
+
+  return (
+    <Stagger className="space-y-4">
+      {/* Admin action bar */}
+      {canEdit && (
+        <StaggerItem className="flex justify-end">
+          <Button onClick={() => { setFormTask(null); setFormOpen(true); }}>
+            <Plus /> টাস্ক নির্ধারণ করুন
+          </Button>
+        </StaggerItem>
+      )}
+
+      <StaggerItem className="grid grid-cols-1 gap-4 md:grid-cols-[auto_1fr]">
+        {/* Calendar sidebar */}
+        <Card className="pt-4 md:w-auto">
+          <CardContent className="px-4">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              className="w-full bg-transparent p-0"
+              modifiers={{
+                hasTask: (day) => {
+                  const dayStr = day.toISOString().split('T')[0];
+                  return highlightedDates.some((d) => d.toISOString().split('T')[0] === dayStr);
+                }
+              }}
+              modifiersStyles={{
+                hasTask: {
+                  backgroundColor: 'hsl(var(--primary) / 0.15)',
+                  borderRadius: '9999px',
+                  fontWeight: 600
+                }
+              }}
+            />
+          </CardContent>
+          <CardFooter className="flex flex-col items-start gap-3 border-t px-4 !pt-4">
+            <div className="flex w-full items-center justify-between px-1">
+              <div className="text-sm font-medium">
+                {date?.toLocaleDateString('en-US', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric'
+                })}
+              </div>
+              {canEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-6"
+                  title="টাস্ক যোগ করুন"
+                  onClick={() => { setFormTask(null); setFormOpen(true); }}
+                >
+                  <Plus />
+                  <span className="sr-only">টাস্ক যোগ করুন</span>
+                </Button>
+              )}
+            </div>
+          </CardFooter>
+        </Card>
+
+        {/* Task list */}
+        <div className="space-y-3">
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ) : tasks && tasks.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {tasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onDelete={canEdit ? handleDelete : undefined}
+                  onStatusChange={canEdit ? handleStatusChange : undefined}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="কোনো টাস্ক নেই"
+              description={date ? 'এই তারিখে কোনো টাস্ক নির্ধারিত হয়নি।' : 'একটি তারিখ নির্বাচন করুন।'}
+            />
+          )}
+        </div>
+      </StaggerItem>
+
+      {/* Task form dialog */}
+      <TaskForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        defaultDate={date}
+        task={formTask}
+        onSaved={() => {
+          qc.invalidateQueries({ queryKey: ['tasks'] });
+          setFormOpen(false);
+        }}
+      />
+    </Stagger>
+  );
+}
