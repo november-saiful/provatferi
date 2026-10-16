@@ -9,4 +9,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase REST API
-        run: curl -s --max-time 30 "${{ secrets.SUPABASE_URL }}/rest/v1/roles?select=id&limit=1" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
+        run: |
+          curl -s --max-time 30 "${{ secrets.SUPABASE_URL }}/rest/v1/roles?select=id&limit=1" -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}"
