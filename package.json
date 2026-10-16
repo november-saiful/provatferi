@@ -1,0 +1,27 @@
+{
+  "name": "provatferi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Provatferi monorepo — club dashboard + recruitment, served from one Cloudflare Worker",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build:dashboard": "npm run build -w provatferi-dashboard",
+    "build:recruitment": "npm run build -w pcr",
+    "assemble": "node scripts/assemble.mjs",
+    "build": "npm run build:dashboard && npm run build:recruitment && npm run assemble",
+    "deploy": "wrangler deploy",
+    "dev:dashboard": "npm run dev -w provatferi-dashboard",
+    "dev:recruitment": "npm run dev -w pcr"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.110.0"
+  }
+}

@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'supabase/migrations/**'
+      - 'apps/dashboard/supabase/migrations/**'
   workflow_dispatch:
 
 jobs:

@@ -86,14 +86,19 @@ Creates 2 accounts per role (password `Provatferi@2026`), e.g. `pr1@provatferi.t
 
 ### 4. Cloudflare Workers deploy
 
-1. The repo ships `wrangler.jsonc` and `worker/index.ts` (SPA fallback). `npm run build` emits the static export to `./out`, which the Worker serves through an `ASSETS` binding.
-2. Build with the env vars baked in:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_SITE_URL`
-   - `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_CONTACT_PHONE`
-3. Deploy: `npx wrangler deploy` (needs `CF_API_TOKEN`), or push to GitHub and let `.github/workflows/deploy.yml` build + deploy.
-4. `next.config.mjs` already uses `output: 'export'` and `images.unoptimized`.
+> **Monorepo note:** this app now builds as part of the `provatferi` monorepo.
+> The single Worker, `wrangler.jsonc`, and deploy workflow live at the repo
+> root — see the root `README.md`. `npm run build` here still emits the
+> static export to `./out`, which `scripts/assemble.mjs` merges into `dist/`.
+>
+> Build with the env vars baked in:
+>   - `NEXT_PUBLIC_SUPABASE_URL`
+>   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+>   - `NEXT_PUBLIC_SITE_URL`
+>   - `NEXT_PUBLIC_RECRUITMENT_URL` (`/recruitment/`)
+>   - `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_CONTACT_PHONE`
+>
+> `next.config.mjs` already uses `output: 'export'` and `images.unoptimized`.
 
 ### 5. Keep-alive
 

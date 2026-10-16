@@ -1,13 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
-  "name": "recruitment",
+  "main": "worker/index.ts",
+  "name": "provatferi",
   "compatibility_date": "2026-07-11",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": ".open-next/assets",
+    "directory": "./dist",
     "binding": "ASSETS"
   },
   "observability": {

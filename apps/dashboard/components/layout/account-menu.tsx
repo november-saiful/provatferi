@@ -293,7 +293,7 @@ export function AccountMenu({ size = 'md', dashboardHref = '/dashboard' }: Accou
             </DropdownItem>
             <DropdownItem
               icon={<UserPlus className="h-4 w-4 text-gold-500" />}
-              href="https://recruitment.provatferi2009.workers.dev/"
+              href="/recruitment/"
               trailing={<ChevronRight className="h-3.5 w-3.5" />}
             >
               রিক্রুটমেন্ট

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const FACEBOOK_PAGE_URL = 'https://www.facebook.com/provatferi.org/';
-const ORGANIZATION_SITE_URL = 'https://home.provatferi2009.workers.dev/';
+const ORGANIZATION_SITE_URL = '/';
 
 const banglaDigits: Record<string, string> = {
   '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
@@ -34,7 +34,7 @@ export default function Home() {
 
   // Warm up the serverless function in background while user fills the form
   useEffect(() => {
-    fetch('/api/health').catch(() => {});
+    fetch('/api/recruitment/health').catch(() => {});
   }, []);
   const [formMode, setFormMode] = useState<'course' | 'member' | null>(null);
 
@@ -153,7 +153,7 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/submit', {
+      const response = await fetch('/api/recruitment/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -215,7 +215,7 @@ export default function Home() {
       {/* Banner/Header */}
       <div className="px-5 md:px-8 py-6 md:py-10 relative">
         <div className="max-w-2xl mx-auto text-center">
-          <img src="/logo.png" alt="Logo" className="h-20 mx-auto mb-4 object-contain" />
+          <img src="/recruitment-logo.png" alt="Logo" className="h-20 mx-auto mb-4 object-contain" />
           <h1 className="text-xl md:text-3xl font-bold tracking-tight mb-2 text-brand-primary">সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয়</h1>
           <p className="text-brand-primary/70 text-sm">
             {formMode === 'member'
@@ -231,7 +231,7 @@ export default function Home() {
       {showPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center animate-fade-in">
-            <img src="/logo.png" alt="Logo" className="h-16 mx-auto mb-5 object-contain" />
+            <img src="/recruitment-logo.png" alt="Logo" className="h-16 mx-auto mb-5 object-contain" />
             <h2 className="text-2xl font-bold text-brand-primary mb-3">আপনি কী করতে চান?</h2>
             <p className="text-slate-600 text-sm mb-8">আপনার উদ্দেশ্য নির্বাচন করুন</p>
             <div className="space-y-4">

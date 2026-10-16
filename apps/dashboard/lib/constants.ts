@@ -107,7 +107,7 @@ export const ACTION_LABELS: Record<string, string> = {
 };
 
 export const SITE_NAME = 'প্রভাতফেরী';
-export const RECRUITMENT_URL = 'https://recruitment.provatferi2009.workers.dev/';
+export const RECRUITMENT_URL = '/recruitment/';
 
 // Send-money wallet numbers shown on the donation/sponsor forms
 // (see 00020_payment_fields.sql).

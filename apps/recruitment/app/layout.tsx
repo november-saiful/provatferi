@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   title: "প্রভাতফেরী সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয়",
   description: "প্রভাতফেরী সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয় — সঙ্গীত ও বাদ্যযন্ত্র কোর্স ও সদস্যপদে রেজিস্ট্রেশন ফরম।",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/recruitment-logo.png",
+    apple: "/recruitment-logo.png",
   },
   openGraph: {
     title: "প্রভাতফেরী সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয়",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: "প্রভাতফেরী সাংস্কৃতিক সংসদ",
     locale: "bn_BD",
     type: "website",
-    images: [{ url: "/logo.png", width: 512, height: 512 }],
+    images: [{ url: "/recruitment-logo.png", width: 512, height: 512 }],
   },
 };
 
