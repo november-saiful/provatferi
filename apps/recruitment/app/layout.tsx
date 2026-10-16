@@ -9,7 +9,10 @@ const notoSerifBengali = Noto_Serif_Bengali({
   display: "optional",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://home.provatferi2009.workers.dev/recruitment/';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "প্রভাতফেরী সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয়",
   description: "প্রভাতফেরী সাংস্কৃতিক সংসদ, ঢাকা বিশ্ববিদ্যালয় — সঙ্গীত ও বাদ্যযন্ত্র কোর্স ও সদস্যপদে রেজিস্ট্রেশন ফরম।",
   icons: {

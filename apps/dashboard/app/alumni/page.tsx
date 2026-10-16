@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { SkeletonAvatarCard } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Avatar } from '@/components/ui/avatar';
+import { AlumniClaimCard } from '@/components/modules/alumni-claim';
 import { PageHeader } from '@/components/ui/page-header';
 import { Stagger, StaggerItem } from '@/components/ui/motion';
 import type { AlumniMember } from '@/lib/types';
@@ -291,6 +292,10 @@ export default function AlumniPage() {
             </Stagger>
           )}
         </section>
+
+        <div className="mt-10">
+          <AlumniClaimCard />
+        </div>
       </div>
     </PublicShell>
   );

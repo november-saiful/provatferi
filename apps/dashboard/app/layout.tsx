@@ -10,7 +10,10 @@ const notoSerifBengali = Noto_Serif_Bengali({
   variable: '--font-noto-serif-bengali',
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://home.provatferi2009.workers.dev';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'প্রভাতফেরী',
     template: 'প্রভাতফেরী- %s'
@@ -41,7 +44,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-apple-touch.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
       { url: '/logo.png', sizes: 'any', type: 'image/png' },
     ],
     shortcut: '/favicon.svg',

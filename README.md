@@ -65,6 +65,7 @@ cron is `.github/workflows/keepalive.yml`.
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | dashboard build + keep-alive |
 | `SUPABASE_ACCESS_TOKEN` | DB migrations |
 | `APPS_SCRIPT_URL`, `GOOGLE_SHEET_ID`, `GOOGLE_DRIVE_FOLDER_ID` | recruitment submit → Sheet/Drive (Worker secrets) |
+| `SENTRY_DSN` (optional) | error monitoring — dashboard client (build env `NEXT_PUBLIC_SENTRY_DSN`) + Worker secret; unset = disabled |
 
 Local runs need `apps/dashboard/.env.local` (`NEXT_PUBLIC_SUPABASE_URL`,
 `NEXT_PUBLIC_SUPABASE_ANON_KEY`) — see `apps/dashboard/.env.example`.

@@ -17,6 +17,8 @@ import {
   Music4,
   BarChart3,
   GraduationCap,
+  Users,
+  BadgeCheck,
   UserCog,
   Phone,
   UserPlus,
@@ -101,6 +103,7 @@ const DASHBOARD_NAV: NavGroup[] = [
     label: 'অ্যাডমিন',
     items: [
       { href: '/dashboard/admin', label: 'কন্ট্রোল প্যানেল', icon: UserCog, module: 'admin' },
+      { href: '/dashboard/admin/claims', label: 'অ্যালামনাই দাবি', icon: BadgeCheck, module: 'admin' },
       { href: '/dashboard/admin/roles', label: 'রোল সুপারভাইজ', icon: UserCog, module: 'admin' }
     ]
   }
@@ -122,6 +125,7 @@ const PUBLIC_NAV: NavGroup[] = [
       { href: '/courses', label: 'কোর্স', icon: Music4 },
       { href: '/insights', label: 'বিশ্লেষণ', icon: BarChart3 },
       { href: '/contact', label: 'যোগাযোগ', icon: Phone },
+      { href: '/members', label: 'সদস্য', icon: Users },
       { href: '/alumni', label: 'অ্যালামনাই', icon: GraduationCap }
     ]
   }

@@ -37,8 +37,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: https://home.provatferi2009.workers.dev
           NEXT_PUBLIC_RECRUITMENT_URL: /recruitment/
-          NEXT_PUBLIC_CONTACT_EMAIL: contact@provatferi.org
-          NEXT_PUBLIC_CONTACT_PHONE: +8801XXXXXXXXX
+          NEXT_PUBLIC_CONTACT_EMAIL: provatferi2009@gmail.com
+          NEXT_PUBLIC_CONTACT_PHONE: +880 1839-858853
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
       - name: Build recruitment (static export → apps/recruitment/out)
         run: npm run build:recruitment
@@ -55,14 +56,16 @@ jobs:
 
       # Runtime secrets for /api/recruitment/submit (Google Sheet + Drive).
       # Set these once in GitHub repo secrets; re-applied on every deploy.
-      - name: Apply recruitment secrets
+      - name: Apply Worker secrets
         run: |
           printf '%s' "$APPS_SCRIPT_URL" | npx wrangler secret put APPS_SCRIPT_URL
           printf '%s' "$GOOGLE_SHEET_ID" | npx wrangler secret put GOOGLE_SHEET_ID
           printf '%s' "$GOOGLE_DRIVE_FOLDER_ID" | npx wrangler secret put GOOGLE_DRIVE_FOLDER_ID
+          if [ -n "$SENTRY_DSN" ]; then printf '%s' "$SENTRY_DSN" | npx wrangler secret put SENTRY_DSN; fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           APPS_SCRIPT_URL: ${{ secrets.APPS_SCRIPT_URL }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
           GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}

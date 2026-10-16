@@ -11,15 +11,23 @@
  *        (legacy /api/submit kept for cached clients)
  */
 
+import * as Sentry from '@sentry/cloudflare';
 import {
   generateClientInvoice,
   generateAdminInvoice,
   generateMemberInvoice,
 } from './recruitment-invoice';
 import logoBytes from './logo';
+import {
+  getFullAmount,
+  isDuStudentFlag,
+  validateRegistration,
+} from '../apps/recruitment/lib/registration';
 
 export interface Env {
   ASSETS: Fetcher;
+  /** Sentry DSN (Worker secret). Unset = error reporting disabled. */
+  SENTRY_DSN?: string;
   APPS_SCRIPT_URL?: string;
   GOOGLE_SHEET_ID?: string;
   GOOGLE_DRIVE_FOLDER_ID?: string;
@@ -194,18 +202,26 @@ async function handleRecruitmentSubmit(request: Request, env: Env): Promise<Resp
     const isMember = formMode === 'member';
     const courseName = isMember ? 'N/A' : service;
 
-    if (!name || !phone || !paymentMethod || !transactionId) {
-      return json({ error: 'সবগুলো প্রয়োজনীয় ফিল্ড পূরণ করুন।' }, 400);
-    }
-    if (!isMember && !address) {
-      return json({ error: 'ঠিকানা আবশ্যক।' }, 400);
-    }
-    if (!isMember && !service) {
-      return json({ error: 'কোর্স সিলেক্ট করুন।' }, 400);
-    }
-    if (isMember && (!academicSession || !department || !hallName || !duRegistrationId)) {
-      return json({ error: 'সবগুলো প্রয়োজনীয় ফিল্ড পূরণ করুন।' }, 400);
-    }
+    // Same rules as the client form (shared module) — never trust the browser.
+    const errors = validateRegistration({
+      name: name ?? '',
+      address: address ?? '',
+      phone: phone ?? '',
+      service: service ?? '',
+      isDuStudent: isDuStudent ?? false,
+      academicSession: academicSession ?? '',
+      department: department ?? '',
+      hallName: hallName ?? '',
+      duRegistrationId: duRegistrationId ?? '',
+      paymentMethod: paymentMethod ?? '',
+      transactionId: transactionId ?? '',
+      formMode: formMode ?? null,
+    });
+    const firstError = Object.values(errors)[0];
+    if (firstError) return json({ error: firstError }, 400);
+
+    // Recompute the fee server-side instead of trusting the client's total.
+    const expectedFull = getFullAmount(formMode, isDuStudentFlag(isDuStudent ?? false));
 
     // Step 1: Get invoice ID from Apps Script
     const idResult = await callAppsScript(env, {
@@ -236,7 +252,7 @@ async function handleRecruitmentSubmit(request: Request, env: Env): Promise<Resp
       paymentMethod,
       transactionId,
       paymentType: 'full',
-      fullAmount: Number(fullAmount),
+      fullAmount: expectedFull,
     };
 
     let clientPdfBytes: Uint8Array;
@@ -271,7 +287,7 @@ async function handleRecruitmentSubmit(request: Request, env: Env): Promise<Resp
       duRegistrationId,
       paymentMethod,
       transactionId,
-      fullAmount,
+      fullAmount: expectedFull,
       formMode,
       sheetId: env.GOOGLE_SHEET_ID,
       folderId: env.GOOGLE_DRIVE_FOLDER_ID,
@@ -310,7 +326,7 @@ async function tryAssets(env: Env, paths: string[]): Promise<Response | null> {
 
 // ── Main handler ───────────────────────────────────────────────────────────
 
-export default {
+const handler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -361,3 +377,12 @@ export default {
     return env.ASSETS.fetch('/index.html');
   },
 };
+
+export default Sentry.withSentry(
+  (env: Env) => ({
+    // Unset secret = SDK disabled, handler runs normally.
+    dsn: env.SENTRY_DSN,
+    tracesSampleRate: 0,
+  }),
+  handler
+);

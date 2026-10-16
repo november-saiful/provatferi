@@ -19,6 +19,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@sentry/cloudflare": "^8.55.2",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {

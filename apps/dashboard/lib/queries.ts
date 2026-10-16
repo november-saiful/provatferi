@@ -6,6 +6,7 @@ import { supabase } from './supabase/client';
 import { useAuthStore } from './auth-store';
 import { COMMITTEE_ROLES, ROLE_ORDER } from './permissions';
 import type {
+  AlumniClaim,
   AlumniMember,
   AppNotification,
   AttendanceRecord,
@@ -614,6 +615,48 @@ export function useAlumni() {
         .order('full_name', { ascending: true });
       if (error) throw error;
       return asRows<AlumniMember>(data);
+    }
+  });
+}
+
+/**
+ * Alumni onboarding queue (reviewers) — newest first.
+ * RLS: only pr/vp/admin/root can read other people's claims.
+ */
+export function useAlumniClaims(enabled = false, status?: 'pending' | 'approved' | 'rejected') {
+  return useQuery({
+    queryKey: ['alumni-claims', status ?? 'all'],
+    enabled,
+    queryFn: async () => {
+      let q = supabase
+        .from('alumni_claims')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (status) q = q.eq('status', status);
+      const { data, error } = await q;
+      if (error) throw error;
+      return asRows<AlumniClaim>(data);
+    }
+  });
+}
+
+/** The signed-in user's own most recent claim (for status display). */
+export function useMyAlumniClaim(enabled = false) {
+  const { user } = useAuthStore();
+  const userId = user?.id;
+  return useQuery({
+    queryKey: ['alumni-claims', 'mine', userId],
+    enabled: enabled && !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('alumni_claims')
+        .select('*')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as AlumniClaim | null;
     }
   });
 }

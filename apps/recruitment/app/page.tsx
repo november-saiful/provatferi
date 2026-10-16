@@ -6,28 +6,21 @@ import {
   Phone,
   BookOpen,
   School,
-  IdCard,
-  GraduationCap,
-  Building,
-  CreditCard,
+  MapPin,
   Download,
   CheckCircle2,
   AlertCircle,
-  MapPin,
-  Globe
 } from 'lucide-react';
-
-const FACEBOOK_PAGE_URL = 'https://www.facebook.com/provatferi.org/';
-const ORGANIZATION_SITE_URL = '/';
-
-const banglaDigits: Record<string, string> = {
-  '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪',
-  '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯',
-};
-
-function toBanglaNum(n: number): string {
-  return n.toLocaleString('en-US').replace(/\d/g, (d) => banglaDigits[d]);
-}
+import {
+  COURSES,
+  getFullAmount,
+  isDuStudentFlag,
+  validateRegistration,
+  type FormMode,
+} from '../lib/registration';
+import { ModePicker } from '../components/mode-picker';
+import { DuFields } from '../components/du-fields';
+import { PaymentSection } from '../components/payment-section';
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(true);
@@ -36,7 +29,7 @@ export default function Home() {
   useEffect(() => {
     fetch('/api/recruitment/health').catch(() => {});
   }, []);
-  const [formMode, setFormMode] = useState<'course' | 'member' | null>(null);
+  const [formMode, setFormMode] = useState<FormMode | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -62,24 +55,14 @@ export default function Home() {
   const [downloadName, setDownloadName] = useState('invoice.pdf');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (formMode === 'member') {
-      setFullAmount(100);
-      setAmount(100);
-    } else if (formMode === 'course') {
-      const base = formData.isDuStudent === 'yes' ? 2550 : 3100;
-      setFullAmount(base);
-      setAmount(base);
-    }
-  }, [formMode, formData.isDuStudent]);
+  const isDu = isDuStudentFlag(formData.isDuStudent);
 
   useEffect(() => {
-    if (formMode === 'member') {
-      setAmount(100);
-    } else {
-      setAmount(fullAmount);
-    }
-  }, [formMode, fullAmount]);
+    if (!formMode) return;
+    const base = getFullAmount(formMode, formData.isDuStudent === 'yes');
+    setFullAmount(base);
+    setAmount(base);
+  }, [formMode, formData.isDuStudent]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
@@ -111,34 +94,7 @@ export default function Home() {
   };
 
   const validateForm = () => {
-    const errors: Record<string, string> = {};
-    if (!formData.name.trim()) errors.name = 'নাম আবশ্যক।';
-    if (formMode === 'course' && !formData.address.trim()) {
-      errors.address = 'ঠিকানা আবশ্যক।';
-    }
-    if (!formData.phone.trim()) {
-      errors.phone = 'ফোন নম্বর আবশ্যক।';
-    } else if (!/^[0-9+-\s()]{10,15}$/.test(formData.phone)) {
-      errors.phone = 'সঠিক ফোন নম্বর লিখুন (১১ ডিজিট)।';
-    }
-    if (formMode === 'course' && !formData.service) errors.service = 'একটি কোর্স সিলেক্ট করুন।';
-    if (!formData.paymentMethod) errors.paymentMethod = 'পেমেন্ট মাধ্যম সিলেক্ট করুন।';
-    if (!formData.transactionId.trim()) errors.transactionId = 'ট্রানজেকশন আইডি (TrxID) দিন।';
-
-    if (formMode === 'member') {
-      if (!formData.academicSession.trim()) errors.academicSession = 'শিক্ষাবর্ষ আবশ্যক।';
-      if (!formData.department.trim()) errors.department = 'বিভাগের নাম আবশ্যক।';
-      if (!formData.hallName.trim()) errors.hallName = 'হলের নাম আবশ্যক।';
-      if (!formData.duRegistrationId.trim()) errors.duRegistrationId = 'রেজিস্ট্রেশন আইডি আবশ্যক।';
-    }
-
-    if (formMode === 'course' && formData.isDuStudent === 'yes') {
-      if (!formData.academicSession.trim()) errors.academicSession = 'শিক্ষাবর্ষ আবশ্যক।';
-      if (!formData.department.trim()) errors.department = 'বিভাগের নাম আবশ্যক।';
-      if (!formData.hallName.trim()) errors.hallName = 'হলের নাম আবশ্যক।';
-      if (!formData.duRegistrationId.trim()) errors.duRegistrationId = 'রেজিস্ট্রেশন আইডি আবশ্যক।';
-    }
-
+    const errors = validateRegistration({ ...formData, formMode });
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -181,7 +137,7 @@ export default function Home() {
       setDownloadUrl(blobUrl);
       setDownloadName(filename);
 
-      try { window.open(blobUrl, '_blank'); } catch {} 
+      try { window.open(blobUrl, '_blank'); } catch {}
 
       setProgress(100);
       setSuccess(true);
@@ -229,56 +185,12 @@ export default function Home() {
 
       {/* Mode Selection Popup */}
       {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center animate-fade-in">
-            <img src="/recruitment-logo.png" alt="Logo" className="h-16 mx-auto mb-5 object-contain" />
-            <h2 className="text-2xl font-bold text-brand-primary mb-3">আপনি কী করতে চান?</h2>
-            <p className="text-slate-600 text-sm mb-8">আপনার উদ্দেশ্য নির্বাচন করুন</p>
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={() => { setFormMode('course'); setShowPopup(false); }}
-                className="w-full px-6 py-4 rounded-2xl text-base font-bold text-white bg-brand-primary hover:bg-brand-primary-hover active:scale-[0.99] shadow-lg shadow-brand-primary/20 transition-all duration-200"
-              >
-                কোর্সে ভর্তি হতে চাই
-              </button>
-              <button
-                type="button"
-                onClick={() => { setFormMode('member'); setShowPopup(false); }}
-                className="w-full px-6 py-4 rounded-2xl text-base font-bold text-brand-primary bg-brand-primary-light hover:bg-brand-secondary-light border-2 border-brand-primary active:scale-[0.99] transition-all duration-200"
-              >
-                ক্লাবের সদস্য হতে চাই
-              </button>
-            </div>
-
-            {/* External links - Facebook page & main website */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <p className="text-xs text-slate-500 mb-3">অথবা আমাদের সাথে যুক্ত হোন</p>
-              <div className="grid grid-cols-2 gap-3">
-                <a
-                  href={FACEBOOK_PAGE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-brand-primary bg-brand-primary-light hover:bg-brand-secondary-light border border-brand-primary/40 active:scale-[0.99] transition-all duration-200"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z" />
-                  </svg>
-                  ফেসবুক পেজ
-                </a>
-                <a
-                  href={ORGANIZATION_SITE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-brand-primary bg-brand-primary-light hover:bg-brand-secondary-light border border-brand-primary/40 active:scale-[0.99] transition-all duration-200"
-                >
-                  <Globe className="w-4 h-4" />
-                  মূল ওয়েবসাইট
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ModePicker
+          onSelect={(mode) => {
+            setFormMode(mode);
+            setShowPopup(false);
+          }}
+        />
       )}
 
       <div className="max-w-2xl mx-auto px-5 md:px-8 py-6 md:py-10">
@@ -414,12 +326,9 @@ export default function Home() {
                   } focus:outline-none focus:ring-4 focus:ring-brand-primary-light focus:border-brand-primary transition-all duration-200 text-slate-900`}
               >
                 <option value="">কোর্স সিলেক্ট করুন</option>
-                <option value="Flute">বাঁশি (Flute)</option>
-                <option value="Guitar">গিটার (Guitar)</option>
-                <option value="Violin">ভায়োলিন (Violin)</option>
-                <option value="Vocal">কণ্ঠসঙ্গীত (Vocal)</option>
-                <option value="Ukulele">ইউকুলেলে (Ukulele)</option>
-                <option value="Dotara">দোতারা (Dotara)</option>
+                {COURSES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
               </select>
               {validationErrors.service && (
                 <p className="text-xs text-rose-500 font-medium">{validationErrors.service}</p>
@@ -461,83 +370,14 @@ export default function Home() {
               </div>
 
               {/* DU Student Details Cascade Fields */}
-              {formData.isDuStudent === 'yes' && (
-                <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <GraduationCap className="w-3.5 h-3.5 text-brand-primary" />
-                      শিক্ষাবর্ষ (Academic Session) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="academicSession"
-                      value={formData.academicSession}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                      placeholder="যেমন: 2020-21"
-                      className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                    />
-                    {validationErrors.academicSession && (
-                      <p className="text-[11px] text-rose-500">{validationErrors.academicSession}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <Building className="w-3.5 h-3.5 text-brand-primary" />
-                      বিভাগ (Department Name) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="department"
-                      value={formData.department}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                      placeholder="যেমন: দর্শন বিভাগ"
-                      className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                    />
-                    {validationErrors.department && (
-                      <p className="text-[11px] text-rose-500">{validationErrors.department}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <School className="w-3.5 h-3.5 text-brand-primary" />
-                      হলের নাম (Hall Name) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="hallName"
-                      value={formData.hallName}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                      placeholder="যেমন: রোকেয়া হল"
-                      className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                    />
-                    {validationErrors.hallName && (
-                      <p className="text-[11px] text-rose-500">{validationErrors.hallName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <IdCard className="w-3.5 h-3.5 text-brand-primary" />
-                      Academic Registration ID <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="duRegistrationId"
-                      value={formData.duRegistrationId}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                      placeholder="যেমন: 2019XXXXXX"
-                      className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                    />
-                    {validationErrors.duRegistrationId && (
-                      <p className="text-[11px] text-rose-500">{validationErrors.duRegistrationId}</p>
-                    )}
-                  </div>
+              {isDu && (
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                  <DuFields
+                    values={formData}
+                    errors={validationErrors}
+                    disabled={loading}
+                    onChange={handleInputChange}
+                  />
                 </div>
               )}
             </div>
@@ -550,194 +390,25 @@ export default function Home() {
                 <School className="w-4 h-4 text-brand-primary" />
                 ঢাকা বিশ্ববিদ্যালয়ের শিক্ষার্থীর তথ্য
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5 text-brand-primary" />
-                    শিক্ষাবর্ষ (Academic Session) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="academicSession"
-                    value={formData.academicSession}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="যেমন: 2020-21"
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                  />
-                  {validationErrors.academicSession && (
-                    <p className="text-[11px] text-rose-500">{validationErrors.academicSession}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                    <Building className="w-3.5 h-3.5 text-brand-primary" />
-                    বিভাগ (Department Name) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="যেমন: দর্শন বিভাগ"
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                  />
-                  {validationErrors.department && (
-                    <p className="text-[11px] text-rose-500">{validationErrors.department}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                    <School className="w-3.5 h-3.5 text-brand-primary" />
-                    হলের নাম (Hall Name) <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="hallName"
-                    value={formData.hallName}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="যেমন: রোকেয়া হল"
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                  />
-                  {validationErrors.hallName && (
-                    <p className="text-[11px] text-rose-500">{validationErrors.hallName}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                    <IdCard className="w-3.5 h-3.5 text-brand-primary" />
-                    Academic Registration ID <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="duRegistrationId"
-                    value={formData.duRegistrationId}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="যেমন: 2019XXXXXX"
-                    className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900"
-                  />
-                  {validationErrors.duRegistrationId && (
-                    <p className="text-[11px] text-rose-500">{validationErrors.duRegistrationId}</p>
-                  )}
-                </div>
-              </div>
+              <DuFields
+                values={formData}
+                errors={validationErrors}
+                disabled={loading}
+                onChange={handleInputChange}
+              />
             </div>
             )}
 
-            {/* Payment Method Cascade Question */}
-            <div className="space-y-4 bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200/60">
-              <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-brand-primary" />
-                পেমেন্ট পদ্ধতি নির্বাচন করুন <span className="text-rose-500">*</span>
-              </label>
-
-              <div className="grid grid-cols-2 gap-4">
-                <label className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.paymentMethod === 'bkash'
-                  ? 'border-pink-500 bg-pink-50/50 text-pink-700 font-bold'
-                  : 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
-                  }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="bkash"
-                    checked={formData.paymentMethod === 'bkash'}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    className="sr-only"
-                  />
-                  <span>বিকাশ (bKash)</span>
-                </label>
-
-                <label className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.paymentMethod === 'nagad'
-                  ? 'border-orange-500 bg-orange-50/50 text-orange-700 font-bold'
-                  : 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
-                  }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="nagad"
-                    checked={formData.paymentMethod === 'nagad'}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    className="sr-only"
-                  />
-                  <span>নগদ (Nagad)</span>
-                </label>
-              </div>
-
-              {/* Price overview summary */}
-              {formMode === 'member' ? (
-                <div className="bg-brand-primary-light p-5 rounded-2xl border border-brand-primary-light space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-brand-primary-dark">সদস্যপদ ফি (Membership Fee)</span>
-                    <span className="font-bold text-brand-primary">১০০/-</span>
-                  </div>
-                  <hr className="border-slate-300" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-brand-primary-dark">মোট প্রদেয় ফি:</span>
-                    <span className="text-2xl font-black text-brand-primary">{toBanglaNum(amount)}/-</span>
-                  </div>
-                </div>
-              ) : (
-                <>
-                <div className="bg-brand-primary-light p-5 rounded-2xl border border-brand-primary-light space-y-2">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-brand-primary-dark">কোর্স ফি</span>
-                    {formData.isDuStudent === 'yes' ? (
-                      <span className="text-slate-500"><del>৩,০০০/-</del> <span className="font-bold text-brand-primary">২,৫০০/-</span></span>
-                    ) : (
-                      <span className="font-bold text-brand-primary">৩,০০০/-</span>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-brand-primary-dark">প্ল্যাটফর্ম ও ফর্ম ফি</span>
-                    {formData.isDuStudent === 'yes' ? (
-                      <span className="text-slate-500"><del>১০০/-</del> <span className="font-bold text-brand-primary">৫০/-</span></span>
-                    ) : (
-                      <span className="font-bold text-brand-primary">১০০/-</span>
-                    )}
-                  </div>
-                  <hr className="border-slate-300" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-brand-primary-dark">মোট প্রদেয় ফি:</span>
-                    <span className="text-2xl font-black text-brand-primary">{toBanglaNum(amount)}/-</span>
-                  </div>
-                </div>
-                </>
-              )}
-
-              {/* Transaction ID input field */}
-              {formData.paymentMethod && (
-                <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
-                  <p className="text-sm text-center text-slate-600">নিম্নোক্ত নাম্বারে টাকা পাঠিয়ে (সেন্ড-মানি) ট্রানজাকশন নাম্বারটি কপি করে এখানে পেস্ট করুন।</p>
-                  <div className="flex justify-center bg-white p-5 rounded-2xl border border-slate-200">
-                    <span className="text-2xl font-black text-brand-primary">{formData.paymentMethod === 'nagad' ? '01842587676' : '01407604000'}</span>
-                  </div>
-                  <label className="text-xs font-bold text-slate-600 block mt-2">
-                    Transaction ID (TrxID) লিখুন <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="transactionId"
-                    value={formData.transactionId}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    placeholder="যেমন: 8N79JFLK2"
-                    className={`w-full px-4 py-2.5 rounded-lg text-sm bg-white border ${validationErrors.transactionId ? 'border-rose-400' : 'border-slate-200'
-                      } focus:outline-none focus:ring-2 focus:ring-brand-primary transition-all text-slate-900`}
-                  />
-                  {validationErrors.transactionId && (
-                    <p className="text-xs text-rose-500">{validationErrors.transactionId}</p>
-                  )}
-                </div>
-              )}
-            </div>
+            <PaymentSection
+              formMode={formMode}
+              isDuStudent={isDu}
+              amount={amount}
+              paymentMethod={formData.paymentMethod}
+              transactionId={formData.transactionId}
+              errors={validationErrors}
+              disabled={loading}
+              onChange={handleInputChange}
+            />
 
             {/* Submit Button / Progress Bar */}
             {loading ? (

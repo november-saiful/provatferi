@@ -307,6 +307,26 @@ export interface CommitteeMember {
   roles?: { id: string; name: string; display_order: number } | null;
 }
 
+/**
+ * An alumni onboarding request filed by a signed-in visitor.
+ * Reviewers approve (profile → `alm`) or reject it.
+ */
+export interface AlumniClaim {
+  id: string;
+  user_id: string;
+  full_name: string;
+  academic_session: string | null;
+  department: string | null;
+  hall_name: string | null;
+  reg_id: string | null;
+  phone: string | null;
+  note: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
 export interface Task {
   id: string;
   title: string;
