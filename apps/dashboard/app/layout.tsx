@@ -10,7 +10,7 @@ const notoSerifBengali = Noto_Serif_Bengali({
   variable: '--font-noto-serif-bengali',
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://home.provatferi2009.workers.dev';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://provatferi.provatferi2009.workers.dev';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'প্রভাতফেরী',
     description: 'ঢাকা বিশ্ববিদ্যালয় প্রভাতফেরী সাংস্কৃতিক সংসদ',
-    url: 'https://home.provatferi2009.workers.dev',
+    url: SITE_URL,
     siteName: 'প্রভাতফেরী',
     images: [
       {

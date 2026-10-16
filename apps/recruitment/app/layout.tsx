@@ -9,7 +9,9 @@ const notoSerifBengali = Noto_Serif_Bengali({
   display: "optional",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://home.provatferi2009.workers.dev/recruitment/';
+// Origin only — Next resolves the root-absolute OG image against this base, and
+// the logo is served from the origin root (/recruitment-logo.png), not /recruitment/.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://provatferi.provatferi2009.workers.dev';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
