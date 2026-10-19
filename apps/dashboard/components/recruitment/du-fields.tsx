@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import * as React from 'react';
 import { GraduationCap, Building, School, IdCard } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export interface DuFieldValues {
   academicSession: string;
@@ -17,9 +18,6 @@ interface DuFieldsProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const inputClass =
-  'w-full px-3.5 py-2.5 rounded-lg text-sm bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 transition-all text-slate-900';
-
 function Field({
   icon,
   label,
@@ -28,7 +26,7 @@ function Field({
   placeholder,
   error,
   disabled,
-  onChange,
+  onChange
 }: {
   icon: React.ReactNode;
   label: string;
@@ -40,19 +38,20 @@ function Field({
   onChange: DuFieldsProps['onChange'];
 }) {
   return (
-    <div className="space-y-1">
-      <label className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+    <div className="space-y-1.5">
+      <label className="flex items-center gap-1.5 text-xs font-bold text-foreground/80">
         {icon}
         {label} <span className="text-rose-500">*</span>
       </label>
-      <input
+      <Input
         type="text"
         name={name}
         value={value}
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
-        className={inputClass}
+        aria-invalid={!!error}
+        className={error ? 'border-rose-400 focus-visible:border-rose-400' : undefined}
       />
       {error && <p className="text-[11px] text-rose-500">{error}</p>}
     </div>
@@ -62,9 +61,9 @@ function Field({
 /** The 4 DU-student inputs, rendered as a 2-col grid. Wrappers differ per mode. */
 export function DuFields({ values, errors, disabled, onChange }: DuFieldsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
       <Field
-        icon={<GraduationCap className="w-3.5 h-3.5 text-brand-primary" />}
+        icon={<GraduationCap className="h-3.5 w-3.5 text-primary" />}
         label="শিক্ষাবর্ষ (Academic Session)"
         name="academicSession"
         value={values.academicSession}
@@ -74,7 +73,7 @@ export function DuFields({ values, errors, disabled, onChange }: DuFieldsProps) 
         onChange={onChange}
       />
       <Field
-        icon={<Building className="w-3.5 h-3.5 text-brand-primary" />}
+        icon={<Building className="h-3.5 w-3.5 text-primary" />}
         label="বিভাগ (Department Name)"
         name="department"
         value={values.department}
@@ -84,17 +83,17 @@ export function DuFields({ values, errors, disabled, onChange }: DuFieldsProps) 
         onChange={onChange}
       />
       <Field
-        icon={<School className="w-3.5 h-3.5 text-brand-primary" />}
+        icon={<School className="h-3.5 w-3.5 text-primary" />}
         label="হলের নাম (Hall Name)"
         name="hallName"
         value={values.hallName}
-        placeholder="যেমন: রোকেয়া হল"
+        placeholder="যেমন: রোকেয়া হল"
         error={errors.hallName}
         disabled={disabled}
         onChange={onChange}
       />
       <Field
-        icon={<IdCard className="w-3.5 h-3.5 text-brand-primary" />}
+        icon={<IdCard className="h-3.5 w-3.5 text-primary" />}
         label="Academic Registration ID"
         name="duRegistrationId"
         value={values.duRegistrationId}

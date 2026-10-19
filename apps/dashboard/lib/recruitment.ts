@@ -1,9 +1,9 @@
 /**
- * Shared registration rules — single source of truth for the recruitment form.
+ * Shared recruitment rules — single source of truth for the registration form.
  *
- * Pure TypeScript, zero dependencies: imported by the Next.js client
- * (`app/page.tsx`) AND by the edge Worker (`worker/index.ts`), so client and
- * server validation can never drift apart.
+ * Pure TypeScript, zero dependencies: imported by the dashboard page
+ * (`app/recruitment/page.tsx`) AND by the edge Worker (`worker/index.ts`), so
+ * client and server validation can never drift apart.
  */
 
 export type FormMode = 'course' | 'member';
@@ -109,4 +109,79 @@ const banglaDigits: Record<string, string> = {
 
 export function toBanglaNum(n: number): string {
   return n.toLocaleString('en-US').replace(/\d/g, (d) => banglaDigits[d]);
+}
+
+// ── Recruitment phase (app_config: recruitment_enabled/_starts_at/_ends_at) ──
+
+export interface RecruitmentSettings {
+  enabled: boolean;
+  /** ISO-8601 UTC, or null when unset. */
+  startsAt: string | null;
+  /** ISO-8601 UTC, or null when unset. */
+  endsAt: string | null;
+}
+
+export const DEFAULT_RECRUITMENT_SETTINGS: RecruitmentSettings = {
+  enabled: true,
+  startsAt: null,
+  endsAt: null
+};
+
+export type RecruitmentPhase = 'open' | 'scheduled' | 'ended' | 'disabled';
+
+function validDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+}
+
+export function parseRecruitmentSettings(
+  rows: Array<{ key: string; value: string | null }> | null | undefined
+): RecruitmentSettings {
+  const map = new Map((rows ?? []).map((r) => [r.key, r.value ?? '']));
+  if (map.size === 0) return DEFAULT_RECRUITMENT_SETTINGS;
+  return {
+    // Only an explicit 'false' disables the phase.
+    enabled: (map.get('recruitment_enabled') ?? 'true').trim().toLowerCase() !== 'false',
+    startsAt: validDate(map.get('recruitment_starts_at')),
+    endsAt: validDate(map.get('recruitment_ends_at')),
+  };
+}
+
+export function resolveRecruitmentPhase(
+  settings: RecruitmentSettings,
+  now: Date = new Date()
+): RecruitmentPhase {
+  if (!settings.enabled) return 'disabled';
+  if (settings.startsAt && now.getTime() < Date.parse(settings.startsAt)) return 'scheduled';
+  if (settings.endsAt && now.getTime() > Date.parse(settings.endsAt)) return 'ended';
+  return 'open';
+}
+
+/** The deadline the UI should count down to for the current phase. */
+export function phaseTarget(
+  settings: RecruitmentSettings,
+  phase: RecruitmentPhase
+): string | null {
+  if (phase === 'scheduled') return settings.startsAt;
+  if (phase === 'open') return settings.endsAt;
+  return null;
+}
+
+/** Convert an ISO timestamp to a value a datetime-local input accepts. */
+export function toLocalInput(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+    d.getMinutes()
+  )}`;
+}
+
+/** Convert a datetime-local input value to an ISO timestamp ('' when empty). */
+export function fromLocalInput(value: string): string {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString();
 }

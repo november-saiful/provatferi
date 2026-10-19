@@ -29,6 +29,11 @@ import { useAuthStore } from '@/lib/auth-store';
 import { canRead, canWrite, isCommitteeMember, ROLE_NAMES } from '@/lib/permissions';
 import type { ModuleId, RoleId } from '@/lib/types';
 import { RECRUITMENT_URL, SITE_NAME } from '@/lib/constants';
+import { useRecruitmentSettings } from '@/lib/queries';
+import {
+  DEFAULT_RECRUITMENT_SETTINGS,
+  resolveRecruitmentPhase
+} from '@/lib/recruitment';
 import { cn } from '@/lib/utils';
 import { PageTransition } from '@/components/layout/page-transition';
 import { ScrollProgress } from '@/components/ui/scroll-progress';
@@ -103,6 +108,7 @@ const DASHBOARD_NAV: NavGroup[] = [
     label: 'অ্যাডমিন',
     items: [
       { href: '/dashboard/admin', label: 'কন্ট্রোল প্যানেল', icon: UserCog, module: 'admin' },
+      { href: '/dashboard/admin/recruitment', label: 'রিক্রুটমেন্ট', icon: UserPlus, module: 'admin' },
       { href: '/dashboard/admin/claims', label: 'অ্যালামনাই দাবি', icon: BadgeCheck, module: 'admin' },
       { href: '/dashboard/admin/roles', label: 'রোল সুপারভাইজ', icon: UserCog, module: 'admin' }
     ]
@@ -158,6 +164,10 @@ interface NavMenuProps {
 
 function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
   const [open, setOpen] = React.useState(false);
+  // The recruitment entry only exists while the phase is actually open.
+  const { data: recruitmentSettings } = useRecruitmentSettings();
+  const recruitmentOpen =
+    resolveRecruitmentPhase(recruitmentSettings ?? DEFAULT_RECRUITMENT_SETTINGS) === 'open';
 
   const filteredGroups = React.useMemo<NavGroup[]>(() => {
     return groups
@@ -225,15 +235,20 @@ function NavMenu({ groups, role, authed, pathname }: NavMenuProps) {
           </React.Fragment>
         ))}
 
-        {/* Recruitment (same site, /recruitment/) */}
-        <DropdownSeparator staggered />
-        <DropdownItem
-          staggered
-          href={RECRUITMENT_URL}
-          icon={<UserPlus className="h-4 w-4 text-gold-500" />}
-        >
-          রিক্রুটমেন্ট
-        </DropdownItem>
+        {/* Recruitment (same site, /recruitment/) — hidden while closed */}
+        {recruitmentOpen && (
+          <>
+            <DropdownSeparator staggered />
+            <DropdownItem
+              staggered
+              href={RECRUITMENT_URL}
+              icon={<UserPlus className="h-4 w-4 text-gold-500" />}
+              selected={isItemActive(pathname, RECRUITMENT_URL)}
+            >
+              রিক্রুটমেন্ট
+            </DropdownItem>
+          </>
+        )}
 
         {/* Storage indicator — only for committee members and alumni */}
         {authed && (isCommitteeMember(role) || role === 'alm') && (

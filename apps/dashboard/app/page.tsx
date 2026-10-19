@@ -16,8 +16,12 @@ import {
 } from 'lucide-react';
 import { PublicShell } from '@/components/layout/dashboard-shell';
 import { Seo } from '@/components/seo';
-import { useEvents, useNotices, useDonorBoard } from '@/lib/queries';
+import { useEvents, useNotices, useDonorBoard, useRecruitmentSettings } from '@/lib/queries';
 import { RECRUITMENT_URL } from '@/lib/constants';
+import {
+  DEFAULT_RECRUITMENT_SETTINGS,
+  resolveRecruitmentPhase
+} from '@/lib/recruitment';
 import { Button } from '@/components/ui/button';
 import { Reveal, RevealStagger, RevealItem, EASE } from '@/components/ui/motion';
 import { AlbumSlider } from '@/components/modules/album-slider';
@@ -41,7 +45,10 @@ export default function LandingPage() {
   const { data: events, isLoading: loadingEvents } = useEvents('all');
   const { data: notices, isLoading: loadingNotices, isError: noticesError } = useNotices();
   const { data: donors } = useDonorBoard();
+  const { data: recruitmentSettings } = useRecruitmentSettings();
   const recruitmentUrl = RECRUITMENT_URL;
+  const recruitmentOpen =
+    resolveRecruitmentPhase(recruitmentSettings ?? DEFAULT_RECRUITMENT_SETTINGS) === 'open';
 
   const recentDonors = (donors ?? []).slice(0, 6);
 
@@ -119,12 +126,14 @@ export default function LandingPage() {
               >
                 কোর্স দেখুন
               </Button>
-              <a
-                href={recruitmentUrl}
-                className="inline-flex h-12 items-center gap-2 rounded-xl border-2 border-gold-400/30 bg-gold-500/10 px-6 text-base font-semibold text-gold-300 transition-all duration-300 hover:bg-gold-500/20 hover:border-gold-400/50 hover:-translate-y-0.5"
-              >
-                <UserPlus className="h-4 w-4" /> রিক্রুটমেন্ট
-              </a>
+              {recruitmentOpen && (
+                <a
+                  href={recruitmentUrl}
+                  className="inline-flex h-12 items-center gap-2 rounded-xl border-2 border-gold-400/30 bg-gold-500/10 px-6 text-base font-semibold text-gold-300 transition-all duration-300 hover:bg-gold-500/20 hover:border-gold-400/50 hover:-translate-y-0.5"
+                >
+                  <UserPlus className="h-4 w-4" /> রিক্রুটমেন্ট
+                </a>
+              )}
             </motion.div>
           </div>
         </section>

@@ -5,6 +5,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase/client';
 import { useAuthStore } from './auth-store';
 import { COMMITTEE_ROLES, ROLE_ORDER } from './permissions';
+import {
+  parseRecruitmentSettings,
+  type RecruitmentSettings
+} from './recruitment';
 import type {
   AlumniClaim,
   AlumniMember,
@@ -672,6 +676,58 @@ export function useAppConfig(key: string) {
         .maybeSingle();
       if (error) throw error;
       return (data?.value ?? '') as string;
+    }
+  });
+}
+
+// ---------- Recruitment phase (migration 00044) ----------
+
+export const RECRUITMENT_CONFIG_KEYS = [
+  'recruitment_enabled',
+  'recruitment_starts_at',
+  'recruitment_ends_at'
+] as const;
+
+/**
+ * Recruitment on/off + phase window, read from app_config (public read).
+ * Missing keys fall back to "open with no deadline", so the form keeps
+ * working before the migration runs.
+ */
+export function useRecruitmentSettings() {
+  return useQuery({
+    queryKey: ['recruitment-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_config')
+        .select('key, value')
+        .in('key', [...RECRUITMENT_CONFIG_KEYS]);
+      if (error) throw error;
+      return parseRecruitmentSettings(asRows<{ key: string; value: string | null }>(data));
+    }
+  });
+}
+
+/**
+ * Save the recruitment phase settings (pr/vp/admin/root — mirrors the
+ * app_config RLS policy). Empty date strings clear that bound.
+ */
+export function useUpdateRecruitmentSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (settings: RecruitmentSettings) => {
+      const rows = [
+        { key: 'recruitment_enabled', value: settings.enabled ? 'true' : 'false' },
+        { key: 'recruitment_starts_at', value: settings.startsAt ?? '' },
+        { key: 'recruitment_ends_at', value: settings.endsAt ?? '' }
+      ];
+      const { error } = await supabase
+        .from('app_config')
+        .upsert(rows, { onConflict: 'key' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['recruitment-settings'] });
+      qc.invalidateQueries({ queryKey: ['app-config'] });
     }
   });
 }

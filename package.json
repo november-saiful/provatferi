@@ -8,12 +8,11 @@
   ],
   "scripts": {
     "build:dashboard": "npm run build -w provatferi-dashboard",
-    "build:recruitment": "npm run build -w pcr",
     "assemble": "node scripts/assemble.mjs",
-    "build": "npm run build:dashboard && npm run build:recruitment && npm run assemble",
+    "build": "npm run build:dashboard && npm run assemble",
     "deploy": "wrangler deploy",
-    "dev:dashboard": "npm run dev -w provatferi-dashboard",
-    "dev:recruitment": "npm run dev -w pcr"
+    "dev": "npm run dev -w provatferi-dashboard",
+    "dev:dashboard": "npm run dev -w provatferi-dashboard"
   },
   "engines": {
     "node": ">=20"

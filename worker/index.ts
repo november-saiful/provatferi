@@ -22,7 +22,7 @@ import {
   getFullAmount,
   isDuStudentFlag,
   validateRegistration,
-} from '../apps/recruitment/lib/registration';
+} from '../apps/dashboard/lib/recruitment';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -146,7 +146,7 @@ async function calendarFeed(env: Env): Promise<string> {
   return lines.join('\r\n');
 }
 
-// ── Recruitment submit (ported from apps/recruitment/app/api/submit) ──────
+// ── Recruitment submit (ported from the original standalone app) ──────────
 
 function uint8ToBase64(bytes: Uint8Array): string {
   let binary = '';
@@ -179,8 +179,50 @@ const json = (obj: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+const supabaseBase = (env: Env) => env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+const supabaseKey = (env: Env) => env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+
+/**
+ * Mirrors the dashboard's recruitment phase gate (app_config, migration 00044)
+ * so a cached page or a direct POST cannot register while the phase is closed.
+ * Fails open: a Supabase hiccup must never block real registrations.
+ */
+async function isRecruitmentClosed(env: Env): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${supabaseBase(env)}/rest/v1/app_config?select=key,value&key=in.(recruitment_enabled,recruitment_starts_at,recruitment_ends_at)`,
+      {
+        headers: {
+          apikey: supabaseKey(env),
+          Authorization: `Bearer ${supabaseKey(env)}`,
+        },
+      }
+    );
+    if (!res.ok) return false;
+    const rows = (await res.json()) as Array<{ key: string; value: string | null }>;
+    const map = new Map(rows.map((r) => [r.key, r.value ?? '']));
+
+    if ((map.get('recruitment_enabled') ?? 'true').trim().toLowerCase() === 'false') {
+      return true;
+    }
+    const now = Date.now();
+    const start = Date.parse(map.get('recruitment_starts_at') || '');
+    const end = Date.parse(map.get('recruitment_ends_at') || '');
+    if (!Number.isNaN(start) && now < start) return true;
+    if (!Number.isNaN(end) && now > end) return true;
+    return false;
+  } catch (error) {
+    console.error('Recruitment phase check failed (failing open):', error);
+    return false;
+  }
+}
+
 async function handleRecruitmentSubmit(request: Request, env: Env): Promise<Response> {
   try {
+    if (await isRecruitmentClosed(env)) {
+      return json({ error: 'রিক্রুটমেন্ট বর্তমানে বন্ধ রয়েছে।' }, 403);
+    }
+
     const body = await request.json();
     const {
       name,

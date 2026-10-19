@@ -1,54 +1,67 @@
 # Provatferi (monorepo)
 
-One repo, one Cloudflare Worker, two sites:
+One repo, one Cloudflare Worker, one site:
 
-| App | Source | URL (single domain) | Stack |
-|-----|--------|---------------------|-------|
-| Club dashboard (home) | `apps/dashboard` | `/` | Next 14 static export + Supabase |
-| Recruitment (courses + membership) | `apps/recruitment` | `/recruitment/` | Next 16 static export, invoice API in the Worker |
+| Route | Source | Stack |
+|-------|--------|-------|
+| `/` — club home | `apps/dashboard` | Next 14 static export + Supabase |
+| `/recruitment/` — courses + membership | `apps/dashboard/app/recruitment` | same app shell, invoice API in the Worker |
 
-Merged from the `pcr` (recruitment) and `provatferi-dashboard` repos with
-both git histories preserved (`git log --follow` tracks files back past the move).
+Recruitment was originally a separate Next app (`pcr`). It now lives inside the
+dashboard app so it shares the header, footer, navigation and design tokens;
+only the invoice API remains in the Worker.
 
 ## How it fits together
 
 ```
 provatferi/
-├── apps/dashboard/      # club home: events, gallery, calendar, finances…
-├── apps/recruitment/    # course/member registration form (static UI)
+├── apps/dashboard/      # the whole site: home, events, recruitment, admin…
 ├── worker/
 │   ├── index.ts             # single Worker: static routing + API
 │   ├── recruitment-invoice.ts  # invoice PDF generation (pdf-lib)
 │   └── logo.ts              # invoice logo bytes
-├── scripts/assemble.mjs # merges both apps' `out/` into dist/
+├── integrations/
+│   └── apps-script.gs       # Google Apps Script backend (Sheet + Drive) source
+├── scripts/assemble.mjs # copies apps/dashboard/out → dist/
 ├── dist/                # assembled asset tree (generated, git-ignored)
 └── wrangler.jsonc       # the ONE worker config (name: provatferi)
 ```
 
-The Worker serves `dist/` and handles three API routes directly:
+The Worker serves `dist/` and handles these API routes directly:
 
 - `GET /api/calendar.ics` — live iCalendar feed of upcoming public events
 - `GET /api/health`, `GET /api/recruitment/health` — warm-up probes
 - `POST /api/recruitment/submit` (legacy `/api/submit` alias kept) —
   validates the form, generates the client invoice PDF with `pdf-lib`,
   forwards the admin copy + row to the Google Apps Script backend
-  (Sheet append + Drive upload). Previously a Next SSR route; now runs
-  at the edge in the same Worker.
+  (Sheet append + Drive upload). Also rejects submissions while the
+  recruitment phase is closed.
+
+### Recruitment phase control
+
+`app_config` keys (migration `00044_recruitment_settings.sql`):
+
+| Key | Meaning |
+|-----|---------|
+| `recruitment_enabled` | `'true'` / `'false'` — master switch |
+| `recruitment_starts_at` | ISO-8601 UTC, empty = no lower bound |
+| `recruitment_ends_at` | ISO-8601 UTC, empty = no upper bound |
+
+President, vice-president, admin and root edit these at
+**Dashboard → অ্যাডমিন → রিক্রুটমেন্ট**. The page, the popup and the home/nav
+links respect the phase, and the popup shows a live countdown to the start or
+end time.
 
 ## Develop
 
 ```bash
-npm run dev:dashboard     # http://localhost:3000  (dashboard)
-npm run dev:recruitment   # http://localhost:3000  (recruitment, separate shell)
+npm run dev:dashboard     # http://localhost:3000 (includes /recruitment/)
 ```
-
-Each app keeps its own Next/React/Tailwind versions and lockfile on purpose —
-unifying them is a separate upgrade project.
 
 ## Build & deploy
 
 ```bash
-npm run build    # builds both apps + assembles dist/
+npm run build    # builds the dashboard + assembles dist/
 npm run deploy   # wrangler deploy (needs CLOUDFLARE_API_TOKEN)
 ```
 
@@ -72,12 +85,11 @@ Local runs need `apps/dashboard/.env.local` (`NEXT_PUBLIC_SUPABASE_URL`,
 
 ## Notes & known trade-offs
 
-- Both apps emit hashed files under `_next/`; `scripts/assemble.mjs` merges
-  the trees. Same-name collisions are unlikely (different build IDs) but if a
-  deploy ever serves stale JS, rebuild both apps together (`npm run build`).
-- The two `logo.png` files differed, so the recruitment logo is served as
-  `/recruitment-logo.png` (see `scripts/assemble.mjs`).
+- The `apps/dashboard` static export owns every route, including
+  `/recruitment/`; there is only one `_next/` tree to deploy.
+- The Worker's static fallback still serves `/recruitment/index.html` for
+  `/recruitment/*`, so old bookmarks keep working.
 - Per-app `wrangler.jsonc` files and the old `open-next` SSR setup were
-  removed — the root Worker + static exports are canonical.
+  removed — the root Worker + static export is canonical.
 - Old Workers (`home.*`, `recruitment.*`) can be retired once DNS points at
   this Worker.

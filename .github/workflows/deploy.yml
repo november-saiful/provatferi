@@ -1,4 +1,4 @@
-name: Deploy Provatferi (dashboard + recruitment, single Worker)
+name: Deploy Provatferi (single Worker)
 
 on:
   push:
@@ -19,7 +19,6 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             apps/dashboard/package-lock.json
-            apps/recruitment/package-lock.json
 
       - name: Install root dependencies (Worker bundling)
         run: npm ci
@@ -27,22 +26,15 @@ jobs:
       - name: Install dashboard dependencies
         run: npm ci --prefix apps/dashboard
 
-      - name: Install recruitment dependencies
-        run: npm ci --prefix apps/recruitment
-
       - name: Build dashboard (static export → apps/dashboard/out)
         run: npm run build:dashboard
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: https://provatferi.provatferi2009.workers.dev
-          NEXT_PUBLIC_RECRUITMENT_URL: /recruitment/
           NEXT_PUBLIC_CONTACT_EMAIL: provatferi2009@gmail.com
           NEXT_PUBLIC_CONTACT_PHONE: +880 1839-858853
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-
-      - name: Build recruitment (static export → apps/recruitment/out)
-        run: npm run build:recruitment
 
       - name: Assemble single-asset tree (dist/)
         run: npm run assemble
